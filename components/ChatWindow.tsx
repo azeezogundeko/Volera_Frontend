@@ -564,7 +564,7 @@ const ChatWindow = ({ id }: { id?: string }) => {
             )}
           </div>
           {images && images.length > 0 && (
-            <div className="w-[300px] p-4 border-l border-light-200 dark:border-dark-200">
+            <div className="w-[450px] p-4 border-l border-light-200 dark:border-dark-200">
               <SearchImages 
                 images={images} 
                 loading={imagesLoading} 

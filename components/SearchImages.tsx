@@ -58,39 +58,47 @@ const SearchImages = ({
     );
   }
 
-  if (images !== null && images.length > 0) {
+  if (images && images.length > 0) {
     return (
       <>
-        <div className="grid grid-cols-2 gap-2 mt-16">
+        <div className="grid grid-cols-2 gap-4 mt-16">
           {images.slice(0, 3).map((image, i) => (
-            <img
-              onClick={() => {
-                setOpen(true);
-                setSlides([
-                  slides[i],
-                  ...slides.slice(0, i),
-                  ...slides.slice(i + 1),
-                ]);
-              }}
-              key={i}
-              src={image.img_src}
-              alt={image.title}
-              className="h-32 w-full object-contain object-top rounded-lg transition duration-200 active:scale-95 hover:scale-[1.02] cursor-zoom-in"
-            />
+            <div 
+              key={i} 
+              className="relative aspect-square w-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+            >
+              <img
+                onClick={() => {
+                  setOpen(true);
+                  setSlides([
+                    slides[i],
+                    ...slides.slice(0, i),
+                    ...slides.slice(i + 1),
+                  ]);
+                }}
+                src={image.img_src}
+                alt={image.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-200 active:scale-95 hover:scale-105 cursor-zoom-in"
+              />
+            </div>
           ))}
           {images.length > 3 && (
             <button
               onClick={() => setOpen(true)}
-              className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition duration-200 active:scale-95 hover:scale-[1.02] h-32 w-full rounded-lg flex flex-col justify-between p-2"
+              className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition-all duration-300 active:scale-95 hover:scale-105 aspect-square w-full rounded-lg flex flex-col justify-between p-2 shadow-lg hover:shadow-xl transform hover:-translate-y-2"
             >
-              <div className="grid grid-cols-3 gap-1 h-full w-full">
+              <div className="grid grid-cols-3 gap-2 h-full w-full place-items-center">
                 {images.slice(3, 6).map((image, i) => (
-                  <img
-                    key={i}
-                    src={image.img_src}
-                    alt={image.title}
-                    className="h-full w-full object-contain object-center rounded-sm"
-                  />
+                  <div 
+                    key={i} 
+                    className="relative w-full h-full max-w-[80px] max-h-[80px] rounded-sm overflow-hidden"
+                  >
+                    <img
+                      src={image.img_src}
+                      alt={image.title}
+                      className="absolute inset-0 w-full h-full object-cover rounded-sm"
+                    />
+                  </div>
                 ))}
               </div>
               <p className="text-black/70 dark:text-white/70 text-xs text-center mt-1">
@@ -99,7 +107,11 @@ const SearchImages = ({
             </button>
           )}
         </div>
-        <Lightbox open={open} close={() => setOpen(false)} slides={slides} />
+        <Lightbox
+          open={open}
+          close={() => setOpen(false)}
+          slides={slides}
+        />
       </>
     );
   }
