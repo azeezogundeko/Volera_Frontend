@@ -1,3 +1,4 @@
+
 /* eslint-disable @next/next/no-img-element */
 import {
   Dialog,
@@ -9,13 +10,9 @@ import {
 import { Document } from '@langchain/core/documents';
 import { File } from 'lucide-react';
 import { Fragment, useState } from 'react';
-import Lightbox from 'yet-another-react-lightbox';
-import 'yet-another-react-lightbox/styles.css';
 
 const MessageSources = ({ sources }: { sources: Document[] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [slides, setSlides] = useState<any[]>([]);
 
   const closeModal = () => {
     setIsDialogOpen(false);
@@ -28,97 +25,70 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
   };
 
   return (
-    <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        {sources.slice(0, 3).map((source, i) => (
-          source.metadata.img_src ? (
-            <img
-              onClick={() => {
-                setOpen(true);
-                const sourceSlides = sources.map(src => ({
-                  src: src.metadata.img_src
-                }));
-                setSlides(sourceSlides);
-              }}
-              key={i}
-              src={source.metadata.img_src}
-              alt={source.metadata.title}
-              className="h-full w-full aspect-video object-cover rounded-lg transition duration-200 active:scale-95 hover:scale-[1.02] cursor-zoom-in"
-            />
-          ) : (
-            <a
-              className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
-              key={i}
-              href={source.metadata.url}
-              target="_blank"
-            >
-              <p className="dark:text-white text-xs overflow-hidden whitespace-nowrap text-ellipsis">
-                {source.metadata.title}
-              </p>
-              <div className="flex flex-row items-center justify-between">
-                <div className="flex flex-row items-center space-x-1">
-                  {source.metadata.url === 'File' ? (
-                    <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
-                      <File size={12} className="text-white/70" />
-                    </div>
-                  ) : (
-                    <img
-                      src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
-                      width={16}
-                      height={16}
-                      alt="favicon"
-                      className="rounded-lg h-4 w-4"
-                    />
-                  )}
-                  <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
-                    {source.metadata.url.replace(/.+\/\/|www.|\..+/g, '')}
-                  </p>
-                </div>
-                <div className="flex flex-row items-center space-x-1 text-black/50 dark:text-white/50 text-xs">
-                  <div className="bg-black/50 dark:bg-white/50 h-[4px] w-[4px] rounded-full" />
-                  <span>{i + 1}</span>
-                </div>
-              </div>
-            </a>
-          )
-        ))}
-        {sources.length > 3 && (
-          <button
-            onClick={() => setOpen(true)}
-            className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition duration-200 active:scale-95 hover:scale-[1.02] h-auto w-full rounded-lg flex flex-col justify-between text-white p-2"
-          >
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      {sources.slice(0, 3).map((source, i) => (
+        <a
+          className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
+          key={i}
+          href={source.metadata.url}
+          target="_blank"
+        >
+          <p className="dark:text-white text-xs overflow-hidden whitespace-nowrap text-ellipsis">
+            {source.metadata.title}
+          </p>
+          <div className="flex flex-row items-center justify-between">
             <div className="flex flex-row items-center space-x-1">
-              {sources.slice(3, 6).map((source, i) => (
-                source.metadata.img_src ? (
-                  <img
-                    key={i}
-                    src={source.metadata.img_src}
-                    alt={source.metadata.title}
-                    className="h-6 w-12 rounded-md lg:h-3 lg:w-6 lg:rounded-sm aspect-video object-cover"
-                  />
-                ) : (
-                  source.metadata.url === 'File' ? (
-                    <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
-                      <File size={12} className="text-white/70" />
-                    </div>
-                  ) : (
-                    <img
-                      src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
-                      width={16}
-                      height={16}
-                      alt="favicon"
-                      className="rounded-lg h-4 w-4"
-                    />
-                  )
-                )
-              ))}
+              {source.metadata.url === 'File' ? (
+                <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
+                  <File size={12} className="text-white/70" />
+                </div>
+              ) : (
+                <img
+                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  width={16}
+                  height={16}
+                  alt="favicon"
+                  className="rounded-lg h-4 w-4"
+                />
+              )}
+              <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
+                {source.metadata.url.replace(/.+\/\/|www.|\..+/g, '')}
+              </p>
             </div>
-            <p className="text-black/70 dark:text-white/70 text-xs">
-              View {sources.length - 3} more
-            </p>
-          </button>
-        )}
-      </div>
+            <div className="flex flex-row items-center space-x-1 text-black/50 dark:text-white/50 text-xs">
+              <div className="bg-black/50 dark:bg-white/50 h-[4px] w-[4px] rounded-full" />
+              <span>{i + 1}</span>
+            </div>
+          </div>
+        </a>
+      ))}
+      {sources.length > 3 && (
+        <button
+          onClick={openModal}
+          className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
+        >
+          <div className="flex flex-row items-center space-x-1">
+            {sources.slice(3, 6).map((source, i) => {
+              return source.metadata.url === 'File' ? (
+                <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
+                  <File size={12} className="text-white/70" />
+                </div>
+              ) : (
+                <img
+                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  width={16}
+                  height={16}
+                  alt="favicon"
+                  className="rounded-lg h-4 w-4"
+                />
+              );
+            })}
+          </div>
+          <p className="text-xs text-black/50 dark:text-white/50">
+            View {sources.length - 3} more
+          </p>
+        </button>
+      )}
       <Transition appear show={isDialogOpen} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={closeModal}>
           <div className="fixed inset-0 overflow-y-auto">
@@ -138,59 +108,43 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                   </DialogTitle>
                   <div className="grid grid-cols-2 gap-2 overflow-auto max-h-[300px] mt-2 pr-2">
                     {sources.map((source, i) => (
-                      source.metadata.img_src ? (
-                        <img
-                          onClick={() => {
-                            setOpen(true);
-                            const sourceSlides = sources.map(src => ({
-                              src: src.metadata.img_src
-                            }));
-                            setSlides(sourceSlides);
-                          }}
-                          key={i}
-                          src={source.metadata.img_src}
-                          alt={source.metadata.title}
-                          className="h-full w-full aspect-video object-cover rounded-lg transition duration-200 active:scale-95 hover:scale-[1.02] cursor-zoom-in"
-                        />
-                      ) : (
-                        <a
-                          className="bg-light-secondary hover:bg-light-200 dark:bg-dark-secondary dark:hover:bg-dark-200 border border-light-200 dark:border-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
-                          key={i}
-                          href={source.metadata.url}
-                          target="_blank"
-                        >
-                          <p className="dark:text-white text-xs overflow-hidden whitespace-nowrap text-ellipsis">
-                            {source.metadata.title}
-                          </p>
-                          <div className="flex flex-row items-center justify-between">
-                            <div className="flex flex-row items-center space-x-1">
-                              {source.metadata.url === 'File' ? (
-                                <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
-                                  <File size={12} className="text-white/70" />
-                                </div>
-                              ) : (
-                                <img
-                                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
-                                  width={16}
-                                  height={16}
-                                  alt="favicon"
-                                  className="rounded-lg h-4 w-4"
-                                />
+                      <a
+                        className="bg-light-secondary hover:bg-light-200 dark:bg-dark-secondary dark:hover:bg-dark-200 border border-light-200 dark:border-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
+                        key={i}
+                        href={source.metadata.url}
+                        target="_blank"
+                      >
+                        <p className="dark:text-white text-xs overflow-hidden whitespace-nowrap text-ellipsis">
+                          {source.metadata.title}
+                        </p>
+                        <div className="flex flex-row items-center justify-between">
+                          <div className="flex flex-row items-center space-x-1">
+                            {source.metadata.url === 'File' ? (
+                              <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
+                                <File size={12} className="text-white/70" />
+                              </div>
+                            ) : (
+                              <img
+                                src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                                width={16}
+                                height={16}
+                                alt="favicon"
+                                className="rounded-lg h-4 w-4"
+                              />
+                            )}
+                            <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
+                              {source.metadata.url.replace(
+                                /.+\/\/|www.|\..+/g,
+                                '',
                               )}
-                              <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
-                                {source.metadata.url.replace(
-                                  /.+\/\/|www.|\..+/g,
-                                  '',
-                                )}
-                              </p>
-                            </div>
-                            <div className="flex flex-row items-center space-x-1 text-black/50 dark:text-white/50 text-xs">
-                              <div className="bg-black/50 dark:bg-white/50 h-[4px] w-[4px] rounded-full" />
-                              <span>{i + 1}</span>
-                            </div>
+                            </p>
                           </div>
-                        </a>
-                      )
+                          <div className="flex flex-row items-center space-x-1 text-black/50 dark:text-white/50 text-xs">
+                            <div className="bg-black/50 dark:bg-white/50 h-[4px] w-[4px] rounded-full" />
+                            <span>{i + 1}</span>
+                          </div>
+                        </div>
+                      </a>
                     ))}
                   </div>
                 </DialogPanel>
@@ -199,8 +153,7 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
           </div>
         </Dialog>
       </Transition>
-      <Lightbox open={open} close={() => setOpen(false)} slides={slides} />
-    </>
+    </div>
   );
 };
 

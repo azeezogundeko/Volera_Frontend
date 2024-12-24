@@ -12,6 +12,7 @@ import { getSuggestions } from '@/lib/actions';
 import Error from 'next/error';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
+import SearchImages from './SearchImages';
 
 export type Message = {
   messageId: string;
@@ -21,6 +22,8 @@ export type Message = {
   role: 'user' | 'assistant';
   suggestions?: string[];
   sources?: Document[];
+  type?: 'image';
+  alt?: string;
 };
 
 export interface File {
@@ -34,6 +37,12 @@ type ImageData = {
   image_url: string;
   title: string;
   // description: string;
+}
+
+type Image = {
+  url: string;
+  img_src: string;
+  title: string;
 }
 
 const useSocket = (
@@ -231,6 +240,17 @@ const ChatWindow = ({ id }: { id?: string }) => {
   const [open, setOpen] = useState(false);
   const [slides, setSlides] = useState<any[]>([]);
 
+  const [images, setImages] = useState<Image[] | null>(null);
+  const [imagesLoading, setImagesLoading] = useState(false);
+
+  const convertImageDataToImage = (imageData: ImageData[]): Image[] => {
+    return imageData.map(data => ({
+      url: data.product_url,
+      img_src: data.image_url,
+      title: data.title
+    }));
+  }
+
   useEffect(() => {
     if (
       chatId &&
@@ -288,10 +308,15 @@ const ChatWindow = ({ id }: { id?: string }) => {
 
   const handleWebSocketMessage = useCallback((event: MessageEvent) => {
     try {
-      const data = JSON.parse(event.data);
-      console.log('[STREAMING DEBUG] Received message type:', data.type);
-      console.log('[STREAMING DEBUG] Message data:', data);
+      console.log('[WS DEBUG] Raw message received:', event.data);
       
+      const data = typeof event.data === 'string' 
+        ? JSON.parse(event.data) 
+        : JSON.parse(new TextDecoder().decode(event.data));
+      
+      console.log('[WS DEBUG] Parsed message:', data);
+      
+      let added = false;
       switch (data.type) {
         case 'message':
           if (data.content) {
@@ -358,34 +383,42 @@ const ChatWindow = ({ id }: { id?: string }) => {
             setMessageAppeared(true);
           }
           break;
+        
+        case 'image':
+          const imageMessage: Message = {
+            messageId: crypto.randomBytes(16).toString('hex'),
+            chatId: chatId || crypto.randomBytes(16).toString('hex'), // Ensure chatId is always a string
+            createdAt: new Date(),
+            content: data.content,
+            role: 'assistant',
+            type: 'image'
+          };
+          
+          setMessages(prevMessages => [...prevMessages, imageMessage]);
+          break;
+
+        case 'image_search':
+          setImagesLoading(false);
+          setImages(convertImageDataToImage(data.images || []));
+          break;
 
         case 'sources':
-          console.log('[STREAMING DEBUG] Processing sources:', data.sources);
-          setMessages((prevMessages) => {
-            const updatedMessages = [...prevMessages];
-            const lastMessage = updatedMessages[updatedMessages.length - 1];
-            
-            if (lastMessage.role === 'assistant') {
-              // Update to match backend structure
-              lastMessage.sources = data.data.sources ? data.data.sources.map((source: ImageData) => ({
-                metadata: {
-                  url: source.product_url,        // Product URL from backend
-                  img_src: source.image_url,      // Image URL from backend
-                  title: source.title,            // Title from backend
-                  // description: source.description // Optional description
-                }
-              })) : [];
-              
-              setMessages((prevMessages) => {
-                const updatedMessages = [...prevMessages];
-                updatedMessages[updatedMessages.length - 1] = lastMessage;
-                return updatedMessages;
-              });
-            }
-            
-            return updatedMessages;
-          });
-          
+          let sources: Document[] = data.data;
+          if (!added) {
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              {
+                content: '',
+                messageId: data.messageId,
+                chatId: chatId!,
+                role: 'assistant',
+                sources: sources,
+                createdAt: new Date(),
+              },
+            ]);
+            added = true;
+          }
+          setMessageAppeared(true);
           break;
 
         case 'messageEnd':
@@ -461,7 +494,7 @@ const ChatWindow = ({ id }: { id?: string }) => {
   
     ws.send(JSON.stringify(payload));
   };
-  
+
     const rewrite = (messageId: string) => {
       const index = messages.findIndex((msg) => msg.messageId === messageId);
   
@@ -499,34 +532,44 @@ const ChatWindow = ({ id }: { id?: string }) => {
       notFound ? (
         <Error statusCode={404} />
       ) : (
-        <div>
-          {messages.length > 0 ? (
-            <>
-              <Navbar chatId={chatId!} messages={messages} />
-              <Chat
-                loading={loading}
-                messages={messages}
+        <div className="flex">
+          <div className="flex-grow">
+            {messages.length > 0 ? (
+              <>
+                <Navbar chatId={chatId!} messages={messages} />
+                <Chat
+                  loading={loading}
+                  messages={messages}
+                  sendMessage={sendMessage}
+                  messageAppeared={messageAppeared}
+                  rewrite={rewrite}
+                  fileIds={fileIds}
+                  setFileIds={setFileIds}
+                  files={files}
+                  setFiles={setFiles}
+                />
+              </> 
+            ) : (
+              <EmptyChat
                 sendMessage={sendMessage}
-                messageAppeared={messageAppeared}
-                rewrite={rewrite}
+                focusMode={focusMode}
+                setFocusMode={setFocusMode}
+                optimizationMode={optimizationMode}
+                setOptimizationMode={setOptimizationMode}
                 fileIds={fileIds}
                 setFileIds={setFileIds}
                 files={files}
                 setFiles={setFiles}
               />
-            </> 
-          ) : (
-            <EmptyChat
-              sendMessage={sendMessage}
-              focusMode={focusMode}
-              setFocusMode={setFocusMode}
-              optimizationMode={optimizationMode}
-              setOptimizationMode={setOptimizationMode}
-              fileIds={fileIds}
-              setFileIds={setFileIds}
-              files={files}
-              setFiles={setFiles}
-            />
+            )}
+          </div>
+          {images && images.length > 0 && (
+            <div className="w-[300px] p-4 border-l border-light-200 dark:border-dark-200">
+              <SearchImages 
+                images={images} 
+                loading={imagesLoading} 
+              />
+            </div>
           )}
           <Lightbox open={open} close={() => setOpen(false)} slides={slides} />
         </div>
