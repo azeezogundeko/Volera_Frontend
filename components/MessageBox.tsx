@@ -51,8 +51,14 @@ const MessageBox = ({
       const content = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
       const regex = /\[.*?\]/g;
       const cleanedMessage = content.replace(regex, '');
-      setParsedMessage(cleanedMessage);
-      setSpeechMessage(cleanedMessage);
+      // Convert escaped newlines to actual newlines and format code blocks
+      const formattedMessage = cleanedMessage
+        .replace(/\\n/g, '\n') // Convert escaped newlines to actual newlines
+        .replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
+          return `\`\`\`${lang || ''}\n${code.trim()}\n\`\`\``;
+        });
+      setParsedMessage(formattedMessage);
+      setSpeechMessage(cleanedMessage.replace(/\\n/g, ' '));
     }
   }, [message.content]);
 
@@ -68,8 +74,19 @@ const MessageBox = ({
                 <Markdown
                   className={cn(
                     'prose prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                    'max-w-none break-words text-black/90 dark:text-white/90'
+                    'max-w-none break-words text-black/90 dark:text-white/90',
+                    'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
+                    'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
                   )}
+                  options={{
+                    overrides: {
+                      code: {
+                        props: {
+                          className: 'language-text'
+                        }
+                      }
+                    }
+                  }}
                 >
                   {parsedMessage}
                 </Markdown>
@@ -111,8 +128,19 @@ const MessageBox = ({
                     <Markdown
                       className={cn(
                         'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                        'max-w-none break-words text-black dark:text-white'
+                        'max-w-none break-words text-black dark:text-white',
+                        'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
+                        'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
                       )}
+                      options={{
+                        overrides: {
+                          code: {
+                            props: {
+                              className: 'language-text'
+                            }
+                          }
+                        }
+                      }}
                     >
                       {parsedMessage}
                     </Markdown>
