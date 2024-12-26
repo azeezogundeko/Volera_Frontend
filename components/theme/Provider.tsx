@@ -7,7 +7,12 @@ const ThemeProviderComponent = ({
   children: React.ReactNode;
 }) => {
   return (
-    <ThemeProvider attribute="class" enableSystem={false} defaultTheme="dark">
+    <ThemeProvider 
+      attribute="class" 
+      defaultTheme="light"
+      enableSystem={true}
+      themes={['light', 'dark']}
+    >
       {children}
     </ThemeProvider>
   );

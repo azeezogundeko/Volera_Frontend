@@ -11,6 +11,7 @@ import {
 import { Fragment, useState } from 'react';
 import { toast } from 'sonner';
 import { Chat } from '@/app/library/page';
+import LoadingSpinner from './LoadingSpinner';
 
 const DeleteChat = ({
   chatId,
@@ -65,8 +66,9 @@ const DeleteChat = ({
           setConfirmationDialogOpen(true);
         }}
         className="bg-transparent text-red-400 hover:scale-105 transition duration-200"
+        disabled={loading}
       >
-        <Trash size={17} />
+        {loading ? <LoadingSpinner size="sm" className="border-red-400" /> : <Trash size={17} />}
       </button>
       <Transition appear show={confirmationDialogOpen} as={Fragment}>
         <Dialog
@@ -110,7 +112,7 @@ const DeleteChat = ({
                     </button>
                     <button
                       onClick={handleDelete}
-                      className="text-red-400 text-sm hover:text-red-500 transition duration200"
+                      className="text-red-400 text-sm hover:text-red-500 transition duration-200"
                     >
                       Delete
                     </button>

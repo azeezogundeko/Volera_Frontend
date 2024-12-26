@@ -8,6 +8,7 @@ import Optimization from './MessageInputActions/Optimization';
 import Attach from './MessageInputActions/Attach';
 import { File } from './ChatWindow';
 import { clsx } from 'clsx';
+import LoadingSpinner from './LoadingSpinner';
 
 // Dummy search suggestions
 const DUMMY_SUGGESTIONS = [
@@ -48,6 +49,7 @@ const EmptyChatMessageInput = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [loading, setLoading] = useState(false);
   
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -99,9 +101,11 @@ const EmptyChatMessageInput = ({
 
   const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    setLoading(true);
     sendMessage(message);
     setMessage('');
     setShowSuggestions(false);
+    setLoading(false);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -140,16 +144,18 @@ const EmptyChatMessageInput = ({
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        setLoading(true);
         sendMessage(message);
         setMessage('');
         setShowSuggestions(false);
+        setLoading(false);
       }}
       onKeyDown={handleKeyDown}
       className="w-full relative"
     >
       <div
         className={clsx(
-          'bg-[#111111] p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
+          'bg-white dark:bg-[#111111] p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
           'flex-col rounded-2xl',
         )}
       >
@@ -159,9 +165,9 @@ const EmptyChatMessageInput = ({
           onChange={(e) => setMessage(e.target.value)}
           minRows={2}
           className={clsx(
-            'bg-transparent placeholder:text-white/50 text-sm text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48',
+            'bg-transparent placeholder:text-black/70 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48',
           )}
-          placeholder="Ask anything..."
+          placeholder="What do you want to buy?"
         />
         <div className={clsx(
           "flex flex-row items-center justify-between w-full mt-4 px-2",
@@ -178,52 +184,31 @@ const EmptyChatMessageInput = ({
             />
             <button
               onClick={handleSubmit}
-              disabled={!message.trim()}
+              disabled={!message.trim() || loading}
               className={clsx(
                 'p-2 rounded-lg',
                 'bg-[#4ade80] hover:bg-[#4ade80]/90',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}
             >
-              <ArrowRight className="w-5 h-5 text-white" />
+              {loading ? (
+                <LoadingSpinner size="sm" className="border-white" />
+              ) : (
+                <ArrowRight className="w-5 h-5 text-white" />
+              )}
             </button>
           </div>
         </div>
       </div>
 
       {/* Search Suggestions Dropdown */}
-      {showSuggestions && (
-        <div 
-          ref={dropdownRef}
-          className={clsx(
-            "absolute w-full mt-2 rounded-xl",
-            "bg-[#111111]",
-            "border border-[#4ade80]/20",
-            "shadow-lg shadow-[#4ade80]/5",
-            "backdrop-blur-sm",
-            "z-50",
-            "transition-all duration-200 ease-in-out",
-          )}
-          style={{
-            maxHeight: `${Math.min(filteredSuggestions.length * 48 + 40, 320)}px`,
-            overflow: 'hidden'
-          }}
-        >
-          <div className="px-4 py-2 border-b border-[#4ade80]/10">
-            <div className="flex items-center text-white/50 text-sm">
-              <Search className="w-4 h-4 mr-2" />
-              <span>Suggested searches</span>
-            </div>
-          </div>
-          <div 
-            className="overflow-y-auto" 
-            style={{ 
-              maxHeight: `${Math.min(filteredSuggestions.length * 48, 280)}px`,
-              msOverflowStyle: 'none',
-              scrollbarWidth: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
+      {showSuggestions && filteredSuggestions.length > 0 && (
+        <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-[#111111] rounded-lg shadow-lg border border-light-200 dark:border-dark-200 overflow-hidden">
+          <div className="max-h-60 overflow-y-auto scrollbar-hide" style={{ 
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch'
+          }}>
             <style jsx>{`
               div::-webkit-scrollbar {
                 display: none;
@@ -231,16 +216,14 @@ const EmptyChatMessageInput = ({
             `}</style>
             {filteredSuggestions.map((suggestion, index) => (
               <div
-                key={index}
-                onClick={() => handleSuggestionClick(suggestion)}
+                key={suggestion}
                 className={clsx(
-                  "px-4 py-3 cursor-pointer text-sm",
-                  "transition-colors duration-150",
-                  "text-white/80",
-                  "hover:bg-[#4ade80]/5",
-                  index === selectedIndex && "bg-[#4ade80]/10",
-                  "flex items-center"
+                  'px-4 py-2 cursor-pointer text-sm',
+                  'hover:bg-light-100 dark:hover:bg-dark-100',
+                  'text-black dark:text-white',
+                  selectedIndex === index && 'bg-light-100 dark:bg-dark-100'
                 )}
+                onClick={() => handleSuggestionClick(suggestion)}
               >
                 {suggestion}
               </div>

@@ -61,7 +61,7 @@ const MessageBox = ({
   return (
     <div className="flex flex-col space-y-4">
       {message.role === 'user' && (
-        <div className="flex justify-end px-4 lg:px-16">
+        <div className="flex justify-end px-4 lg:px-16 relative z-0">
           <div className="flex items-start space-x-2">
             <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200 shadow-sm">
               <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
@@ -83,111 +83,110 @@ const MessageBox = ({
       )}
 
       {message.role === 'assistant' && (
-        <div className="flex flex-col space-y-4 px-4 lg:px-16">
-          <div
-            ref={dividerRef}
-            className="flex flex-col space-y-4 w-full max-w-3xl"
-          >
-            {message.sources && message.sources.length > 0 && (
-              <div className="flex flex-col space-y-2">
-                <div className="flex flex-row items-center space-x-2">
-                  <BookCopy className="text-black dark:text-white" size={20} />
-                  <h3 className="text-black dark:text-white font-medium text-xl">
-                    Sources
-                  </h3>
-                </div>
-                <MessageSources sources={message.sources} />
-              </div>
-            )}
-            <div className="flex flex-col space-y-2">
-              <div className="flex flex-row items-center space-x-2">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-                  <Bot size={16} className="text-white" />
-                </div>
-                <h3 className="text-black dark:text-white font-medium text-xl">
-                  Response
-                </h3>
-              </div>
-              <div className="rounded-xl p-4">
-                <div className="prose dark:prose-invert max-w-none">
-                  <Markdown
-                    className={cn(
-                      'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                      'max-w-none break-words text-black dark:text-white'
-                    )}
-                  >
-                    {parsedMessage}
-                  </Markdown>
-                </div>
-              </div>
-              {loading && isLast ? null : (
-                <div className="flex flex-row items-center justify-between w-full text-black dark:text-white py-4 -mx-2">
-                  <div className="flex flex-row items-center space-x-1">
-                    {/*  <button className="p-2 text-black/70 dark:text-white/70 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary transition duration-200 hover:text-black text-black dark:hover:text-white">
-                      <Share size={18} />
-                    </button> */}
-                    <Rewrite rewrite={rewrite} messageId={message.messageId} />
+        <div className="relative z-0">
+          <div className="px-4 lg:px-16">
+            <div className="flex items-start space-x-4">
+              {message.sources && message.sources.length > 0 && (
+                <div className="flex flex-col space-y-2">
+                  <div className="flex flex-row items-center space-x-2">
+                    <BookCopy className="text-black dark:text-white" size={20} />
+                    <h3 className="text-black dark:text-white font-medium text-xl">
+                      Sources
+                    </h3>
                   </div>
-                  <div className="flex flex-row items-center space-x-1">
-                    <Copy initialMessage={message.content} message={message} />
-                    <button
-                      onClick={() => {
-                        if (speechStatus === 'started') {
-                          stop();
-                        } else {
-                          start();
-                        }
-                      }}
-                      className="p-2 text-black/70 dark:text-white/70 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary transition duration-200 hover:text-black dark:hover:text-white"
-                    >
-                      {speechStatus === 'started' ? (
-                        <StopCircle size={18} />
-                      ) : (
-                        <Volume2 size={18} />
-                      )}
-                    </button>
-                  </div>
+                  <MessageSources sources={message.sources} />
                 </div>
               )}
-              {isLast &&
-                message.suggestions &&
-                message.suggestions.length > 0 &&
-                message.role === 'assistant' &&
-                !loading && (
-                  <>
-                    <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />
-                    <div className="flex flex-col space-y-3 text-black dark:text-white">
-                      <div className="flex flex-row items-center space-x-2 mt-4">
-                        <Layers3 />
-                        <h3 className="text-xl font-medium">Related</h3>
-                      </div>
-                      <div className="flex flex-col space-y-3">
-                        {message.suggestions.map((suggestion, i) => (
-                          <div
-                            className="flex flex-col space-y-3 text-sm"
-                            key={i}
-                          >
-                            <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />
-                            <div
-                              onClick={() => {
-                                sendMessage(suggestion);
-                              }}
-                              className="cursor-pointer flex flex-row justify-between font-medium space-x-2 items-center"
-                            >
-                              <p className="transition duration-200 hover:text-[#24A0ED]">
-                                {suggestion}
-                              </p>
-                              <Plus
-                                size={20}
-                                className="text-[#24A0ED] flex-shrink-0"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+              <div className="flex flex-col space-y-2">
+                <div className="flex flex-row items-center space-x-2">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                    <Bot size={16} className="text-white" />
+                  </div>
+                  <h3 className="text-black dark:text-white font-medium text-xl">
+                    Response
+                  </h3>
+                </div>
+                <div className="rounded-xl p-4">
+                  <div className="prose dark:prose-invert max-w-none">
+                    <Markdown
+                      className={cn(
+                        'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
+                        'max-w-none break-words text-black dark:text-white'
+                      )}
+                    >
+                      {parsedMessage}
+                    </Markdown>
+                  </div>
+                </div>
+                {loading && isLast ? null : (
+                  <div className="flex flex-row items-center justify-between w-full text-black dark:text-white py-4 -mx-2">
+                    <div className="flex flex-row items-center space-x-1">
+                      {/*  <button className="p-2 text-black/70 dark:text-white/70 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary transition duration-200 hover:text-black text-black dark:hover:text-white">
+                        <Share size={18} />
+                      </button> */}
+                      <Rewrite rewrite={rewrite} messageId={message.messageId} />
                     </div>
-                  </>
+                    <div className="flex flex-row items-center space-x-1">
+                      <Copy initialMessage={message.content} message={message} />
+                      <button
+                        onClick={() => {
+                          if (speechStatus === 'started') {
+                            stop();
+                          } else {
+                            start();
+                          }
+                        }}
+                        className="p-2 text-black/70 dark:text-white/70 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary transition duration-200 hover:text-black dark:hover:text-white"
+                      >
+                        {speechStatus === 'started' ? (
+                          <StopCircle size={18} />
+                        ) : (
+                          <Volume2 size={18} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 )}
+                {isLast &&
+                  message.suggestions &&
+                  message.suggestions.length > 0 &&
+                  message.role === 'assistant' &&
+                  !loading && (
+                    <>
+                      <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />
+                      <div className="flex flex-col space-y-3 text-black dark:text-white">
+                        <div className="flex flex-row items-center space-x-2 mt-4">
+                          <Layers3 />
+                          <h3 className="text-xl font-medium">Related</h3>
+                        </div>
+                        <div className="flex flex-col space-y-3">
+                          {message.suggestions.map((suggestion, i) => (
+                            <div
+                              className="flex flex-col space-y-3 text-sm"
+                              key={i}
+                            >
+                              <div className="h-px w-full bg-light-secondary dark:bg-dark-secondary" />
+                              <div
+                                onClick={() => {
+                                  sendMessage(suggestion);
+                                }}
+                                className="cursor-pointer flex flex-row justify-between font-medium space-x-2 items-center"
+                              >
+                                <p className="transition duration-200 hover:text-[#24A0ED]">
+                                  {suggestion}
+                                </p>
+                                <Plus
+                                  size={20}
+                                  className="text-[#24A0ED] flex-shrink-0"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+              </div>
             </div>
           </div>
           <div className="lg:sticky lg:top-20 flex flex-col items-end space-y-3 w-full lg:w-2/12 z-30 h-full pb-4">

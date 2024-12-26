@@ -68,7 +68,7 @@ export default function Chat({
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
-      <div className="flex-1 overflow-y-auto px-4 pt-6">
+      <div className="flex-1 overflow-y-auto px-4 pt-6 relative z-0 mb-32">
         {messages.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center space-y-4">
             <VoleraLogo />
@@ -146,8 +146,9 @@ export default function Chat({
         <div ref={messageEnd} />
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-transparent">
-        <div className="max-w-[800px] mx-auto px-6 py-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-transparent z-20">
+        <div className="absolute inset-0 bg-white/20 dark:bg-[#111111]/20 backdrop-blur-sm"></div>
+        <div className="max-w-[800px] mx-auto px-6 py-4 relative">
           <MessageInput
             sendMessage={sendMessage}
             loading={loading}

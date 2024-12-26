@@ -7,6 +7,7 @@ import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState, type ReactNode, useEffect } from 'react';
 import Layout from './Layout';
 import SettingsDialog from './SettingsDialog';
+import LoadingSpinner from './LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatTimeDifference } from '@/lib/utils';
 
@@ -378,6 +379,12 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             </div>
           )}
 
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <LoadingSpinner size="md" />
+            </div>
+          )}
+
           <div className="mt-auto p-2 space-y-2">
             {isExpanded && <TryProButton expanded={isExpanded} />}
             <div className={cn(
@@ -399,7 +406,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       </motion.div>
 
       <div className={cn(
-        "flex-1 transition-all duration-200 min-h-screen flex flex-col",
+        "flex-1 transition-all duration-200 min-h-screen flex flex-col bg-white dark:bg-[#111111]",
         isExpanded ? "ml-[280px]" : "ml-24"
       )}>
         <div className="flex-1 flex flex-col max-w-[1200px] w-full mx-auto px-6">

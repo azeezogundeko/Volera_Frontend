@@ -49,7 +49,7 @@ const Navbar = ({
   }, []);
 
   return (
-    <div className="sticky top-0 z-50 bg-[#111111] dark:bg-[#111111] border-b border-light-200 dark:border-dark-200">
+    <div className="sticky top-0 z-50 bg-white dark:bg-[#111111] border-b border-light-200 dark:border-dark-200">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
