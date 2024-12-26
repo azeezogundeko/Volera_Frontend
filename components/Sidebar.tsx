@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { BookOpenText, Home, Settings, Sparkles, ChevronLeft, ChevronRight, MessageSquare, Clock, ArrowUpRight, Search } from 'lucide-react';
+import { BookOpenText, Home, Settings, Sparkles, ChevronLeft, ChevronRight, MessageSquare, Clock, ArrowUpRight, Search, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState, type ReactNode, useEffect } from 'react';
@@ -194,189 +194,155 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   ];
 
   return (
-    <div>
+    <div className="flex h-screen">
       <motion.div 
-        className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col"
+        className="fixed inset-y-0 z-50 flex flex-col border-r border-light-200 dark:border-dark-200 bg-white dark:bg-black"
         initial={false}
         animate={{ width: isExpanded ? '280px' : '96px' }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        transition={{ duration: 0.2 }}
       >
-        <div className={cn(
-          "flex grow flex-col gap-y-4 py-8 relative h-screen",
-          "bg-gradient-to-b from-light-50 to-light-100 dark:from-dark-50 dark:to-dark-100",
-          "border-r border-light-200 dark:border-dark-200"
-        )}>
-          <Link href="/" className={cn("px-4 py-2", isExpanded ? 'w-full flex justify-center' : '')}>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/20"
-            >
-              <Sparkles className="w-6 h-6 text-white" />
-            </motion.div>
-          </Link>
-
-          {/* New Chat Button */}
-          <div className={cn(
-            "px-4 mb-4",
-            !isExpanded && "flex justify-center"
-          )}>
-            <button
-              onClick={handleNewChat}
-              className={cn(
-                isExpanded ? "w-full flex items-center gap-2 px-4 py-2.5" : "p-3",
-                "rounded-lg",
-                "bg-light-50 dark:bg-dark-50",
-                "hover:bg-light-100 dark:hover:bg-dark-100",
-                "border border-light-200 dark:border-dark-200",
-                "transition-all duration-200"
-              )}
-            >
-              <MessageSquare className="w-5 h-5 text-black/70 dark:text-white/70" />
+        <div className="flex h-16 shrink-0 items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <AnimatePresence>
               {isExpanded && (
-                <span className="text-sm font-medium text-black/90 dark:text-white/90">
-                  New Chat
-                </span>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="h-6 w-6 text-emerald-500" />
+                  <span className="text-lg font-semibold">Volera</span>
+                </motion.div>
               )}
-            </button>
+            </AnimatePresence>
           </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 hover:bg-light-100 dark:hover:bg-dark-100 rounded-lg transition-colors duration-200"
+          >
+            {isExpanded ? (
+              <ChevronLeft className="h-5 w-5 text-black/70 dark:text-white/70" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-black/70 dark:text-white/70" />
+            )}
+          </button>
+        </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col items-center gap-y-1 px-4 w-full">
+        <div className="flex-1 overflow-y-auto">
+          <nav className="flex flex-1 flex-col gap-1 p-4">
             {navLinks.map((link) => (
               <IconButton
                 key={link.href}
-                {...link}
+                href={link.href}
+                icon={link.icon}
+                label={link.label}
                 expanded={isExpanded}
+                active={link.active}
               />
             ))}
           </nav>
 
-          {/* Chat Threads Section */}
-          {isExpanded && (
-            <div className="flex-1 w-full">
-              <div className={cn(
-                "space-y-0.5 px-4 -mt-1",
-              )}>
-                <AnimatePresence mode="wait">
-                  {loading ? (
-                    <div className="space-y-1">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            "h-6 rounded-lg ml-4 relative",
-                            "bg-gradient-to-r from-light-100 to-light-200 dark:from-dark-100 dark:to-dark-200",
-                            "animate-pulse"
-                          )}
-                        >
-                          <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-2 h-px bg-light-200 dark:bg-dark-200" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : filteredThreads.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-black/50 dark:text-white/50 ml-4 relative">
-                      <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-2 h-px bg-light-200 dark:bg-dark-200" />
-                      No chats found
-                    </div>
-                  ) : (
-                    filteredThreads.map((thread) => (
-                      <Link
-                        key={thread.id}
-                        href={`/c/${thread.id}`}
-                        className={cn(
-                          'group flex items-center gap-2 rounded-lg px-3 py-2 text-sm relative',
-                          'hover:bg-light-100 dark:hover:bg-dark-100 transition-colors',
-                          'text-black/70 dark:text-white/70',
-                          segments.includes('c') && segments.includes(thread.id) && 'bg-light-100 dark:bg-dark-100',
-                          'ml-4'
-                        )}
-                      >
-                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-2 h-px bg-light-200 dark:bg-dark-200" />
-                        <MessageSquare
-                          className={cn(
-                            'w-4 h-4',
-                            segments.includes('c') && segments.includes(thread.id) && 'text-black dark:text-white'
-                          )}
-                        />
-                        <span className={cn(
-                          'truncate text-xs',
-                          segments.includes('c') && segments.includes(thread.id) && 'text-black dark:text-white'
-                        )}>
-                          {thread.title || 'New Chat'}
-                        </span>
-                      </Link>
-                    ))
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          )}
-
-          {/* Try Pro Section */}
-          {isExpanded && !user.isPro && (
-            <div className="mt-auto">
-              <div className="px-4 py-3">
-                <div className="rounded-lg bg-gradient-to-r from-emerald-400/20 to-emerald-500/20 p-3 border border-emerald-500/20">
-                  <h4 className="font-medium text-sm text-emerald-700 dark:text-emerald-300">Try Pro</h4>
-                  <p className="text-xs text-emerald-600/80 dark:text-emerald-300/80 mt-1">
-                    Unlock unlimited chats and advanced features
-                  </p>
-                  <button className="mt-2 w-full rounded-md bg-emerald-500 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-600 transition-colors">
-                    Upgrade Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* User Section */}
-          <div className="mt-2">
-            <div className="px-4 py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                    <span className="text-sm font-medium text-white">{user.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                  {isExpanded && (
-                    <span className="text-sm font-medium text-black/90 dark:text-white/90">{user.name}</span>
-                  )}
-                </div>
-                <button 
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="p-1 rounded-md hover:bg-light-100 dark:hover:bg-dark-200/50 transition-colors"
+          <div className="px-4 py-2">
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.h2
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="px-2 text-xs font-semibold text-black/40 dark:text-white/40 uppercase tracking-wider"
                 >
-                  <Settings className="w-4 h-4 text-black/60 dark:text-white/60" />
-                </button>
-              </div>
-            </div>
+                  Recent Chats
+                </motion.h2>
+              )}
+            </AnimatePresence>
           </div>
 
-          <motion.button
-            initial={false}
-            animate={{ 
-              x: isExpanded ? 12 : 12,
-              rotate: isExpanded ? 180 : 0 
-            }}
-            transition={{ duration: 0.3 }}
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-light-100 dark:bg-dark-100 rounded-full p-1.5 border border-light-200 dark:border-dark-200 hover:bg-light-200 dark:hover:bg-dark-200 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500/50"
+          <nav className="flex flex-col gap-1 px-4">
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-10 rounded-lg bg-light-100 dark:bg-dark-100 animate-pulse"
+                />
+              ))
+            ) : (
+              filteredThreads.map((thread) => (
+                <ThreadItem
+                  key={thread.id}
+                  thread={thread}
+                  active={segments.includes(thread.id)}
+                  expanded={isExpanded}
+                />
+              ))
+            )}
+          </nav>
+        </div>
+
+        <div className="flex flex-col gap-2 p-4 border-t border-light-200 dark:border-dark-200">
+          <button
+            onClick={handleNewChat}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2.5 rounded-lg w-full',
+              'bg-emerald-500 hover:bg-emerald-600 text-white',
+              'transition-colors duration-200'
+            )}
           >
-            <ChevronLeft className="w-4 h-4 text-black/60 dark:text-white/60" />
-          </motion.button>
+            <Plus className="w-5 h-5" />
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  New Chat
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2.5 rounded-lg w-full',
+              'bg-transparent hover:bg-light-100 dark:hover:bg-dark-100',
+              'transition-colors duration-200'
+            )}
+          >
+            <Settings className="w-5 h-5 text-black/70 dark:text-white/70" />
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-black/70 dark:text-white/70"
+                >
+                  Settings
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
         </div>
       </motion.div>
 
       <div className={cn(
-        "lg:pl-24 transition-all duration-300",
-        isExpanded ? "lg:pl-72" : "lg:pl-24"
+        "flex flex-1 flex-col",
+        isExpanded ? "lg:pl-[280px]" : "lg:pl-24"
       )}>
-        {children}
+        <Layout>
+          {children}
+        </Layout>
       </div>
 
       <SettingsDialog
         isOpen={isSettingsOpen}
         setIsOpen={setIsSettingsOpen}
+        user={user}
       />
     </div>
   );
