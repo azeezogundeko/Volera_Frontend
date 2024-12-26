@@ -1,16 +1,20 @@
-import { Clock, Edit, Share, Trash } from 'lucide-react';
+import { Clock, Edit, Share, Trash, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
 import { Message } from './ChatWindow';
 import { useEffect, useState } from 'react';
 import { formatTimeDifference } from '@/lib/utils';
 import DeleteChat from './DeleteChat';
+import { useRouter } from 'next/navigation';
 
 const Navbar = ({
   chatId,
   messages,
+  userEmail = 'user@example.com',
 }: {
   messages: Message[];
   chatId: string;
+  userEmail?: string;
 }) => {
+  const router = useRouter();
   const [title, setTitle] = useState<string>('');
   const [timeAgo, setTimeAgo] = useState<string>('');
 
@@ -45,25 +49,42 @@ const Navbar = ({
   }, []);
 
   return (
-    <div className="fixed z-40 top-0 left-0 right-0 px-4 lg:pl-[104px] lg:pr-6 lg:px-8 flex flex-row items-center justify-between w-full py-4 text-sm text-black dark:text-white/70 border-b bg-light-primary dark:bg-dark-primary border-light-100 dark:border-dark-200">
-      <a
-        href="/"
-        className="active:scale-95 transition duration-100 cursor-pointer lg:hidden"
-      >
-        <Edit size={17} />
-      </a>
-      <div className="hidden lg:flex flex-row items-center justify-center space-x-2">
-        <Clock size={17} />
-        <p className="text-xs">{timeAgo} ago</p>
-      </div>
-      <p className="hidden lg:flex">{title}</p>
+    <div className="sticky top-0 z-50 bg-light-50 dark:bg-dark-50 border-b border-light-200 dark:border-dark-200">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+              <span className="text-white text-sm font-medium">
+                {userEmail.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <span className="text-sm font-medium text-black/90 dark:text-white/90">
+              {userEmail}
+            </span>
+          </div>
+        </div>
 
-      <div className="flex flex-row items-center space-x-4">
-        <Share
-          size={17}
-          className="active:scale-95 transition duration-100 cursor-pointer"
-        />
-        <DeleteChat redirect chatId={chatId} chats={[]} setChats={() => {}} />
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+          <h1 className="text-sm font-medium text-black/90 dark:text-white/90">
+            {title || 'New Chat'}
+          </h1>
+          <span className="text-xs text-black/50 dark:text-white/50">
+            {timeAgo && `Last updated ${timeAgo}`}
+          </span>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button className="p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
+            <Share2 size={18} />
+          </button>
+          <button className="p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
+            <Bookmark size={18} />
+          </button>
+          <button className="p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
+            <MoreHorizontal size={18} />
+          </button>
+          <DeleteChat redirect chatId={chatId} chats={[]} setChats={() => {}} />
+        </div>
       </div>
     </div>
   );

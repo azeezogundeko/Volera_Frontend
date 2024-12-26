@@ -75,8 +75,10 @@ const MessageInput = ({
         }
       }}
       className={cn(
-        'bg-light-secondary dark:bg-dark-secondary p-4 flex items-center overflow-hidden border border-light-200 dark:border-dark-200',
-        mode === 'multi' ? 'flex-col rounded-lg' : 'flex-row rounded-full',
+        'bg-light-secondary dark:bg-dark-secondary p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
+        mode === 'multi' 
+          ? 'flex-col rounded-2xl' 
+          : 'flex-row rounded-full hover:border-[#4ade80]/50 transition-colors duration-200',
       )}
     >
       {mode === 'single' && (
@@ -95,7 +97,7 @@ const MessageInput = ({
           setTextareaRows(Math.ceil(height / props.rowHeight));
         }}
         className="transition bg-transparent dark:placeholder:text-white/50 placeholder:text-sm text-sm dark:text-white resize-none focus:outline-none w-full px-2 max-h-24 lg:max-h-36 xl:max-h-48 flex-grow flex-shrink"
-        placeholder="Ask a follow-up"
+        placeholder="How can I help you today?"
       />
       {mode === 'single' && (
         <div className="flex flex-row items-center space-x-4">

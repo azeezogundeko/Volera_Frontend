@@ -1,5 +1,3 @@
-'use client';
-
 /* eslint-disable @next/next/no-img-element */
 import React, { MutableRefObject, useEffect, useState } from 'react';
 import { Message } from './ChatWindow';
@@ -11,14 +9,16 @@ import {
   StopCircle,
   Layers3,
   Plus,
+  User,
+  Bot,
 } from 'lucide-react';
 import Markdown from 'markdown-to-jsx';
 import Copy from './MessageActions/Copy';
 import Rewrite from './MessageActions/Rewrite';
 import MessageSources from './MessageSources';
 import SearchImages from './SearchImages';
-import SearchVideos from './SearchVideos';
 import { useSpeech } from 'react-text-to-speech';
+import { Image } from './SearchImages';
 
 const MessageBox = ({
   message,
@@ -29,6 +29,8 @@ const MessageBox = ({
   isLast,
   rewrite,
   sendMessage,
+  images,
+  imagesLoading,
 }: {
   message: Message;
   messageIndex: number;
@@ -38,48 +40,53 @@ const MessageBox = ({
   isLast: boolean;
   rewrite: (messageId: string) => void;
   sendMessage: (message: string) => void;
+  images: Image[] | null;
+  imagesLoading: boolean;
 }) => {
-  const [parsedMessage, setParsedMessage] = useState(message.content);
-  const [speechMessage, setSpeechMessage] = useState(message.content);
+  const [parsedMessage, setParsedMessage] = useState(message.content || '');
+  const [speechMessage, setSpeechMessage] = useState(message.content || '');
 
   useEffect(() => {
-    const regex = /\[(\d+)\]/g;
-
-    if (
-      message.role === 'assistant' &&
-      message?.sources &&
-      message.sources.length > 0
-    ) {
-      return setParsedMessage(
-        message.content.replace(
-          regex,
-          (_, number) =>
-            `<a href="${message.sources?.[number - 1]?.metadata?.url}" target="_blank" className="bg-light-secondary dark:bg-dark-secondary px-1 rounded ml-1 no-underline text-xs text-black/70 dark:text-white/70 relative">${number}</a>`,
-        ),
-      );
+    if (message?.content) {
+      const content = typeof message.content === 'string' ? message.content : JSON.stringify(message.content);
+      const regex = /\[.*?\]/g;
+      const cleanedMessage = content.replace(regex, '');
+      setParsedMessage(cleanedMessage);
+      setSpeechMessage(cleanedMessage);
     }
-
-    setSpeechMessage(message.content.replace(regex, ''));
-    setParsedMessage(message.content);
-  }, [message.content, message.sources, message.role]);
+  }, [message.content]);
 
   const { speechStatus, start, stop } = useSpeech({ text: speechMessage });
 
   return (
-    <div>
+    <div className="flex flex-col space-y-4">
       {message.role === 'user' && (
-        <div className={cn('w-full', messageIndex === 0 ? 'pt-16' : 'pt-8')}>
-          <h2 className="text-black dark:text-white font-medium text-3xl lg:w-9/12">
-            {message.content}
-          </h2>
+        <div className="flex justify-end px-4 lg:px-16">
+          <div className="flex items-start space-x-2">
+            <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200 shadow-sm">
+              <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
+                <Markdown
+                  className={cn(
+                    'prose prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
+                    'max-w-none break-words text-black/90 dark:text-white/90'
+                  )}
+                >
+                  {parsedMessage}
+                </Markdown>
+              </div>
+            </div>
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-light-100 dark:bg-dark-100 border border-light-200 dark:border-dark-200 flex items-center justify-center">
+              <User size={16} className="text-black/80 dark:text-white/80" />
+            </div>
+          </div>
         </div>
       )}
 
       {message.role === 'assistant' && (
-        <div className="flex flex-col space-y-9 lg:space-y-0 lg:flex-row lg:justify-between lg:space-x-9">
+        <div className="flex flex-col space-y-4 px-4 lg:px-16">
           <div
             ref={dividerRef}
-            className="flex flex-col space-y-6 w-full lg:w-9/12"
+            className="flex flex-col space-y-4 w-full max-w-3xl"
           >
             {message.sources && message.sources.length > 0 && (
               <div className="flex flex-col space-y-2">
@@ -94,25 +101,25 @@ const MessageBox = ({
             )}
             <div className="flex flex-col space-y-2">
               <div className="flex flex-row items-center space-x-2">
-                <Disc3
-                  className={cn(
-                    'text-black dark:text-white',
-                    isLast && loading ? 'animate-spin' : 'animate-none',
-                  )}
-                  size={20}
-                />
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                  <Bot size={16} className="text-white" />
+                </div>
                 <h3 className="text-black dark:text-white font-medium text-xl">
-                  Answer
+                  Response
                 </h3>
               </div>
-              <Markdown
-                className={cn(
-                  'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                  'max-w-none break-words text-black dark:text-white',
-                )}
-              >
-                {parsedMessage}
-              </Markdown>
+              <div className="rounded-xl p-4">
+                <div className="prose dark:prose-invert max-w-none">
+                  <Markdown
+                    className={cn(
+                      'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
+                      'max-w-none break-words text-black dark:text-white'
+                    )}
+                  >
+                    {parsedMessage}
+                  </Markdown>
+                </div>
+              </div>
               {loading && isLast ? null : (
                 <div className="flex flex-row items-center justify-between w-full text-black dark:text-white py-4 -mx-2">
                   <div className="flex flex-row items-center space-x-1">
@@ -183,14 +190,10 @@ const MessageBox = ({
                 )}
             </div>
           </div>
-          <div className="lg:sticky lg:top-20 flex flex-col items-center space-y-3 w-full lg:w-3/12 z-30 h-full pb-4">
+          <div className="lg:sticky lg:top-20 flex flex-col items-end space-y-3 w-full lg:w-2/12 z-30 h-full pb-4">
             <SearchImages
-              query={history[messageIndex - 1].content}
-              chatHistory={history.slice(0, messageIndex - 1)}
-            />
-            <SearchVideos
-              chatHistory={history.slice(0, messageIndex - 1)}
-              query={history[messageIndex - 1].content}
+              images={images}
+              loading={imagesLoading} 
             />
           </div>
         </div>

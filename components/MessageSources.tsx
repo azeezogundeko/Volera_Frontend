@@ -1,4 +1,3 @@
-
 /* eslint-disable @next/next/no-img-element */
 import {
   Dialog,
@@ -52,7 +51,11 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                 />
               )}
               <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
-                {source.metadata.url.replace(/.+\/\/|www.|\..+/g, '')}
+              {source.metadata.url ? (
+                  new URL(source.metadata.url).hostname.replace(/^www\./, '')
+                ) : (
+                  "Invalid URL"
+                )}
               </p>
             </div>
             <div className="flex flex-row items-center space-x-1 text-black/50 dark:text-white/50 text-xs">
@@ -133,10 +136,7 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                               />
                             )}
                             <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
-                              {source.metadata.url.replace(
-                                /.+\/\/|www.|\..+/g,
-                                '',
-                              )}
+                              {new URL(source.metadata.url).hostname.replace(/^www\./, '')}
                             </p>
                           </div>
                           <div className="flex flex-row items-center space-x-1 text-black/50 dark:text-white/50 text-xs">

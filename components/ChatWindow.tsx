@@ -13,6 +13,7 @@ import Error from 'next/error';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import SearchImages from './SearchImages';
+import SearchVideos from './SearchVideos';
 
 export type Message = {
   messageId: string;
@@ -41,7 +42,12 @@ type ImageData = {
 
 type Image = {
   url: string;
-  img_src: string;
+  img_url: string;
+  title: string;
+}
+
+type Video = {
+  url: string;
   title: string;
 }
 
@@ -124,6 +130,7 @@ const useSocket = (
     return () => {
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.close();
+        console.log('[DEBUG] closed');
       }
     };
   }, [url, setIsWSReady, setError, ws, onMessageCallback]);
@@ -165,46 +172,68 @@ const loadMessages = async (
 
   const data = await res.json();
 
-  const messages = data.messages.map((msg: any) => {
+  const messages = data.messages.map((msg: {
+    content: string;
+    message_id?: string;
+    $id?: string;
+    role: string;
+    $createdAt: string;
+    metadata: string;
+  }) => {
+    
+    // Remove surrounding quotes and parse metadata
+    const cleanContent = msg.content.replace(/^"|"$/g, '');
+    
+    let parsedMetadata = {};
+    try {
+      // Handle metadata parsing (it looks like a string representation of a dict)
+      parsedMetadata = eval(`(${msg.metadata})`);
+    } catch (error) {
+      console.error('Failed to parse metadata:', msg.metadata);
+    }
+
     return {
       ...msg,
-      ...JSON.parse(msg.metadata),
-    };
-  }) as Message[];
+      chatId: data.chat.id,
+      messageId: msg.message_id || msg.$id,
+      content: cleanContent,
+      role: msg.role === 'human' ? 'user' : msg.role,
+      createdAt: new Date(msg.$createdAt),
+      metadata: parsedMetadata,
+    } as Message;
+  });
+
+  messages.sort((a: { $createdAt: string | number | Date; }, b: { $createdAt: string | number | Date; }) => 
+    new Date(a.$createdAt).getTime() - new Date(b.$createdAt).getTime()
+  );
 
   setMessages(messages);
+  setIsMessagesLoaded(true);
 
-  const history = messages.map((msg) => {
-    return {
-      speaker: msg.role,
-      message: msg.content,
-      timestamp: msg.createdAt,
-    };
-  }) as {
-    speaker: "human" | "assistant";
-    message: string;
-    timestamp: Date;
-  }[];
+  // Set other chat-related states
+  if (messages.length > 0) {
+    document.title = messages[0].content;
+  }
 
-  console.log('[DEBUG] messages loaded');
-
-  document.title = messages[0].content;
-
-  const files = data.chat.files.map((file: any) => {
-    return {
-      fileName: file.name,
-      fileExtension: file.name.split('.').pop(),
-      fileId: file.fileId,
-    };
-  });
+  const files = data.chat.files.map((file: any) => ({
+    fileName: file.name,
+    fileExtension: file.name.split('.').pop(),
+    fileId: file.fileId,
+  }));
 
   setFiles(files);
   setFileIds(files.map((file: File) => file.fileId));
 
+  const history = messages.map((msg: { role: any; content: any; createdAt: any; }) => ({
+    speaker: msg.role,
+    message: msg.content,
+    timestamp: msg.createdAt,
+  }));
+
   setChatHistory(history);
-  setFocusMode(data.chat.focusMode);
-  setIsMessagesLoaded(true);
+  setFocusMode(data.chat.focus_mode);
 };
+
 
 const ChatWindow = ({ id }: { id?: string }) => {
   const searchParams = useSearchParams();
@@ -242,11 +271,25 @@ const ChatWindow = ({ id }: { id?: string }) => {
 
   const [images, setImages] = useState<Image[] | null>(null);
   const [imagesLoading, setImagesLoading] = useState(false);
+  const [videos, setVideos] = useState<Video[] | null>(null);
+  const [videosLoading, setVideosLoading] = useState(false);
+
+  const [searchProgress, setSearchProgress] = useState<{
+    websitesSearched: number;
+    websitesScraped: number;
+    status: 'searching' | 'scraping' | 'compiling' | null;
+  }>({
+    websitesSearched: 0,
+    websitesScraped: 0,
+    status: null
+  });
+
+  const [error, setError] = useState<string | null>(null);
 
   const convertImageDataToImage = (imageData: ImageData[]): Image[] => {
     return imageData.map(data => ({
       url: data.product_url,
-      img_src: data.image_url,
+      img_url: data.image_url,
       title: data.title
     }));
   }
@@ -316,74 +359,62 @@ const ChatWindow = ({ id }: { id?: string }) => {
       
       console.log('[WS DEBUG] Parsed message:', data);
       
-      let added = false;
       switch (data.type) {
         case 'message':
           if (data.content) {
-            console.log('[STREAMING DEBUG] Processing message content:', data.content);
-            
-            setMessages((prevMessages) => {
-              // If it's the first message or a new message
-              if (prevMessages.length === 0 || prevMessages[prevMessages.length - 1].role === 'user') {
-                console.log('[STREAMING DEBUG] Creating new assistant message');
-                return [
-                  ...prevMessages,
-                  {
-                    messageId: crypto.randomBytes(16).toString('hex'),
-                    chatId: chatId || '',
-                    createdAt: new Date(),
-                    content: data.content,
-                    role: 'assistant',
-                    sources: data.sources || [],
-                    suggestions: data.suggestions || []
-                  }
-                ];
-              } else {
-                // Update the last message if it's a continuation
-                console.log('[STREAMING DEBUG] Appending to existing message');
-                const updatedMessages = [...prevMessages];
-                const lastMessage = updatedMessages[updatedMessages.length - 1];
-                
-                // Ensure we're only appending to an assistant message
-                if (lastMessage.role === 'assistant') {
-                  // Avoid appending duplicate content
-                  if (!lastMessage.content.endsWith(data.content)) {
-                    lastMessage.content += data.content;
-                  }
-                  lastMessage.sources = data.sources || lastMessage.sources;
-                  return updatedMessages;
-                }
-                
-                // If last message is not an assistant message, create a new one
-                return [
-                  ...prevMessages,
-                  {
-                    messageId: crypto.randomBytes(16).toString('hex'),
-                    chatId: chatId || '',
-                    createdAt: new Date(),
-                    content: data.content,
-                    role: 'assistant',
-                    sources: data.sources || [],
-                    suggestions: data.suggestions || []
-                  }
-                ];
-              }
-            });
-
-            setChatHistory(prevHistory => [
-              ...prevHistory, 
-              { 
-                speaker: 'assistant', 
-                message: data.content, 
-                timestamp: new Date() 
-              }
-            ]);
-
-            setLoading(false);
+            const content = typeof data.content === 'string' ? data.content : JSON.stringify(data.content);
+            setMessages(messages => [...messages, {
+              messageId: crypto.randomBytes(16).toString('hex'),
+              chatId: chatId || '',
+              content: content,
+              role: 'assistant',
+              sources: data.sources || [],
+              suggestions: data.suggestions || [],
+              createdAt: new Date()
+            }]);
             setMessageAppeared(true);
+            // Reset search progress when message is complete
+            setSearchProgress({
+              websitesSearched: 0,
+              websitesScraped: 0,
+              status: null
+            });
+          }
+          setLoading(false);
+          break;
+
+        case 'progress':
+          console.log('[DEBUG] Progress update:', data);
+          if (!loading) {
+            setLoading(true);
+            setMessageAppeared(false);
+          }
+          if (data.progress) {
+            setSearchProgress(prev => ({
+              ...prev,
+              websitesSearched: data.progress.searched || prev.websitesSearched,
+              websitesScraped: data.progress.scraped || prev.websitesScraped,
+              status: data.progress.status || prev.status
+            }));
           }
           break;
-        
+
+        case 'search_complete':
+          console.log('[DEBUG] Search complete:', data);
+          setSearchProgress(prev => ({
+            ...prev,
+            status: 'compiling',
+            websitesSearched: data.totalSearched || prev.websitesSearched,
+            websitesScraped: data.totalScraped || prev.websitesScraped
+          }));
+          break;
+
+        case 'error':
+          console.error('[STREAMING DEBUG] Error:', data.error);
+          setError(data.error);
+          setLoading(false);
+          break;
+
         case 'image':
           const imageMessage: Message = {
             messageId: crypto.randomBytes(16).toString('hex'),
@@ -399,25 +430,88 @@ const ChatWindow = ({ id }: { id?: string }) => {
 
         case 'image_search':
           setImagesLoading(false);
-          setImages(convertImageDataToImage(data.images || []));
+          if (data.data) {
+            const convertedImages = data.data.map((item: any) => ({
+              url: item.url,
+              img_url: item.img_url,
+              title: item.title
+            }));
+            setImages(convertedImages);
+          }
+          break;
+
+        case 'video_search':
+          setVideosLoading(false);
+          if (data.data) {
+            const convertedVideos = data.data.map((item: any) => ({
+              url: item.url,
+              title: item.title
+            }));
+            setVideos(convertedVideos);
+          }
           break;
 
         case 'sources':
           let sources: Document[] = data.data;
-          if (!added) {
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              {
-                content: '',
-                messageId: data.messageId,
-                chatId: chatId!,
-                role: 'assistant',
-                sources: sources,
-                createdAt: new Date(),
-              },
-            ]);
-            added = true;
-          }
+          let added = false;
+          setMessages((prevMessages) => {
+            // If it's the first message or a new message
+            if (prevMessages.length === 0 || prevMessages[prevMessages.length - 1].role === 'user') {
+              console.log('[STREAMING DEBUG] Creating new assistant message');
+              return [
+                ...prevMessages,
+                {
+                  messageId: crypto.randomBytes(16).toString('hex'),
+                  chatId: chatId || '',
+                  createdAt: new Date(),
+                  content: '',
+                  role: 'assistant',
+                  sources: sources,
+                  $createdAt: new Date(),
+                },
+              ];
+            } else {
+              // Update the last message if it's a continuation
+              console.log('[STREAMING DEBUG] Appending to existing message');
+              const updatedMessages = [...prevMessages];
+              const lastMessage = updatedMessages[updatedMessages.length - 1];
+              
+              // Ensure we're only appending to an assistant message
+              if (lastMessage.role === 'assistant') {
+                // Avoid appending duplicate content
+                if (!lastMessage.content.endsWith(data.content)) {
+                  lastMessage.content += data.content;
+                }
+                lastMessage.sources = data.sources || lastMessage.sources;
+                return updatedMessages;
+              }
+              
+              // If last message is not an assistant message, create a new one
+              return [
+                ...prevMessages,
+                {
+                  messageId: crypto.randomBytes(16).toString('hex'),
+                  chatId: chatId || '',
+                  createdAt: new Date(),
+                  content: data.content,
+                  role: 'assistant',
+                  sources: data.sources || [],
+                  suggestions: data.suggestions || []
+                }
+              ];
+            }
+          });
+
+          setChatHistory(prevHistory => [
+            ...prevHistory, 
+            { 
+              speaker: 'assistant', 
+              message: data.content, 
+              timestamp: new Date() 
+            }
+          ]);
+
+          setLoading(false);
           setMessageAppeared(true);
           break;
 
@@ -427,12 +521,6 @@ const ChatWindow = ({ id }: { id?: string }) => {
           setMessageAppeared(true);
           break;
 
-        case 'error':
-          console.error('[STREAMING DEBUG] Error received:', data.message);
-          toast.error(data.message || 'An error occurred');
-          setLoading(false);
-          break;
-        
         default:
           console.log('[STREAMING DEBUG] Unhandled message type:', data.type);
       }
@@ -519,6 +607,37 @@ const ChatWindow = ({ id }: { id?: string }) => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ws?.readyState, isReady, initialMessage, isWSReady]);
   
+    const handleSearchVideos = async () => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        toast.error('WebSocket is not connected');
+        return;
+      }
+
+      // Get the last message content to use as search query
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage) return;
+
+      ws.send(JSON.stringify({
+        type: 'search_videos',
+        chatId: chatId,
+        messageId: lastMessage.messageId,
+        query: lastMessage.content
+      }));
+    };
+
+    const getSearchStatusMessage = () => {
+      switch (searchProgress.status) {
+        case 'searching':
+          return `Searched ${searchProgress.websitesSearched} websites...`;
+        case 'scraping':
+          return `Scraped ${searchProgress.websitesScraped} websites...`;
+        case 'compiling':
+          return 'Compiling response...';
+        default:
+          return 'Processing...';
+      }
+    };
+
     if (hasError) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen">
@@ -528,27 +647,42 @@ const ChatWindow = ({ id }: { id?: string }) => {
         </div>
       );
     }
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <p className="dark:text-white/70 text-black/70 text-sm">
+            {error}
+          </p>
+        </div>
+      );
+    }
     return isReady ? (
       notFound ? (
         <Error statusCode={404} />
       ) : (
-        <div className="flex">
-          <div className="flex-grow">
+        <div className="flex flex-1 relative">
+          <div className="flex-1 flex flex-col">
             {messages.length > 0 ? (
               <>
-                <Navbar chatId={chatId!} messages={messages} />
+                <Navbar
+                  messages={messages}
+                  chatId={chatId!}
+                  userEmail="user@perplexica.com"
+                />
                 <Chat
                   loading={loading}
                   messages={messages}
-                  sendMessage={sendMessage}
                   messageAppeared={messageAppeared}
+                  searchProgress={searchProgress}
+                  searchStatusMessage={getSearchStatusMessage()}
+                  sendMessage={sendMessage}
                   rewrite={rewrite}
                   fileIds={fileIds}
                   setFileIds={setFileIds}
                   files={files}
                   setFiles={setFiles}
                 />
-              </> 
+              </>
             ) : (
               <EmptyChat
                 sendMessage={sendMessage}
@@ -564,10 +698,19 @@ const ChatWindow = ({ id }: { id?: string }) => {
             )}
           </div>
           {images && images.length > 0 && (
-            <div className="w-[450px] p-4 border-l border-light-200 dark:border-dark-200">
+            <div className="w-[250px] flex-shrink-0 h-screen sticky top-0 right-0 pt-16 px-3">
               <SearchImages 
                 images={images} 
-                loading={imagesLoading} 
+                loading={imagesLoading}
+                onSearchVideos={handleSearchVideos}
+              />
+            </div>
+          )}
+          {videos && videos.length > 0 && (
+            <div className="w-[250px] flex-shrink-0 h-screen sticky top-0 right-0 pt-16 px-3">
+              <SearchVideos 
+                videos={videos} 
+                loading={videosLoading}
               />
             </div>
           )}
@@ -594,7 +737,6 @@ const ChatWindow = ({ id }: { id?: string }) => {
         </svg>
       </div>
     );
-  ;
   };
 
 
