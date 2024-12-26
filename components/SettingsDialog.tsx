@@ -110,7 +110,7 @@ export default function SettingsDialog({
                         <div>
                           <label className="text-sm text-black/90 dark:text-white/90">Theme</label>
                           <p className="text-xs text-black/50 dark:text-white/50">
-                            Switch between light and dark themes
+                            Choose your preferred appearance
                           </p>
                         </div>
                         <ThemeSwitcher />

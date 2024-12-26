@@ -3,6 +3,7 @@
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function ThemeSwitcher({ className }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
@@ -17,21 +18,31 @@ export default function ThemeSwitcher({ className }: { className?: string }) {
   }
 
   return (
-    <div className="relative inline-flex h-6 w-11 items-center rounded-full bg-light-200 dark:bg-dark-200">
-      <input
-        type="checkbox"
-        className="peer sr-only"
-        id="theme-toggle"
-        checked={theme === 'dark'}
-        onChange={(e) => setTheme(e.target.checked ? 'dark' : 'light')}
-      />
-      <span className="peer-checked:translate-x-6 absolute left-[2px] top-[2px] h-5 w-5 transform rounded-full bg-white transition-transform flex items-center justify-center">
-        {theme === 'dark' ? (
-          <Moon className="w-3 h-3 text-black/70" />
-        ) : (
-          <Sun className="w-3 h-3 text-black/70" />
+    <div className={cn("flex items-center gap-2", className)}>
+      <button
+        onClick={() => setTheme('light')}
+        className={cn(
+          'p-2 rounded-lg transition-colors',
+          theme === 'light' 
+            ? 'bg-emerald-100 text-emerald-900' 
+            : 'hover:bg-light-100 dark:hover:bg-dark-100 text-black/70 dark:text-white/70'
         )}
-      </span>
+        aria-label="Light mode"
+      >
+        <Sun className="w-5 h-5" />
+      </button>
+      <button
+        onClick={() => setTheme('dark')}
+        className={cn(
+          'p-2 rounded-lg transition-colors',
+          theme === 'dark' 
+            ? 'bg-emerald-900 text-emerald-100' 
+            : 'hover:bg-light-100 dark:hover:bg-dark-100 text-black/70 dark:text-white/70'
+        )}
+        aria-label="Dark mode"
+      >
+        <Moon className="w-5 h-5" />
+      </button>
     </div>
   );
 }

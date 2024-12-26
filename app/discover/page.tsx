@@ -1,112 +1,264 @@
 'use client';
 
-import { Search } from 'lucide-react';
+import { Search, Star, ShoppingCart, Heart, Truck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import SearchBar from '@/components/discover/SearchBar';
+import Filters, { FilterState } from '@/components/discover/Filters';
+import { dummyDiscover } from '@/data/dummyDiscover';
 
-interface Discover {
+interface Product {
+  id: string;
   title: string;
   content: string;
+  price: number;
+  originalPrice: number;
   url: string;
   thumbnail: string;
+  category?: string;
+  brand?: string;
+  rating?: number;
+  reviews?: number;
+  colors?: string[];
+  sizes?: string[];
+  specs?: string[];
+  features?: string[];
+  inStock: boolean;
+  freeShipping: boolean;
+  date?: string;
 }
 
 const Page = () => {
-  const [discover, setDiscover] = useState<Discover[] | null>(null);
+  const [products, setProducts] = useState<Product[] | null>(null);
+  const [filteredProducts, setFilteredProducts] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/discover`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.message);
-        }
-
-        data.blogs = data.blogs.filter((blog: Discover) => blog.thumbnail);
-
-        setDiscover(data.blogs);
-      } catch (err: any) {
-        console.error('Error fetching data:', err.message);
-        toast.error('Error fetching data');
-      } finally {
-        setLoading(false);
-      }
+    const handleSidebarChange = (e: CustomEvent) => {
+      setIsSidebarExpanded(e.detail.expanded);
     };
 
-    fetchData();
+    window.addEventListener('sidebarStateChange' as any, handleSidebarChange);
+    setProducts(dummyDiscover);
+    setFilteredProducts(dummyDiscover);
+    setLoading(false);
+
+    return () => {
+      window.removeEventListener('sidebarStateChange' as any, handleSidebarChange);
+    };
   }, []);
+
+  const handleSearch = (query: string) => {
+    if (!products) return;
+
+    if (!query.trim()) {
+      setFilteredProducts(products);
+      return;
+    }
+
+    const searchTerms = query.toLowerCase().split(' ');
+    const filtered = products.filter((item) => {
+      const searchText = `${item.title} ${item.content} ${item.category} ${item.brand}`
+        .toLowerCase();
+      return searchTerms.every((term) => searchText.includes(term));
+    });
+
+    setFilteredProducts(filtered);
+  };
+
+  const handleFilterChange = (filters: FilterState) => {
+    if (!products) return;
+
+    let filtered = [...products];
+
+    if (filters.categories.length > 0) {
+      filtered = filtered.filter((item) =>
+        item.category ? filters.categories.includes(item.category) : false
+      );
+    }
+
+    if (filters.dateRange !== 'all' && filtered.length > 0) {
+      const now = new Date();
+      const getDateRange = () => {
+        switch (filters.dateRange) {
+          case 'today':
+            return new Date(now.setDate(now.getDate() - 1));
+          case 'week':
+            return new Date(now.setDate(now.getDate() - 7));
+          case 'month':
+            return new Date(now.setMonth(now.getMonth() - 1));
+          case 'year':
+            return new Date(now.setFullYear(now.getFullYear() - 1));
+          default:
+            return new Date(0);
+        }
+      };
+
+      const dateRange = getDateRange();
+      filtered = filtered.filter((item) =>
+        item.date ? new Date(item.date) >= dateRange : true
+      );
+    }
+
+    filtered.sort((a, b) => {
+      switch (filters.sortBy) {
+        case 'recent':
+          return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
+        case 'popular':
+          return (b.reviews || 0) - (a.reviews || 0);
+        case 'relevant':
+          return (b.rating || 0) - (a.rating || 0);
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredProducts(filtered);
+  };
+
+  const renderRating = (rating: number = 0) => {
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={14}
+            className={`${
+              star <= rating
+                ? 'text-yellow-400 fill-yellow-400'
+                : 'text-gray-300 fill-gray-300'
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return loading ? (
     <div className="flex flex-row items-center justify-center min-h-screen">
-      <svg
-        aria-hidden="true"
-        className="w-8 h-8 text-light-200 fill-light-secondary dark:text-[#202020] animate-spin dark:fill-[#ffffff3b]"
-        viewBox="0 0 100 101"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M100 50.5908C100.003 78.2051 78.1951 100.003 50.5908 100C22.9765 99.9972 0.997224 78.018 1 50.4037C1.00281 22.7993 22.8108 0.997224 50.4251 1C78.0395 1.00281 100.018 22.8108 100 50.4251ZM9.08164 50.594C9.06312 73.3997 27.7909 92.1272 50.5966 92.1457C73.4023 92.1642 92.1298 73.4365 92.1483 50.6308C92.1669 27.8251 73.4392 9.0973 50.6335 9.07878C27.8278 9.06026 9.10003 27.787 9.08164 50.594Z"
-          fill="currentColor"
-        />
-        <path
-          d="M93.9676 39.0409C96.393 38.4037 97.8624 35.9116 96.9801 33.5533C95.1945 28.8227 92.871 24.3692 90.0681 20.348C85.6237 14.1775 79.4473 9.36872 72.0454 6.45794C64.6435 3.54717 56.3134 2.65431 48.3133 3.89319C45.869 4.27179 44.3768 6.77534 45.014 9.20079C45.6512 11.6262 48.1343 13.0956 50.5786 12.717C56.5073 11.8281 62.5542 12.5399 68.0406 14.7911C73.527 17.0422 78.2187 20.7487 81.5841 25.4923C83.7976 28.5886 85.4467 32.059 86.4416 35.7474C87.1273 38.1189 89.5423 39.6781 91.9676 39.0409Z"
-          fill="currentFill"
-        />
-      </svg>
+      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
     </div>
   ) : (
-    <>
-      <div>
-        <div className="flex flex-col pt-4">
-          <div className="flex items-center">
-            <Search />
-            <h1 className="text-3xl font-medium p-2">Discover</h1>
+    <div className="min-h-screen">
+      <div className={`fixed top-0 transition-all duration-300 ${
+        isSidebarExpanded ? 'left-[240px]' : 'left-[80px]'
+      } right-0 bg-white/80 dark:bg-black/80 backdrop-blur-lg z-50 border-b border-light-200 dark:border-dark-200`}>
+        <div className="p-6">
+          <div className="flex flex-col gap-6 max-w-[1000px]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-600 text-transparent bg-clip-text">
+                  Shop
+                </h1>
+              </div>
+              <div className="text-sm text-gray-500">
+                {filteredProducts?.length} products found
+              </div>
+            </div>
+            
+            <div className="relative">
+              <SearchBar onSearch={handleSearch} />
+            </div>
           </div>
-          <hr className="border-t border-[#2B2C2C] my-4 w-full" />
-        </div>
-
-        <div className="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 pb-28 lg:pb-8 w-full justify-items-center lg:justify-items-start">
-          {discover &&
-            discover?.map((item, i) => (
-              <Link
-                href={`/?q=Summary: ${item.url}`}
-                key={i}
-                className="max-w-sm rounded-lg overflow-hidden bg-light-secondary dark:bg-dark-secondary hover:-translate-y-[1px] transition duration-200"
-                target="_blank"
-              >
-                <img
-                  className="object-cover w-full aspect-video"
-                  src={
-                    new URL(item.thumbnail).origin +
-                    new URL(item.thumbnail).pathname +
-                    `?id=${new URL(item.thumbnail).searchParams.get('id')}`
-                  }
-                  alt={item.title}
-                />
-                <div className="px-6 py-4">
-                  <div className="font-bold text-lg mb-2">
-                    {item.title.slice(0, 100)}...
-                  </div>
-                  <p className="text-black-70 dark:text-white/70 text-sm">
-                    {item.content.slice(0, 100)}...
-                  </p>
-                </div>
-              </Link>
-            ))}
         </div>
       </div>
-    </>
+
+      <div className={`fixed top-[160px] bottom-0 transition-all duration-300 ${
+        isSidebarExpanded ? 'left-[240px]' : 'left-[80px]'
+      } w-[240px] bg-white dark:bg-black border-r border-light-200 dark:border-dark-200 overflow-y-auto z-40`}>
+        <div className="p-4">
+          <Filters onFilterChange={handleFilterChange} />
+        </div>
+      </div>
+
+      <main className={`pt-[160px] transition-all duration-300 ${
+        isSidebarExpanded ? 'pl-[480px]' : 'pl-[320px]'
+      } min-h-screen`}>
+        <div className="p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 auto-rows-fr">
+            {filteredProducts?.map((item) => (
+              <div
+                key={item.id}
+                className="group relative bg-white dark:bg-black rounded-2xl overflow-hidden border border-light-200 dark:border-dark-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-900">
+                  <img
+                    className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-700"
+                    src={item.thumbnail}
+                    alt={item.title}
+                  />
+                  {item.freeShipping && (
+                    <div className="absolute top-4 left-4 px-3 py-1.5 bg-emerald-500 text-white text-xs font-medium rounded-full shadow-lg">
+                      Free Shipping
+                    </div>
+                  )}
+                  <button 
+                    className="absolute top-4 right-4 p-2.5 bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform group-hover:scale-110 transition-all duration-300 hover:bg-emerald-500 hover:text-white"
+                    aria-label="Add to wishlist"
+                  >
+                    <Heart className="w-5 h-5" />
+                  </button>
+                  {!item.inStock && (
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                      <span className="px-4 py-2 bg-black/80 text-white text-sm font-medium rounded-full">
+                        Out of Stock
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      {item.brand}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium">{item.rating}</span>
+                      <span className="text-xs text-gray-500">({item.reviews})</span>
+                    </div>
+                  </div>
+
+                  <h2 className="text-base font-semibold mb-2 line-clamp-2 min-h-[2.5rem]">
+                    {item.title}
+                  </h2>
+
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl font-bold">${item.price}</span>
+                      {item.originalPrice > item.price && (
+                        <span className="text-sm text-gray-500 line-through">
+                          ${item.originalPrice}
+                        </span>
+                      )}
+                      {item.originalPrice > item.price && (
+                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                          {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-all duration-300 ${
+                        item.inStock
+                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                      }`}
+                      disabled={!item.inStock}
+                    >
+                      <ShoppingCart className={`w-5 h-5 ${item.inStock ? 'animate-bounce-subtle' : ''}`} />
+                      {item.inStock ? 'Add to Cart' : 'Out of Stock'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

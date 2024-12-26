@@ -45,6 +45,15 @@ const config: Config = {
           },
         };
       },
+      keyframes: {
+        'bounce-subtle': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-2px)' }
+        }
+      },
+      animation: {
+        'bounce-subtle': 'bounce-subtle 2s infinite'
+      }
     },
   },
   plugins: [require('@tailwindcss/typography')],

@@ -3,7 +3,6 @@ import EmptyChatMessageInput from './EmptyChatMessageInput';
 import SettingsDialog from './SettingsDialog';
 import { useState } from 'react';
 import { File } from './ChatWindow';
-import VoleraLogo from './VoleraLogo';
 
 const EmptyChat = ({
   sendMessage,
@@ -29,7 +28,7 @@ const EmptyChat = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative h-screen overflow-hidden">
       <SettingsDialog isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
       <div className="absolute w-full flex flex-row items-center justify-end mr-5 mt-5">
         <Settings
@@ -37,11 +36,10 @@ const EmptyChat = ({
           onClick={() => setIsSettingsOpen(true)}
         />
       </div>
-      <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto p-2 space-y-8">
+      <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto p-2 space-y-8">
         <div className="flex flex-col items-center space-y-4 -mt-8">
-          <VoleraLogo />
-          <p className="text-black/50 dark:text-white/50 text-base font-medium mt-4">
-            Ask me anything about products
+          <p className="text-black/50 dark:text-white/50 text-4xl font-bold">
+            What do you want to buy?
           </p>
         </div>
         <EmptyChatMessageInput

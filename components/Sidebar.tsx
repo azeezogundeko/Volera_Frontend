@@ -38,7 +38,9 @@ const IconButton = ({ href, icon: Icon, label, expanded, active, onClick }: Icon
     <Link
       href={href}
       className={cn(
-        'w-full flex items-center gap-2 px-4 py-2.5 rounded-lg',
+        'w-full flex items-center gap-2',
+        expanded ? 'px-4 py-2.5' : 'justify-center py-2.5',
+        'rounded-lg',
         'bg-transparent hover:bg-light-100 dark:hover:bg-dark-100',
         'transition-colors duration-200',
         active && 'bg-light-100 dark:bg-dark-100'
@@ -47,14 +49,16 @@ const IconButton = ({ href, icon: Icon, label, expanded, active, onClick }: Icon
     >
       <Icon className="w-5 h-5 text-black/70 dark:text-white/70" />
       {expanded && (
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="text-sm font-medium text-black/90 dark:text-white/90"
-        >
-          {label}
-        </motion.span>
+        <AnimatePresence mode="wait">
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-sm font-medium text-black/90 dark:text-white/90"
+          >
+            {label}
+          </motion.span>
+        </AnimatePresence>
       )}
     </Link>
   );
@@ -83,16 +87,18 @@ const ThreadItem = ({
       >
         <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-3 h-px bg-light-200 dark:bg-dark-200" />
         {expanded ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex-1 min-w-0"
-          >
-            <div className="text-xs text-black/70 dark:text-white/70 truncate">
-              {thread.title}
-            </div>
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex-1 min-w-0"
+            >
+              <div className="text-xs text-black/70 dark:text-white/70 truncate">
+                {thread.title}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <div className="w-full flex justify-center">
             <div className="w-1 h-1 rounded-full bg-black/40 dark:bg-white/40" />
@@ -100,6 +106,70 @@ const ThreadItem = ({
         )}
       </motion.div>
     </Link>
+  );
+};
+
+const TryProButton = ({ expanded }: { expanded: boolean }) => {
+  return (
+    <Link
+      href="/pro"
+      className={cn(
+        'w-full flex items-center gap-2 px-4 py-2.5 rounded-lg',
+        'bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600',
+        'transition-all duration-200'
+      )}
+    >
+      <Sparkles className="w-5 h-5 text-white" />
+      {expanded && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col"
+          >
+            <span className="text-sm font-medium text-white">Try Pro</span>
+            <span className="text-xs text-white/80">Upgrade for image upload, smarter AI</span>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </Link>
+  );
+};
+
+const UserProfile = ({ user, expanded }: { user: User; expanded: boolean }) => {
+  return (
+    <div className={cn(
+      "flex items-center gap-2 py-2",
+      expanded ? "px-4" : "justify-center"
+    )}>
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+        {user.image ? (
+          <img src={user.image} alt={user.name} className="w-full h-full rounded-full" />
+        ) : (
+          <span className="text-white text-sm font-medium">
+            {user.name.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+      {expanded && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex-1 min-w-0"
+          >
+            <div className="text-sm font-medium text-black/90 dark:text-white/90 truncate">
+              {user.name}
+            </div>
+            <div className="text-xs text-black/50 dark:text-white/50 truncate">
+              {user.email}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </div>
   );
 };
 
@@ -170,6 +240,15 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+    // Emit custom event for sidebar state change
+    const event = new CustomEvent('sidebarStateChange', { 
+      detail: { expanded: !isExpanded }
+    });
+    window.dispatchEvent(event);
+  };
+
   const filteredThreads = threads.slice(0, 4);
 
   const navLinks = [
@@ -198,40 +277,65 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       <motion.div 
         className="fixed inset-y-0 z-50 flex flex-col border-r border-light-200 dark:border-dark-200 bg-white dark:bg-black"
         initial={false}
-        animate={{ width: isExpanded ? '280px' : '96px' }}
-        transition={{ duration: 0.2 }}
+        animate={{ 
+          width: isExpanded ? '280px' : '96px',
+        }}
+        style={{
+          boxShadow: '0 0 15px rgba(0, 0, 0, 0.05)'
+        }}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <AnimatePresence>
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex items-center justify-between p-4">
+            <AnimatePresence mode="wait">
               {isExpanded && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-2"
+                  className="text-lg font-semibold text-black/90 dark:text-white/90"
                 >
-                  <Sparkles className="h-6 w-6 text-emerald-500" />
-                  <span className="text-lg font-semibold">Volera</span>
+                  Perplexica
                 </motion.div>
               )}
             </AnimatePresence>
+            <button
+              onClick={toggleExpanded}
+              className="p-2 hover:bg-light-100 dark:hover:bg-dark-100 rounded-lg transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronLeft className="w-5 h-5 text-black/70 dark:text-white/70" />
+              ) : (
+                <ChevronRight className="w-5 h-5 text-black/70 dark:text-white/70" />
+              )}
+            </button>
           </div>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 hover:bg-light-100 dark:hover:bg-dark-100 rounded-lg transition-colors duration-200"
-          >
-            {isExpanded ? (
-              <ChevronLeft className="h-5 w-5 text-black/70 dark:text-white/70" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-black/70 dark:text-white/70" />
-            )}
-          </button>
-        </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <nav className="flex flex-1 flex-col gap-1 p-4">
+          <div className="flex flex-col gap-1 p-2">
+            <button
+              onClick={handleNewChat}
+              className={cn(
+                'w-full flex items-center gap-2 px-4 py-2.5 rounded-lg',
+                'bg-light-100 dark:bg-dark-100 hover:bg-light-200 dark:hover:bg-dark-200',
+                'transition-colors duration-200'
+              )}
+            >
+              <Plus className="w-5 h-5 text-black/70 dark:text-white/70" />
+              <AnimatePresence mode="wait">
+                {isExpanded && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm font-medium text-black/90 dark:text-white/90"
+                  >
+                    New Chat
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+
+            <div className="my-2" />
+
             {navLinks.map((link) => (
               <IconButton
                 key={link.href}
@@ -242,107 +346,70 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 active={link.active}
               />
             ))}
-          </nav>
-
-          <div className="px-4 py-2">
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.h2
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="px-2 text-xs font-semibold text-black/40 dark:text-white/40 uppercase tracking-wider"
-                >
-                  Recent Chats
-                </motion.h2>
-              )}
-            </AnimatePresence>
           </div>
 
-          <nav className="flex flex-col gap-1 px-4">
-            {loading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-10 rounded-lg bg-light-100 dark:bg-dark-100 animate-pulse"
-                />
-              ))
-            ) : (
-              filteredThreads.map((thread) => (
-                <ThreadItem
-                  key={thread.id}
-                  thread={thread}
-                  active={segments.includes(thread.id)}
-                  expanded={isExpanded}
-                />
-              ))
-            )}
-          </nav>
-        </div>
+          {!loading && filteredThreads.length > 0 && isExpanded && (
+            <div className="mt-4">
+              <div className="flex items-center px-6 py-2">
+                <Clock className="w-4 h-4 text-black/40 dark:text-white/40" />
+                <AnimatePresence mode="wait">
+                  {isExpanded && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="ml-2 text-xs font-medium text-black/40 dark:text-white/40"
+                    >
+                      Recent
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+              <div className="space-y-1">
+                {filteredThreads.map((thread) => (
+                  <ThreadItem
+                    key={thread.id}
+                    thread={thread}
+                    active={segments.includes('c') && segments.includes(thread.id)}
+                    expanded={isExpanded}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-        <div className="flex flex-col gap-2 p-4 border-t border-light-200 dark:border-dark-200">
-          <button
-            onClick={handleNewChat}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2.5 rounded-lg w-full',
-              'bg-emerald-500 hover:bg-emerald-600 text-white',
-              'transition-colors duration-200'
-            )}
-          >
-            <Plus className="w-5 h-5" />
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  New Chat
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
-
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2.5 rounded-lg w-full',
-              'bg-transparent hover:bg-light-100 dark:hover:bg-dark-100',
-              'transition-colors duration-200'
-            )}
-          >
-            <Settings className="w-5 h-5 text-black/70 dark:text-white/70" />
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-black/70 dark:text-white/70"
-                >
-                  Settings
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
+          <div className="mt-auto p-2 space-y-2">
+            {isExpanded && <TryProButton expanded={isExpanded} />}
+            <div className={cn(
+              "flex flex-col",
+              isExpanded ? "space-y-2" : "items-center space-y-4"
+            )}>
+              <UserProfile user={user} expanded={isExpanded} />
+              <IconButton
+                href="/settings"
+                icon={Settings}
+                label="Settings"
+                expanded={isExpanded}
+                active={isSettingsOpen}
+                onClick={() => setIsSettingsOpen(true)}
+              />
+            </div>
+          </div>
         </div>
       </motion.div>
 
       <div className={cn(
-        "flex flex-1 flex-col",
-        isExpanded ? "lg:pl-[280px]" : "lg:pl-24"
+        "flex-1 transition-all duration-200 min-h-screen flex flex-col",
+        isExpanded ? "ml-[280px]" : "ml-24"
       )}>
-        <Layout>
-          {children}
-        </Layout>
+        <div className="flex-1 flex flex-col max-w-[1200px] w-full mx-auto px-6">
+          <Layout>{children}</Layout>
+        </div>
       </div>
 
-      <SettingsDialog
-        isOpen={isSettingsOpen}
-        setIsOpen={setIsSettingsOpen}
-        user={user}
+      <SettingsDialog 
+        isOpen={isSettingsOpen} 
+        setIsOpen={setIsSettingsOpen} 
       />
     </div>
   );
