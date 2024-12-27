@@ -97,7 +97,7 @@ const MessageInput = ({
           setTextareaRows(Math.ceil(height / props.rowHeight));
         }}
         className="transition bg-transparent placeholder:text-black/50 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full px-2 max-h-24 lg:max-h-36 xl:max-h-48 flex-grow flex-shrink"
-        placeholder="How can I help you today?"
+        placeholder="Ask your follow up questions?"
       />
       {mode === 'single' && (
         <div className="flex flex-row items-center space-x-4">

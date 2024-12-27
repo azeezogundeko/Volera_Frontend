@@ -165,7 +165,7 @@ const EmptyChatMessageInput = ({
           onChange={(e) => setMessage(e.target.value)}
           minRows={2}
           className={clsx(
-            'bg-transparent placeholder:text-black/70 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48',
+            'bg-transparent placeholder:text-black/200 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48',
           )}
           placeholder="What do you want to buy?"
         />

@@ -3,8 +3,9 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Chat - Perplexica',
-  description: 'Chat with the internet, chat with Perplexica.',
+  title: 'Volera - Shop with Artificial Intelligience',
+  description:
+    'Volera is an AI powered agentic shopping assistant.',
 };
 
 const Home = () => {

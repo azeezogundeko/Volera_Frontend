@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import SearchBar from '@/components/discover/SearchBar';
 import Filters, { FilterState } from '@/components/discover/Filters';
 import { dummyDiscover } from '@/data/dummyDiscover';
+import { X, SlidersHorizontal, Bookmark } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -29,11 +30,129 @@ interface Product {
   date?: string;
 }
 
+interface SharedSearch {
+  id: string;
+  query: string;
+  description: string;
+  timestamp: string;
+  user: {
+    name: string;
+    avatar: string;
+  };
+  likes: number;
+  saves: number;
+  tags: string[];
+  image: string;
+}
+
+const dummySharedSearches: SharedSearch[] = [
+  {
+    id: '1',
+    query: 'Encyclopedia Britannica is now an AI Company',
+    description: 'Encyclopedia Britannica, the iconic knowledge repository, has undergone a remarkable transformation from traditional print publisher to cutting-edge AI company. As reported by TechCrunch, this shift marks a significant milestone in the evolution of educational technology.',
+    timestamp: '2 hours ago',
+    user: {
+      name: 'elymc',
+      avatar: 'E'
+    },
+    likes: 423,
+    saves: 189,
+    tags: ['ai', 'education', 'technology'],
+    image: 'https://source.unsplash.com/random/1200x800?encyclopedia'
+  },
+  {
+    id: '2',
+    query: "OpenAI's Humanoid Robot Plans",
+    description: 'According to reports from TechCrunch, OpenAI has unveiled ambitious plans for developing advanced humanoid robots, combining their expertise in artificial intelligence with cutting-edge robotics technology.',
+    timestamp: '4 hours ago',
+    user: {
+      name: 'katemccart',
+      avatar: 'K'
+    },
+    likes: 352,
+    saves: 241,
+    tags: ['robotics', 'ai', 'technology'],
+    image: 'https://source.unsplash.com/random/800x600?robot'
+  },
+  {
+    id: '3',
+    query: "Home Alone's Wealthy Mystery",
+    description: 'The iconic McCallister family home in "Home Alone" has sparked renewed interest as financial analysts break down the true value of the property and the family\'s mysterious wealth in the beloved holiday classic.',
+    timestamp: '6 hours ago',
+    user: {
+      name: 'velvetecho',
+      avatar: 'V'
+    },
+    likes: 892,
+    saves: 567,
+    tags: ['movies', 'real-estate', 'entertainment'],
+    image: 'https://source.unsplash.com/random/800x600?mansion'
+  },
+  {
+    id: '4',
+    query: 'Trans-Neptunian Objects',
+    description: 'The James Webb Space Telescope\'s recent observations have revealed fascinating new details about mysterious objects in the outer reaches of our solar system, beyond Neptune\'s orbit.',
+    timestamp: '8 hours ago',
+    user: {
+      name: 'elymc',
+      avatar: 'E'
+    },
+    likes: 756,
+    saves: 432,
+    tags: ['space', 'astronomy', 'science'],
+    image: 'https://source.unsplash.com/random/800x600?planet'
+  },
+  {
+    id: '5',
+    query: 'The Rise of Mechanical Keyboards',
+    description: 'Exploring the growing popularity of custom mechanical keyboards, from boutique switches to group buys, and how this niche hobby has evolved into a thriving community of enthusiasts.',
+    timestamp: '12 hours ago',
+    user: {
+      name: 'techphile',
+      avatar: 'T'
+    },
+    likes: 234,
+    saves: 156,
+    tags: ['technology', 'hardware', 'hobby'],
+    image: 'https://source.unsplash.com/random/800x600?keyboard'
+  },
+  {
+    id: '6',
+    query: 'Future of Urban Agriculture',
+    description: 'Vertical farming startups are revolutionizing urban agriculture with AI-powered systems and hydroponics, promising sustainable food production in cities around the world.',
+    timestamp: '1 day ago',
+    user: {
+      name: 'greenfuture',
+      avatar: 'G'
+    },
+    likes: 445,
+    saves: 289,
+    tags: ['sustainability', 'agriculture', 'technology'],
+    image: 'https://source.unsplash.com/random/800x600?vertical-farming'
+  },
+  {
+    id: '7',
+    query: 'The Psychology of Procrastination',
+    description: 'New research reveals surprising insights into why we procrastinate and how our brains process task avoidance, offering potential solutions for better productivity.',
+    timestamp: '1 day ago',
+    user: {
+      name: 'mindmatters',
+      avatar: 'M'
+    },
+    likes: 678,
+    saves: 445,
+    tags: ['psychology', 'productivity', 'science'],
+    image: 'https://source.unsplash.com/random/800x600?time'
+  }
+];
+
 const Page = () => {
   const [products, setProducts] = useState<Product[] | null>(null);
   const [filteredProducts, setFilteredProducts] = useState<Product[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [activeTab, setActiveTab] = useState('For You');
+  const [sharedSearches, setSharedSearches] = useState(dummySharedSearches);
 
   useEffect(() => {
     const handleSidebarChange = (e: CustomEvent) => {
@@ -118,6 +237,16 @@ const Page = () => {
     setFilteredProducts(filtered);
   };
 
+  const handleSave = (searchId: string) => {
+    setSharedSearches(prev => 
+      prev.map(search => 
+        search.id === searchId 
+          ? { ...search, saves: search.saves + 1 }
+          : search
+      )
+    );
+  };
+
   const renderRating = (rating: number = 0) => {
     return (
       <div className="flex items-center gap-1">
@@ -137,119 +266,137 @@ const Page = () => {
   };
 
   return loading ? (
-    <div className="flex flex-row items-center justify-center min-h-screen">
-      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-8 h-8 border-4 border-gray-200 dark:border-[#333] border-t-emerald-500 rounded-full animate-spin" />
     </div>
   ) : (
-    <div className="min-h-screen">
-      <div className={`fixed top-0 transition-all duration-300 ${
-        isSidebarExpanded ? 'left-[240px]' : 'left-[80px]'
-      } right-0 bg-white/80 dark:bg-black/80 backdrop-blur-lg z-50 border-b border-light-200 dark:border-dark-200`}>
-        <div className="p-6">
-          <div className="flex flex-col gap-6 max-w-[1000px]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-600 text-transparent bg-clip-text">
-                  Shop
-                </h1>
-              </div>
-              <div className="text-sm text-gray-500">
-                {filteredProducts?.length} products found
+    <div className="min-h-screen bg-white dark:bg-[#111111]">
+      <div className="max-w-[1200px] w-full mx-auto px-6 py-6">
+        {/* Header */}
+        <div className="flex flex-col gap-6 mb-8 max-w-3xl mx-auto">
+          {/* Title and Search Row */}
+          <div className="flex items-center justify-between gap-6">
+            <div>
+              <h1 className="text-2xl font-semibold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-white/70 text-transparent bg-clip-text">
+                Explore
+              </h1>
+              <div className="flex items-center gap-2 mt-1.5">
+                <p className="text-sm text-gray-500 dark:text-white/50">
+                  Browse and search through articles
+                </p>
+                <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
+                <span className="text-sm text-gray-500 dark:text-white/50">
+                  {sharedSearches.length} articles
+                </span>
               </div>
             </div>
             
-            <div className="relative">
+            {/* Search Bar */}
+            <div className="w-[280px]">
               <SearchBar onSearch={handleSearch} />
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className={`fixed top-[160px] bottom-0 transition-all duration-300 ${
-        isSidebarExpanded ? 'left-[240px]' : 'left-[80px]'
-      } w-[240px] bg-white dark:bg-black border-r border-light-200 dark:border-dark-200 overflow-y-auto z-40`}>
-        <div className="p-4">
-          <Filters onFilterChange={handleFilterChange} />
-        </div>
-      </div>
-
-      <main className={`pt-[160px] transition-all duration-300 ${
-        isSidebarExpanded ? 'pl-[480px]' : 'pl-[320px]'
-      } min-h-screen`}>
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 auto-rows-fr">
-            {filteredProducts?.map((item) => (
-              <div
-                key={item.id}
-                className="group relative bg-white dark:bg-black rounded-2xl overflow-hidden border border-light-200 dark:border-dark-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full"
+          {/* Navigation */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-gray-100 dark:border-white/10 pb-1">
+            {['For You', 'Top', 'Tech & Science', 'Finance', 'Arts & Culture', 'Sports'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                  activeTab === tab
+                    ? 'bg-[#17B1B1]/10 text-[#17B1B1] shadow-[0_0_10px_rgba(23,177,177,0.1)]'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-white/60 dark:hover:text-white/90 dark:hover:bg-white/5'
+                }`}
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-900">
-                  <img
-                    className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-700"
-                    src={item.thumbnail}
-                    alt={item.title}
-                  />
-                  {item.freeShipping && (
-                    <div className="absolute top-4 left-4 px-3 py-1.5 bg-emerald-500 text-white text-xs font-medium rounded-full shadow-lg">
-                      Free Shipping
-                    </div>
-                  )}
-                  <button 
-                    className="absolute top-4 right-4 p-2.5 bg-white/90 dark:bg-black/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform group-hover:scale-110 transition-all duration-300 hover:bg-emerald-500 hover:text-white"
-                    aria-label="Add to wishlist"
-                  >
-                    <Heart className="w-5 h-5" />
-                  </button>
-                  {!item.inStock && (
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                      <span className="px-4 py-2 bg-black/80 text-white text-sm font-medium rounded-full">
-                        Out of Stock
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="mx-auto">
+          {/* Featured Article */}
+          <div className="max-w-3xl mx-auto">
+            {sharedSearches.slice(0, 1).map((search) => (
+              <div
+                key={search.id}
+                className="group relative bg-white dark:bg-[#141414] rounded-xl overflow-hidden border border-gray-200 dark:border-[#222] hover:border-gray-300 dark:hover:border-[#333] transition-colors duration-300 mb-6 shadow-sm hover:shadow-md"
+              >
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+                      <span className="text-xs font-medium text-white">
+                        {search.user.avatar}
                       </span>
                     </div>
-                  )}
-                </div>
-
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                      {item.brand}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{item.rating}</span>
-                      <span className="text-xs text-gray-500">({item.reviews})</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-900 dark:text-white/90">
+                        {search.user.name}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-white/50">
+                        {search.timestamp}
+                      </span>
                     </div>
+                    <button 
+                      className="ml-auto text-gray-400 hover:text-gray-900 dark:text-white/40 dark:hover:text-white/90 transition-colors"
+                      aria-label="Bookmark"
+                    >
+                      <Bookmark className="w-5 h-5" />
+                    </button>
                   </div>
 
-                  <h2 className="text-base font-semibold mb-2 line-clamp-2 min-h-[2.5rem]">
-                    {item.title}
+                  <h2 className="text-xl font-medium text-gray-900 dark:text-white/90 mb-3">
+                    {search.query}
                   </h2>
+                  <p className="text-base text-gray-600 dark:text-white/60 mb-4">
+                    {search.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
 
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-bold">${item.price}</span>
-                      {item.originalPrice > item.price && (
-                        <span className="text-sm text-gray-500 line-through">
-                          ${item.originalPrice}
+          {/* Grid of Articles */}
+          <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            {sharedSearches.slice(1).map((search) => (
+              <div
+                key={search.id}
+                className="group relative bg-white dark:bg-[#141414] rounded-xl overflow-hidden border border-gray-200 dark:border-[#222] hover:border-gray-300 dark:hover:border-[#333] transition-colors duration-300 shadow-sm hover:shadow-md"
+              >
+                <div className="aspect-[16/10] relative overflow-hidden">
+                  <img
+                    src={search.image}
+                    alt={search.query}
+                    className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="text-base font-medium text-gray-900 dark:text-white/90 mb-2 line-clamp-2">
+                    {search.query}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-white/60 line-clamp-2 mb-3">
+                    {search.description}
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">
+                          {search.user.avatar}
                         </span>
-                      )}
-                      {item.originalPrice > item.price && (
-                        <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                          {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
-                        </span>
-                      )}
+                      </div>
+                      <span className="text-xs text-gray-600 dark:text-white/60">
+                        {search.user.name}
+                      </span>
                     </div>
-
-                    <button
-                      className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-all duration-300 ${
-                        item.inStock
-                          ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                      }`}
-                      disabled={!item.inStock}
+                    <button 
+                      onClick={() => handleSave(search.id)}
+                      className="text-gray-400 hover:text-gray-900 dark:text-white/40 dark:hover:text-white/90 transition-colors"
+                      aria-label="Save search"
                     >
-                      <ShoppingCart className={`w-5 h-5 ${item.inStock ? 'animate-bounce-subtle' : ''}`} />
-                      {item.inStock ? 'Add to Cart' : 'Out of Stock'}
+                      <Bookmark className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -257,7 +404,7 @@ const Page = () => {
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

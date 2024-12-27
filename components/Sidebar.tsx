@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { BookOpenText, Home, Settings, Sparkles, ChevronLeft, ChevronRight, MessageSquare, Clock, ArrowUpRight, Search, Plus } from 'lucide-react';
+import { BookOpenText, Home, Settings, Sparkles, ChevronLeft, ChevronRight, MessageSquare, Clock, ArrowUpRight, Search, Plus, Target } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState, type ReactNode, useEffect } from 'react';
@@ -10,6 +10,9 @@ import SettingsDialog from './SettingsDialog';
 import LoadingSpinner from './LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatTimeDifference } from '@/lib/utils';
+import logoLight  from '@/public/logo-light.png';
+import logoDark  from '@/public/logo-dark.png';
+import { useTheme } from 'next-themes';
 
 interface Thread {
   id: string;
@@ -187,6 +190,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
     isPro: false,
   });
   const router = useRouter();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchThreads = async () => {
@@ -260,10 +264,16 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       label: 'Home',
     },
     {
+      icon: Target,
+      href: '/track',
+      active: segments.includes('track'),
+      label: 'Track',
+    },
+    {
       icon: Search,
       href: '/discover',
       active: segments.includes('discover'),
-      label: 'Discover',
+      label: 'Explore',
     },
     {
       icon: BookOpenText,
@@ -295,7 +305,11 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                   exit={{ opacity: 0 }}
                   className="text-lg font-semibold text-black/90 dark:text-white/90"
                 >
-                  Perplexica
+                  {theme === 'light' ? (
+                    <img src={logoLight.src} alt="Logo" className="h-26" />
+                  ) : (
+                    <img src={logoDark.src} alt="Logo" className="h-26" />
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -350,7 +364,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           </div>
 
           {!loading && filteredThreads.length > 0 && isExpanded && (
-            <div className="mt-4">
+            <div className="mt">
               <div className="flex items-center px-6 py-2">
                 <Clock className="w-4 h-4 text-black/40 dark:text-white/40" />
                 <AnimatePresence mode="wait">
@@ -391,7 +405,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               "flex flex-col",
               isExpanded ? "space-y-2" : "items-center space-y-4"
             )}>
-              <UserProfile user={user} expanded={isExpanded} />
+              {/* <UserProfile user={user} expanded={isExpanded} /> */}
               <IconButton
                 href="/settings"
                 icon={Settings}
@@ -409,7 +423,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
         "flex-1 transition-all duration-200 min-h-screen flex flex-col bg-white dark:bg-[#111111]",
         isExpanded ? "ml-[280px]" : "ml-24"
       )}>
-        <div className="flex-1 flex flex-col max-w-[1200px] w-full mx-auto px-6">
+        <div className="flex-1 flex flex-col w-full">
           <Layout>{children}</Layout>
         </div>
       </div>
