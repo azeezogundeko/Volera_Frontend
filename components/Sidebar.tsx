@@ -1,7 +1,21 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { BookOpenText, Home, Settings, Sparkles, ChevronLeft, ChevronRight, MessageSquare, Clock, ArrowUpRight, Search, Plus, Target } from 'lucide-react';
+import { 
+  BookOpenText, 
+  Home, 
+  Settings, 
+  Sparkles, 
+  ChevronLeft, 
+  ChevronRight, 
+  MessageSquare, 
+  Clock, 
+  ArrowUpRight, 
+  Search, 
+  Plus, 
+  Target, 
+  Store 
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState, type ReactNode, useEffect } from 'react';
@@ -274,6 +288,12 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       href: '/discover',
       active: segments.includes('discover'),
       label: 'Explore',
+    },
+    {
+      icon: Store,
+      href: '/marketplace',
+      active: segments.includes('marketplace'),
+      label: 'Marketplace',
     },
     {
       icon: BookOpenText,
