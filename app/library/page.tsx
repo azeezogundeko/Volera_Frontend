@@ -37,6 +37,7 @@ const Page = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
         },
       });
 
@@ -50,7 +51,7 @@ const Page = () => {
   }, []);
 
   const filteredChats = chats.filter(chat => 
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+    chat.title && typeof chat.title === 'string' && chat.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Group chats by date

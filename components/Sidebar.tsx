@@ -365,7 +365,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                         exit={{ opacity: 0 }}
                         className="text-base font-semibold text-black/90 dark:text-white/90"
                       >
-                        Perplexica
+                        Volera
                       </motion.span>
                     </AnimatePresence>
                   )}
