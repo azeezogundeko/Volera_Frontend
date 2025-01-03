@@ -3,6 +3,7 @@ import { PlayCircle, PlayIcon, PlusIcon, VideoIcon } from 'lucide-react';
 import { useState } from 'react';
 import Lightbox, { GenericSlide, VideoSlide } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
+import Image from 'next/image';
 import { Message } from './ChatWindow';
 
 type Video = {
@@ -122,7 +123,7 @@ const Searchvideos = ({
                     className="relative transition duration-200 active:scale-95 hover:scale-[1.02] cursor-pointer"
                     key={i}
                   >
-                    <img
+                    <Image
                       src={video.img_src}
                       alt={video.title}
                       className="relative h-full w-full aspect-video object-cover rounded-lg"
@@ -146,7 +147,7 @@ const Searchvideos = ({
                     className="relative transition duration-200 active:scale-95 hover:scale-[1.02] cursor-pointer"
                     key={i}
                   >
-                    <img
+                    <Image
                       src={video.img_src}
                       alt={video.title}
                       className="relative h-full w-full aspect-video object-cover rounded-lg"
@@ -164,7 +165,7 @@ const Searchvideos = ({
               >
                 <div className="flex flex-row items-center space-x-1">
                   {videos.slice(3, 6).map((video, i) => (
-                    <img
+                    <Image
                       key={i}
                       src={video.img_src}
                       alt={video.title}

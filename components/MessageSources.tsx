@@ -9,6 +9,7 @@ import {
 import { Document } from '@langchain/core/documents';
 import { File } from 'lucide-react';
 import { Fragment, useState } from 'react';
+import Image from 'next/image';
 
 const MessageSources = ({ sources }: { sources: Document[] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,12 +43,11 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                   <File size={12} className="text-white/70" />
                 </div>
               ) : (
-                <img
+                <Image
                   src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  alt="favicon"
                   width={16}
                   height={16}
-                  alt="favicon"
-                  className="rounded-lg h-4 w-4"
                 />
               )}
               <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
@@ -77,12 +77,11 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                   <File size={12} className="text-white/70" />
                 </div>
               ) : (
-                <img
+                <Image
                   src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  alt="favicon"
                   width={16}
                   height={16}
-                  alt="favicon"
-                  className="rounded-lg h-4 w-4"
                 />
               );
             })}
@@ -127,12 +126,11 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                                 <File size={12} className="text-white/70" />
                               </div>
                             ) : (
-                              <img
+                              <Image
                                 src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                                alt="favicon"
                                 width={16}
                                 height={16}
-                                alt="favicon"
-                                className="rounded-lg h-4 w-4"
                               />
                             )}
                             <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">

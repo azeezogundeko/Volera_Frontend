@@ -5,6 +5,7 @@ import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { Message } from './ChatWindow';
 import clsx from 'clsx';
+import Image from 'next/image';
 
 export type Image = {
   url: string;
@@ -88,9 +89,11 @@ const ImageCard = ({
           </div>
         </div>
       ) : (
-        <img
+        <Image
           src={image.img_url}
           alt={image.title}
+          width={0}
+          height={0}
           className={clsx(
             "absolute inset-0 w-full h-full object-cover",
             "transition-all duration-700",
@@ -219,9 +222,11 @@ const SearchImages = ({
                   setOpen(true);
                 }}
               >
-                <img
+                <Image
                   src={images[4].img_url}
                   alt={images[4].title}
+                  width={0}
+                  height={0}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 group-hover:bg-black/70 transition-colors duration-300">

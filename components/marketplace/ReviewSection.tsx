@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Star, ThumbsUp, MessageCircle, Flag } from 'lucide-react';
+import Image from 'next/image';
 
 interface Review {
   id: number;
@@ -55,9 +56,11 @@ const ReviewCard = ({ review }: { review: Review }) => {
           <div className="flex items-start gap-3">
             {/* Avatar */}
             <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 dark:bg-[#1a1a1a]">
-              <img
+              <Image
                 src={review.user.avatar}
                 alt={review.user.name}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -79,9 +82,11 @@ const ReviewCard = ({ review }: { review: Review }) => {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-white/50 bg-gray-50 dark:bg-white/5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                 >
-                  <img
+                  <Image
                     src={review.source.logo}
                     alt={review.source.name}
+                    width={12}
+                    height={12}
                     className="w-3 h-3 object-contain"
                   />
                   {review.source.name}
@@ -284,9 +289,11 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
                       : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/60 hover:bg-gray-200 dark:hover:bg-white/10'
                   }`}
                 >
-                  <img
+                  <Image
                     src={reviews.find((r) => r.source.name === source)?.source.logo}
                     alt={source}
+                    width={16}
+                    height={16}
                     className="w-4 h-4 object-contain"
                   />
                   {source}

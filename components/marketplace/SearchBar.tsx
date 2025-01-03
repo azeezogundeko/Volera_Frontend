@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Search, Camera, Mic, Users, Calendar, Tag, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import Image from 'next/image';
 
 interface SearchBarProps {
   onSearch: (query: string, website?: string) => void;
@@ -167,10 +168,11 @@ const SearchBar = ({ onSearch, onImageSearch }: SearchBarProps) => {
                         : 'text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5'
                     }`}
                   >
-                    <img
+                    <Image
                       src={website.logo}
                       alt={website.name}
-                      className="w-4 h-4 object-contain"
+                      width={16}
+                      height={16}
                     />
                     {website.name}
                   </button>

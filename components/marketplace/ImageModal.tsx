@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface ImageModalProps {
   images: string[];
@@ -133,11 +134,10 @@ const ImageModal = ({ images, activeIndex, isOpen, onClose }: ImageModalProps) =
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
       >
-        <img
+        <Image
           src={images[currentIndex]}
           alt={`View ${currentIndex + 1}`}
           className="max-w-full max-h-full object-contain select-none pointer-events-none"
-          draggable={false}
         />
       </div>
 

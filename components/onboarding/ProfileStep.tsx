@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Camera, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface ProfileData {
   avatar?: File;
@@ -67,7 +68,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
               'hover:border-primary/50 transition-colors'
             )}>
               {avatarPreview ? (
-                <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                <Image src={avatarPreview} alt="Preview" width={32} height={32} />
               ) : (
                 <Camera className="w-8 h-8 text-primary/50" />
               )}
