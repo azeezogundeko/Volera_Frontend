@@ -65,16 +65,16 @@ const MessageBox = ({
   const { speechStatus, start, stop } = useSpeech({ text: speechMessage });
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="w-full overflow-x-hidden flex flex-col space-y-4">
       {message.role === 'user' && (
-        <div className="flex justify-end px-4 lg:px-16 relative z-0">
+        <div className="flex justify-end px-4 lg:px-8 relative z-0">
           <div className="flex items-start space-x-2">
-            <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200 shadow-sm">
-              <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
+            <div className="max-w-full bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200 shadow-sm">
+              <div className="prose prose-sm dark:prose-invert max-w-full text-sm break-words">
                 <Markdown
                   className={cn(
                     'prose prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                    'max-w-none break-words text-black/90 dark:text-white/90',
+                    'max-w-none text-black/90 dark:text-white/90',
                     'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
                     'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
                   )}
@@ -101,7 +101,7 @@ const MessageBox = ({
 
       {message.role === 'assistant' && (
         <div className="relative z-0">
-          <div className="px-4 lg:px-16">
+          <div className="px-4 lg:px-8">
             <div className="flex items-start space-x-4">
               {message.sources && message.sources.length > 0 && (
                 <div className="flex flex-col space-y-2">
@@ -114,7 +114,7 @@ const MessageBox = ({
                   <MessageSources sources={message.sources} />
                 </div>
               )}
-              <div className="flex flex-col space-y-2">
+              <div className="flex flex-col space-y-2 max-w-full">
                 <div className="flex flex-row items-center space-x-2">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
                     <Bot size={16} className="text-white" />
@@ -123,12 +123,12 @@ const MessageBox = ({
                     Response
                   </h3>
                 </div>
-                <div className="rounded-xl p-4">
-                  <div className="prose dark:prose-invert max-w-none">
+                <div className="rounded-xl p-4 max-w-full break-words">
+                  <div className="prose dark:prose-invert max-w-full">
                     <Markdown
                       className={cn(
                         'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                        'max-w-none break-words text-black dark:text-white',
+                        'max-w-none text-black dark:text-white',
                         'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
                         'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
                       )}
@@ -148,12 +148,7 @@ const MessageBox = ({
                 </div>
                 {loading && isLast ? null : (
                   <div className="flex flex-row items-center justify-between w-full text-black dark:text-white py-4 -mx-2">
-                    <div className="flex flex-row items-center space-x-1">
-                      {/*  <button className="p-2 text-black/70 dark:text-white/70 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary transition duration-200 hover:text-black text-black dark:hover:text-white">
-                        <Share size={18} />
-                      </button> */}
-                      <Rewrite rewrite={rewrite} messageId={message.messageId} />
-                    </div>
+                    <Rewrite rewrite={rewrite} messageId={message.messageId} />
                     <div className="flex flex-row items-center space-x-1">
                       <Copy initialMessage={message.content} message={message} />
                       <button

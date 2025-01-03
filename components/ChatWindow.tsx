@@ -14,12 +14,14 @@ import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import SearchImages from './SearchImages';
 import SearchVideos from './SearchVideos';
+import { getWebSocketURL } from '@/lib/config';
 
 export type Message = {
   messageId: string;
   chatId: string;
   createdAt: Date;
   content: string;
+  focusMode?: string;
   role: 'user' | 'assistant';
   suggestions?: string[];
   sources?: Document[];
@@ -61,11 +63,7 @@ const useSocket = (
 
   useEffect(() => {
     const establishWebSocketConnection = () => {
-      const wsURL = new URL(url);
-      const searchParams = new URLSearchParams();
-      wsURL.search = searchParams.toString();
-
-      const websocket = new WebSocket(wsURL.toString());
+      const websocket = new WebSocket(url);
 
       const connectionTimeout = setTimeout(() => {
         if (websocket.readyState !== WebSocket.OPEN) {
@@ -79,61 +77,47 @@ const useSocket = (
         clearTimeout(connectionTimeout);
         setIsWSReady(true);
         console.log('[DEBUG] WebSocket opened successfully');
-
       };
 
       websocket.onerror = (error) => {
         clearTimeout(connectionTimeout);
         console.error('[DEBUG] WebSocket error:', error);
+        toast.error('Connection error. Please try again later.');
         setError(true);
-        toast.error('WebSocket connection error.');
-        
       };
 
       websocket.onclose = (event) => {
         clearTimeout(connectionTimeout);
         console.log('[DEBUG] WebSocket closed:', event);
-        setError(true);
+        setIsWSReady(false);
         
-      };
-
-      websocket.onmessage = (event: MessageEvent) => {
-        console.log('[WS DEBUG] Raw message received:', event.data);
-        
-        try {
-          const data = typeof event.data === 'string' 
-            ? JSON.parse(event.data) 
-            : JSON.parse(new TextDecoder().decode(event.data));
-          
-          console.log('[WS DEBUG] Parsed message:', data);
-          
-          if (onMessageCallback) {
-            // Pass the parsed data instead of the raw event
-            onMessageCallback({
-              ...event,
-              data: JSON.stringify(data)
-            });
-          }
-        } catch (error) {
-          console.error('[WS DEBUG] Error parsing WebSocket message:', error);
-          console.error('[WS DEBUG] Received data:', event.data);
+        // Handle authentication errors
+        if (event.code === 4001) {
+          toast.error('Authentication required. Please sign in.');
+          // Optionally redirect to login page
+          window.location.href = '/login';
+        } else {
+          setError(true);
         }
       };
 
+      websocket.onmessage = onMessageCallback || ((event) => {
+        console.log('[DEBUG] WebSocket message:', event.data);
+      });
+
       setWs(websocket);
+
+      return () => {
+        clearTimeout(connectionTimeout);
+        if (websocket.readyState === WebSocket.OPEN) {
+          websocket.close();
+        }
+      };
     };
 
-    if (!ws) {
-      establishWebSocketConnection();
-    }
-
-    return () => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.close();
-        console.log('[DEBUG] closed');
-      }
-    };
-  }, [url, setIsWSReady, setError, ws, onMessageCallback]);
+    const cleanup = establishWebSocketConnection();
+    return cleanup;
+  }, [url, setIsWSReady, setError, onMessageCallback]);
 
   return ws;
 };
@@ -160,7 +144,10 @@ const loadMessages = async (
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
       },
+      
+      
     },
   );
 
@@ -169,15 +156,16 @@ const loadMessages = async (
     setIsMessagesLoaded(true);
     return;
   }
+  // console.log(await res.json()); 
 
   const data = await res.json();
 
-  const messages = data.messages.map((msg: {
+  const messages = data.messages.documents.length > 0 ? data.messages.documents.map((msg: {
     content: string;
     message_id?: string;
-    $id?: string;
+    id?: string;
     role: string;
-    $createdAt: string;
+    created_at: string;
     metadata: string;
   }) => {
     
@@ -195,13 +183,18 @@ const loadMessages = async (
     return {
       ...msg,
       chatId: data.chat.id,
-      messageId: msg.message_id || msg.$id,
+      messageId: msg.message_id || msg.id,
       content: cleanContent,
       role: msg.role === 'human' ? 'user' : msg.role,
-      createdAt: new Date(msg.$createdAt),
+      createdAt: new Date(msg.created_at),
       metadata: parsedMetadata,
     } as Message;
-  });
+  }) : [];
+
+  if (messages.length === 0) {
+    console.log('No messages available.');
+    // Optionally, you can set a state variable to display a message in the UI
+  }
 
   messages.sort((a: { $createdAt: string | number | Date; }, b: { $createdAt: string | number | Date; }) => 
     new Date(a.$createdAt).getTime() - new Date(b.$createdAt).getTime()
@@ -235,7 +228,8 @@ const loadMessages = async (
 };
 
 
-const ChatWindow = ({ id }: { id?: string }) => {
+const 
+ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string }) => {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get('q');
 
@@ -259,8 +253,8 @@ const ChatWindow = ({ id }: { id?: string }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [fileIds, setFileIds] = useState<string[]>([]);
 
-  const [focusMode, setFocusMode] = useState('webSearch');
-  const [optimizationMode, setOptimizationMode] = useState('speed');
+  const [focusMode, setFocusMode] = useState('all');
+  const [optimizationMode, setOptimizationMode] = useState('fast');
 
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
@@ -285,6 +279,17 @@ const ChatWindow = ({ id }: { id?: string }) => {
   });
 
   const [error, setError] = useState<string | null>(null);
+
+  const [userEmail, setUserEmail] = useState<string>('');
+
+  useEffect(() => {
+    // Get user data from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setUserEmail(user.email);
+    }
+  }, []);
 
   const convertImageDataToImage = (imageData: ImageData[]): Image[] => {
     return imageData.map(data => ({
@@ -328,6 +333,10 @@ const ChatWindow = ({ id }: { id?: string }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    return setFocusMode(initialFocusMode);
+  }, [initialFocusMode]);
 
   const messagesRef = useRef<Message[]>([]);
 
@@ -531,7 +540,7 @@ const ChatWindow = ({ id }: { id?: string }) => {
   }, [chatId, setMessages, setChatHistory, setLoading, setMessageAppeared]);
 
   const ws = useSocket(
-    process.env.NEXT_PUBLIC_WS_URL!,
+    getWebSocketURL(),
     setIsWSReady,
     setHasError,
     handleWebSocketMessage  
@@ -660,14 +669,14 @@ const ChatWindow = ({ id }: { id?: string }) => {
       notFound ? (
         <Error statusCode={404} />
       ) : (
-        <div className="flex flex-1 relative">
+        <div className="flex flex-1 relative overflow-hidden">
           <div className="flex-1 flex flex-col">
             {messages.length > 0 ? (
               <>
                 <Navbar
                   messages={messages}
-                  chatId={chatId!}
-                  userEmail="user@perplexica.com"
+                  chatId={id || ''}
+                  userEmail={userEmail}
                 />
                 <Chat
                   loading={loading}
@@ -685,16 +694,15 @@ const ChatWindow = ({ id }: { id?: string }) => {
               </>
             ) : (
               <EmptyChat
-                sendMessage={sendMessage}
-                focusMode={focusMode}
-                setFocusMode={setFocusMode}
-                optimizationMode={optimizationMode}
-                setOptimizationMode={setOptimizationMode}
-                fileIds={fileIds}
-                setFileIds={setFileIds}
-                files={files}
-                setFiles={setFiles}
-              />
+                    sendMessage={sendMessage}
+                    focusMode={focusMode}
+                    setFocusMode={setFocusMode}
+                    optimizationMode={optimizationMode}
+                    setOptimizationMode={setOptimizationMode}
+                    fileIds={fileIds}
+                    setFileIds={setFileIds}
+                    files={files}
+                    setFiles={setFiles}             />
             )}
           </div>
           {images && images.length > 0 && (

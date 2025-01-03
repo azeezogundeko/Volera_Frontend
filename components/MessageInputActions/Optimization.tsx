@@ -10,7 +10,7 @@ import { Fragment } from 'react';
 
 const OptimizationModes = [
   {
-    key: 'speed',
+    key: 'fast',
     title: 'Speed',
     description: 'Prioritize speed and get the quickest possible answer.',
     icon: <Zap size={20} className="text-[#FF9800]" />,

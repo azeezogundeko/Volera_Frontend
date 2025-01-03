@@ -27,6 +27,7 @@ import { formatTimeDifference } from '@/lib/utils';
 import logoLight  from '@/public/logo-light.png';
 import logoDark  from '@/public/logo-dark.png';
 import { useTheme } from 'next-themes';
+import Image from 'next/image';
 
 interface Thread {
   id: string;
@@ -35,11 +36,13 @@ interface Thread {
 }
 
 interface User {
-  id: string;
-  name: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  isPro: boolean;
-  image?: string;
+  created_at: string;
+  updated_at: string;
+  isPro?: boolean;
 }
 
 interface IconButtonProps {
@@ -56,9 +59,9 @@ const IconButton = ({ href, icon: Icon, label, expanded, active, onClick }: Icon
     <Link
       href={href}
       className={cn(
-        'w-full flex items-center gap-2',
+        'flex items-center gap-2',
         expanded ? 'px-4 py-2.5' : 'justify-center py-2.5',
-        'rounded-lg',
+        'rounded-lg w-full',
         'bg-transparent hover:bg-light-100 dark:hover:bg-dark-100',
         'transition-colors duration-200',
         active && 'bg-light-100 dark:bg-dark-100'
@@ -157,36 +160,95 @@ const TryProButton = ({ expanded }: { expanded: boolean }) => {
 
 const UserProfile = ({ user, expanded }: { user: User; expanded: boolean }) => {
   return (
-    <div className={cn(
-      "flex items-center gap-2 py-2",
-      expanded ? "px-4" : "justify-center"
-    )}>
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-        {user.image ? (
-          <img src={user.image} alt={user.name} className="w-full h-full rounded-full" />
+    <div className="flex items-center gap-3">
+      <div className={cn(
+        'w-8 h-8 rounded-full',
+        'bg-primary',
+        'flex items-center justify-center',
+        'flex-shrink-0'
+      )}>
+        {user.avatar ? (
+          <Image
+            src={user.avatar}
+            alt={`${user.first_name}'s avatar`}
+            width={32}
+            height={32}
+            className="rounded-full"
+          />
         ) : (
           <span className="text-white text-sm font-medium">
-            {user.name.charAt(0).toUpperCase()}
+            {user.first_name.charAt(0).toUpperCase()}
           </span>
         )}
       </div>
       {expanded && (
-        <AnimatePresence mode="wait">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex-1 min-w-0"
-          >
-            <div className="text-sm font-medium text-black/90 dark:text-white/90 truncate">
-              {user.name}
-            </div>
-            <div className="text-xs text-black/50 dark:text-white/50 truncate">
-              {user.email}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="text-sm font-medium text-black/90 dark:text-white/90 truncate">
+            {user.first_name} {user.last_name}
+          </span>
+          <span className="text-xs text-black/60 dark:text-white/60 truncate" title={user.email}>
+            {user.email}
+          </span>
+        </div>
       )}
+    </div>
+  );
+};
+
+const AuthButtons = ({ expanded }: { expanded: boolean }) => {
+  if (!expanded) return null;
+  
+  return (
+    <div className={cn(
+      'flex flex-col gap-2',
+      expanded ? 'px-4' : 'px-2'
+    )}>
+      <Link
+        href="/signup"
+        className={cn(
+          'w-full flex items-center gap-2 rounded-lg',
+          'bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600',
+          'transition-all duration-200',
+          expanded ? 'px-4 py-2.5' : 'justify-center py-2.5'
+        )}
+      >
+        <ArrowUpRight className="w-5 h-5 text-white" />
+        {expanded && (
+          <AnimatePresence mode="wait">
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-sm font-medium text-white"
+            >
+              Sign Up
+            </motion.span>
+          </AnimatePresence>
+        )}
+      </Link>
+      <Link
+        href="/login"
+        className={cn(
+          'w-full flex items-center gap-2 rounded-lg',
+          'bg-light-100 dark:bg-dark-100 hover:bg-light-200 dark:hover:bg-dark-200',
+          'transition-all duration-200',
+          expanded ? 'px-4 py-2.5' : 'justify-center py-2.5'
+        )}
+      >
+        <MessageSquare className="w-5 h-5 text-black/70 dark:text-white/70" />
+        {expanded && (
+          <AnimatePresence mode="wait">
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-sm font-medium text-black/90 dark:text-white/90"
+            >
+              Log In
+            </motion.span>
+          </AnimatePresence>
+        )}
+      </Link>
     </div>
   );
 };
@@ -195,264 +257,273 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const segments = useSelectedLayoutSegments();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User>({
-    id: '1',
-    name: 'Demo User',
-    email: 'demo@example.com',
-    isPro: false,
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const router = useRouter();
   const { theme } = useTheme();
 
-  useEffect(() => {
-    const fetchThreads = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error('Failed to fetch chats');
-        }
-
-        const data = await res.json();
-        const formattedThreads: Thread[] = data.chats.map((chat: any) => ({
-          id: chat.id,
-          title: chat.title || chat.messages[0]?.content || 'New Chat',
-          lastActive: new Date(chat.$createdAt),
-        }));
-
-        setThreads(formattedThreads);
-      } catch (error) {
-        console.error('Error fetching threads:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchThreads();
-  }, []);
-
-  const handleNewChat = async () => {
+  const createNewChat = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats`, {
+      setIsCreatingChat(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/new`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
+          'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
+        }
       });
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error('Failed to create new chat');
       }
 
-      const data = await res.json();
-      router.push(`/c/${data.chat.id}`);
+      const data = await response.json();
+      router.push(`/c/${data.id}`);
     } catch (error) {
       console.error('Error creating new chat:', error);
+    } finally {
+      setIsCreatingChat(false);
     }
   };
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
-    // Emit custom event for sidebar state change
-    const event = new CustomEvent('sidebarStateChange', { 
-      detail: { expanded: !isExpanded }
-    });
-    window.dispatchEvent(event);
   };
 
-  const filteredThreads = threads.slice(0, 4);
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('auth_token');
+      const userData = localStorage.getItem('user');
+      
+      if (token && userData) {
+        setIsAuthenticated(true);
+        setUser(JSON.parse(userData));
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    };
 
-  const navLinks = [
-    {
-      icon: Home,
-      href: '/',
-      active: segments.length === 0,
-      label: 'Home',
-    },
-    {
-      icon: Target,
-      href: '/track',
-      active: segments.includes('track'),
-      label: 'Track',
-    },
-    {
-      icon: Search,
-      href: '/discover',
-      active: segments.includes('discover'),
-      label: 'Explore',
-    },
-    {
-      icon: Store,
-      href: '/marketplace',
-      active: segments.includes('marketplace'),
-      label: 'Marketplace',
-    },
-    {
-      icon: BookOpenText,
-      href: '/library',
-      active: segments.includes('library'),
-      label: 'Library',
-    },
-  ];
+    checkAuth();
+
+    window.addEventListener('storage', checkAuth);
+
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('token_type');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setUser(null);
+    router.push('/login');
+  };
 
   return (
-    <div className="flex h-screen">
-      <motion.div 
-        className="fixed inset-y-0 z-50 flex flex-col border-r border-light-200 dark:border-dark-200 bg-white dark:bg-black"
-        initial={false}
-        animate={{ 
-          width: isExpanded ? '280px' : '96px',
-        }}
-        style={{
-          boxShadow: '0 0 15px rgba(0, 0, 0, 0.05)'
-        }}
-      >
-        <div className="flex flex-col flex-1 min-h-0">
-          <div className="flex items-center justify-between p-4">
-            <AnimatePresence mode="wait">
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-lg font-semibold text-black/90 dark:text-white/90"
-                >
-                  {theme === 'light' ? (
-                    <img src={logoLight.src} alt="Logo" className="h-26" />
-                  ) : (
-                    <img src={logoDark.src} alt="Logo" className="h-26" />
+    <>
+      <SettingsDialog isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
+      <div className="flex h-full">
+        <motion.div
+          initial={false}
+          animate={{
+            width: isExpanded ? 220 : 72,
+          }}
+          className={cn(
+            'h-full flex-shrink-0 overflow-y-auto overflow-x-hidden relative',
+            'border-r border-light-100 dark:border-dark-100',
+            'bg-light-primary dark:bg-dark-primary',
+          )}
+        >
+          <div className="h-full flex flex-col">
+            {/* Logo Section */}
+            <div className="p-3 border-b border-light-100 dark:border-dark-100">
+              <div className="flex items-center justify-between">
+                <Link 
+                  href="/" 
+                  className={cn(
+                    'flex items-center gap-2',
+                    !isExpanded && 'justify-center w-full'
                   )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <button
-              onClick={toggleExpanded}
-              className="p-2 hover:bg-light-100 dark:hover:bg-dark-100 rounded-lg transition-colors"
-            >
-              {isExpanded ? (
-                <ChevronLeft className="w-5 h-5 text-black/70 dark:text-white/70" />
-              ) : (
-                <ChevronRight className="w-5 h-5 text-black/70 dark:text-white/70" />
-              )}
-            </button>
+                >
+                  <Image
+                    src={theme === 'dark' ? logoDark : logoLight}
+                    alt="Logo"
+                    width={28}
+                    height={28}
+                    className="flex-shrink-0"
+                  />
+                  {isExpanded && (
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-base font-semibold text-black/90 dark:text-white/90"
+                      >
+                        Perplexica
+                      </motion.span>
+                    </AnimatePresence>
+                  )}
+                </Link>
+                {isExpanded && (
+                  <button
+                    onClick={toggleExpanded}
+                    className={cn(
+                      'p-1.5 rounded-lg',
+                      'hover:bg-light-100 dark:hover:bg-dark-100',
+                      'transition-colors duration-200'
+                    )}
+                  >
+                    <ChevronLeft className="w-4 h-4 text-black/70 dark:text-white/70" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Navigation Section */}
+              <div className="flex-1 flex flex-col justify-center">
+                <nav className={cn(
+                  'space-y-1',
+                  isExpanded ? 'px-3' : 'px-2'
+                )}>
+                  <IconButton
+                    href="/"
+                    icon={Home}
+                    label="Home"
+                    expanded={isExpanded}
+                    active={segments.length === 0}
+                  />
+                  <IconButton
+                    href="/discover"
+                    icon={Search}
+                    label="Discover"
+                    expanded={isExpanded}
+                    active={segments[0] === 'discover'}
+                  />
+                  <IconButton
+                    href="/library"
+                    icon={BookOpenText}
+                    label="Library"
+                    expanded={isExpanded}
+                    active={segments[0] === 'library'}
+                  />
+                  <IconButton
+                    href="/track"
+                    icon={Target}
+                    label="Track"
+                    expanded={isExpanded}
+                    active={segments[0] === 'track'}
+                  />
+                  <IconButton
+                    href="/store"
+                    icon={Store}
+                    label="Store"
+                    expanded={isExpanded}
+                    active={segments[0] === 'store'}
+                  />
+                  <button
+                    onClick={createNewChat}
+                    disabled={isCreatingChat}
+                    className={cn(
+                      'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg',
+                      'bg-light-100 dark:bg-dark-100 hover:bg-light-200 dark:hover:bg-dark-200',
+                      'transition-all duration-200',
+                      isCreatingChat && 'opacity-50 cursor-not-allowed'
+                    )}
+                  >
+                    {isCreatingChat ? (
+                      <LoadingSpinner className="w-4 h-4" />
+                    ) : (
+                      <Plus className="w-4 h-4 text-black/70 dark:text-white/70" />
+                    )}
+                    {isExpanded && (
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="text-sm font-medium text-black/90 dark:text-white/90"
+                        >
+                          New Chat
+                        </motion.span>
+                      </AnimatePresence>
+                    )}
+                  </button>
+                </nav>
+              </div>
+
+              {/* Bottom Section */}
+              <div className="p-3 border-t border-light-100 dark:border-dark-100">
+                {isAuthenticated ? (
+                  <div className="space-y-3">
+                    {user && !user.isPro && <TryProButton expanded={isExpanded} />}
+                    {user && (
+                      <div className="space-y-2">
+                        <UserProfile user={user} expanded={isExpanded} />
+                        {isExpanded && (
+                          <button
+                            onClick={handleLogout}
+                            className={cn(
+                              'w-full px-3 py-2 rounded-lg',
+                              'text-sm text-red-600 dark:text-red-400',
+                              'hover:bg-light-100 dark:hover:bg-dark-100',
+                              'transition-colors duration-200'
+                            )}
+                          >
+                            Sign Out
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  isExpanded && <AuthButtons expanded={isExpanded} />
+                )}
+                <div className="mt-3">
+                  <IconButton
+                    href="/settings"
+                    icon={Settings}
+                    label="Settings"
+                    expanded={isExpanded}
+                    active={isSettingsOpen}
+                    onClick={() => setIsSettingsOpen(true)}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-1 p-2">
+          {/* Expand Button */}
+          {!isExpanded && (
             <button
-              onClick={handleNewChat}
+              onClick={toggleExpanded}
               className={cn(
-                'w-full flex items-center gap-2 px-4 py-2.5 rounded-lg',
-                'bg-light-100 dark:bg-dark-100 hover:bg-light-200 dark:hover:bg-dark-200',
+                'absolute -right-4 top-6',
+                'w-8 h-8 rounded-full',
+                'bg-white dark:bg-dark-secondary',
+                'border border-light-100 dark:border-dark-100',
+                'shadow-md',
+                'flex items-center justify-center',
+                'hover:bg-light-100 dark:hover:bg-dark-100',
                 'transition-colors duration-200'
               )}
             >
-              <Plus className="w-5 h-5 text-black/70 dark:text-white/70" />
-              <AnimatePresence mode="wait">
-                {isExpanded && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-sm font-medium text-black/90 dark:text-white/90"
-                  >
-                    New Chat
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <ChevronRight className="w-5 h-5 text-black/70 dark:text-white/70" />
             </button>
-
-            <div className="my-2" />
-
-            {navLinks.map((link) => (
-              <IconButton
-                key={link.href}
-                href={link.href}
-                icon={link.icon}
-                label={link.label}
-                expanded={isExpanded}
-                active={link.active}
-              />
-            ))}
-          </div>
-
-          {!loading && filteredThreads.length > 0 && isExpanded && (
-            <div className="mt">
-              <div className="flex items-center px-6 py-2">
-                <Clock className="w-4 h-4 text-black/40 dark:text-white/40" />
-                <AnimatePresence mode="wait">
-                  {isExpanded && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="ml-2 text-xs font-medium text-black/40 dark:text-white/40"
-                    >
-                      Recent
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-              <div className="space-y-1">
-                {filteredThreads.map((thread) => (
-                  <ThreadItem
-                    key={thread.id}
-                    thread={thread}
-                    active={segments.includes('c') && segments.includes(thread.id)}
-                    expanded={isExpanded}
-                  />
-                ))}
-              </div>
-            </div>
           )}
+        </motion.div>
 
-          {loading && (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner size="md" />
-            </div>
-          )}
-
-          <div className="mt-auto p-2 space-y-2">
-            {isExpanded && <TryProButton expanded={isExpanded} />}
-            <div className={cn(
-              "flex flex-col",
-              isExpanded ? "space-y-2" : "items-center space-y-4"
-            )}>
-              {/* <UserProfile user={user} expanded={isExpanded} /> */}
-              <IconButton
-                href="/settings"
-                icon={Settings}
-                label="Settings"
-                expanded={isExpanded}
-                active={isSettingsOpen}
-                onClick={() => setIsSettingsOpen(true)}
-              />
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      <div className={cn(
-        "flex-1 transition-all duration-200 min-h-screen flex flex-col bg-white dark:bg-[#111111]",
-        isExpanded ? "ml-[280px]" : "ml-24"
-      )}>
-        <div className="flex-1 flex flex-col w-full">
-          <Layout>{children}</Layout>
-        </div>
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
       </div>
-
-      <SettingsDialog 
-        isOpen={isSettingsOpen} 
-        setIsOpen={setIsSettingsOpen} 
-      />
-    </div>
+    </>
   );
 };
 

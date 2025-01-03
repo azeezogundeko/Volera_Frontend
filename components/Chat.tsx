@@ -67,7 +67,7 @@ export default function Chat({
   }, [messages]);
 
   return (
-    <div className="flex flex-col min-h-0 flex-1">
+    <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
       <div className="flex-1 overflow-y-auto px-4 pt-6 relative z-0 mb-32">
         {messages.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center space-y-4">

@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { ArrowUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -6,6 +8,16 @@ import Attach from './MessageInputActions/Attach';
 import CopilotToggle from './MessageInputActions/Copilot';
 import { File } from './ChatWindow';
 import AttachSmall from './MessageInputActions/AttachSmall';
+import AuthDialog from './AuthDialog';
+
+interface MessageInputProps {
+  sendMessage: (message: string) => void;
+  loading: boolean;
+  fileIds: string[];
+  setFileIds: (fileIds: string[]) => void;
+  files: File[];
+  setFiles: (files: File[]) => void;
+}
 
 const MessageInput = ({
   sendMessage,
@@ -14,18 +26,12 @@ const MessageInput = ({
   setFileIds,
   files,
   setFiles,
-}: {
-  sendMessage: (message: string) => void;
-  loading: boolean;
-  fileIds: string[];
-  setFileIds: (fileIds: string[]) => void;
-  files: File[];
-  setFiles: (files: File[]) => void;
-}) => {
+}: MessageInputProps) => {
   const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
   const [textareaRows, setTextareaRows] = useState(1);
   const [mode, setMode] = useState<'multi' | 'single'>('single');
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
   useEffect(() => {
     if (textareaRows >= 2 && message && mode === 'single') {
@@ -59,68 +65,61 @@ const MessageInput = ({
     };
   }, []);
 
+  const handleSubmit = () => {
+    if (message.trim()) {
+      // Check if user is authenticated
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setIsAuthDialogOpen(true);
+        return;
+      }
+
+      sendMessage(message);
+      setMessage('');
+    }
+  };
+
   return (
-    <form
-      onSubmit={(e) => {
-        if (loading) return;
-        e.preventDefault();
-        sendMessage(message);
-        setMessage('');
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && !e.shiftKey && !loading) {
+    <>
+      <AuthDialog isOpen={isAuthDialogOpen} setIsOpen={setIsAuthDialogOpen} />
+      <form
+        onSubmit={(e) => {
+          if (loading) return;
           e.preventDefault();
-          sendMessage(message);
-          setMessage('');
-        }
-      }}
-      className={cn(
-        'bg-white dark:bg-[#111111] p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
-        mode === 'multi' 
-          ? 'flex-col rounded-2xl' 
-          : 'flex-row rounded-full hover:border-[#4ade80]/50 transition-colors duration-200',
-      )}
-    >
-      {mode === 'single' && (
-        <AttachSmall
-          fileIds={fileIds}
-          setFileIds={setFileIds}
-          files={files}
-          setFiles={setFiles}
-        />
-      )}
-      <TextareaAutosize
-        ref={inputRef}
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onHeightChange={(height, props) => {
-          setTextareaRows(Math.ceil(height / props.rowHeight));
+          handleSubmit();
         }}
-        className="transition bg-transparent placeholder:text-black/50 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full px-2 max-h-24 lg:max-h-36 xl:max-h-48 flex-grow flex-shrink"
-        placeholder="Ask your follow up questions?"
-      />
-      {mode === 'single' && (
-        <div className="flex flex-row items-center space-x-4">
-          <CopilotToggle
-            copilotEnabled={copilotEnabled}
-            setCopilotEnabled={setCopilotEnabled}
-          />
-          <button
-            disabled={message.trim().length === 0 || loading}
-            className="bg-[#24A0ED] text-white disabled:text-black/50 dark:disabled:text-white/50 hover:bg-opacity-85 transition duration-100 disabled:bg-[#e0e0dc79] dark:disabled:bg-[#ececec21] rounded-full p-2"
-          >
-            <ArrowUp className="bg-background" size={17} />
-          </button>
-        </div>
-      )}
-      {mode === 'multi' && (
-        <div className="flex flex-row items-center justify-between w-full pt-2">
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey && !loading) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
+        className={cn(
+          'bg-white dark:bg-[#111111] p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
+          mode === 'multi' 
+            ? 'flex-col rounded-2xl' 
+            : 'flex-row rounded-full hover:border-[#4ade80]/50 transition-colors duration-200',
+        )}
+      >
+        {mode === 'single' && (
           <AttachSmall
             fileIds={fileIds}
             setFileIds={setFileIds}
             files={files}
             setFiles={setFiles}
           />
+        )}
+        <TextareaAutosize
+          ref={inputRef}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onHeightChange={(height, props) => {
+            setTextareaRows(Math.ceil(height / props.rowHeight));
+          }}
+          className="transition bg-transparent placeholder:text-black/50 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full px-2 max-h-24 lg:max-h-36 xl:max-h-48 flex-grow flex-shrink"
+          placeholder="Ask your follow up questions?"
+        />
+        {mode === 'single' && (
           <div className="flex flex-row items-center space-x-4">
             <CopilotToggle
               copilotEnabled={copilotEnabled}
@@ -128,14 +127,36 @@ const MessageInput = ({
             />
             <button
               disabled={message.trim().length === 0 || loading}
-              className="bg-[#24A0ED] text-white text-black/50 dark:disabled:text-white/50 hover:bg-opacity-85 transition duration-100 disabled:bg-[#e0e0dc79] dark:disabled:bg-[#ececec21] rounded-full p-2"
+              className="bg-[#24A0ED] text-white disabled:text-black/50 dark:disabled:text-white/50 hover:bg-opacity-85 transition duration-100 disabled:bg-[#e0e0dc79] dark:disabled:bg-[#ececec21] rounded-full p-2"
             >
               <ArrowUp className="bg-background" size={17} />
             </button>
           </div>
-        </div>
-      )}
-    </form>
+        )}
+        {mode === 'multi' && (
+          <div className="flex flex-row items-center justify-between w-full pt-2">
+            <AttachSmall
+              fileIds={fileIds}
+              setFileIds={setFileIds}
+              files={files}
+              setFiles={setFiles}
+            />
+            <div className="flex flex-row items-center space-x-4">
+              <CopilotToggle
+                copilotEnabled={copilotEnabled}
+                setCopilotEnabled={setCopilotEnabled}
+              />
+              <button
+                disabled={message.trim().length === 0 || loading}
+                className="bg-[#24A0ED] text-white text-black/50 dark:disabled:text-white/50 hover:bg-opacity-85 transition duration-100 disabled:bg-[#e0e0dc79] dark:disabled:bg-[#ececec21] rounded-full p-2"
+              >
+                <ArrowUp className="bg-background" size={17} />
+              </button>
+            </div>
+          </div>
+        )}
+      </form>
+    </>
   );
 };
 

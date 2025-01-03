@@ -144,13 +144,30 @@ const EmptyChatMessageInput = ({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        setLoading(true);
-        sendMessage(message);
-        setMessage('');
-        setShowSuggestions(false);
-        setLoading(false);
+        if (message.trim()) {
+          setLoading(true);
+          sendMessage(message);
+          setMessage('');
+          setShowSuggestions(false);
+          setLoading(false);
+        }
       }}
-      onKeyDown={handleKeyDown}
+      onKeyDown={(e) => {
+        if (!showSuggestions) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (message.trim()) {
+              setLoading(true);
+              sendMessage(message);
+              setMessage('');
+              setShowSuggestions(false);
+              setLoading(false);
+            }
+          }
+        } else {
+          handleKeyDown(e);
+        }
+      }}
       className="w-full relative"
     >
       <div
