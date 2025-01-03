@@ -7,14 +7,23 @@ import ChatWindow from '@/components/ChatWindow';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
-  const { messages, sendMessage, isLoading } = useChat();
+  const { messages, createNewChat, isLoading } = useChat();
   const [input, setInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
     
-    await sendMessage(input);
+    const chat = await createNewChat();
+    if (chat) {
+      if (chat.sendMessage) {
+        await chat.sendMessage(input);
+      } else {
+        console.error('sendMessage is null.');
+      }
+    } else {
+      console.error('Chat creation failed.');
+    }
     setInput('');
   };
 

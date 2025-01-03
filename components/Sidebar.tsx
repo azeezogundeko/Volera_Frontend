@@ -394,18 +394,32 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                   isExpanded ? 'px-3' : 'px-2'
                 )}>
                   <IconButton
-                    href="/"
+                    href="/comingsoon"
+                    icon={Target}
+                    label="Track"
+                    expanded={isExpanded}
+                    active={segments[0] === 'track'}
+                  />
+                  <IconButton
+                    href="/comingsoon"
                     icon={Home}
                     label="Home"
                     expanded={isExpanded}
                     active={segments.length === 0}
                   />
                   <IconButton
-                    href="/discover"
+                    href="/comingsoon"
                     icon={Search}
-                    label="Discover"
+                    label="Explore"
                     expanded={isExpanded}
-                    active={segments[0] === 'discover'}
+                    active={segments[0] === 'explore'}
+                  />
+                  <IconButton
+                    href="/comingsoon"
+                    icon={Store}
+                    label="Store"
+                    expanded={isExpanded}
+                    active={segments[0] === 'store'}
                   />
                   <IconButton
                     href="/library"
@@ -413,20 +427,6 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                     label="Library"
                     expanded={isExpanded}
                     active={segments[0] === 'library'}
-                  />
-                  <IconButton
-                    href="/track"
-                    icon={Target}
-                    label="Track"
-                    expanded={isExpanded}
-                    active={segments[0] === 'track'}
-                  />
-                  <IconButton
-                    href="/store"
-                    icon={Store}
-                    label="Store"
-                    expanded={isExpanded}
-                    active={segments[0] === 'store'}
                   />
                   <button
                     onClick={createNewChat}

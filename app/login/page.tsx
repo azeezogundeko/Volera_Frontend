@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Mail, Lock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useChat } from '@/hooks/useChat';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+  const { createNewChat } = useChat();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -79,9 +81,12 @@ export default function LoginPage() {
         const authHeader = `${data.token.token_type} ${data.token.access_token}`;
         console.log('Setting auth header:', authHeader);
 
-        // Redirect to home page
-        console.log('Redirecting to home page...');
-        router.push('/');
+        const da = await createNewChat();
+        if (da) {
+          router.push(`/c/${da.id}`);
+        } else {
+          console.error('Failed to create chat, sendMessage not available.');
+        }
       } else {
         console.error('Invalid response format:', data);
         throw new Error('Invalid response from server');
