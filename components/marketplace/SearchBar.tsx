@@ -191,7 +191,7 @@ const SearchBar = ({ onSearch, onImageSearch }: SearchBarProps) => {
                 className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111] text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               />
               <div className="text-sm text-gray-500 dark:text-white/50">
-                Example: "Gaming laptop with good battery life under $1000"
+                Example: &quot;Gaming laptop with good battery life under $1000&quot;
               </div>
             </div>
           )}

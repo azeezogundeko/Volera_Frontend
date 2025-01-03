@@ -1,6 +1,9 @@
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  messageId: string;
+  chatId: string;
+  createdAt: Date;
 }
 
 export interface User {

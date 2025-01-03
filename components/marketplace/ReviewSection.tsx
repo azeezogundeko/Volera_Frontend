@@ -279,26 +279,29 @@ const ReviewSection = ({ reviews }: ReviewSectionProps) => {
               >
                 All Sources
               </button>
-              {sources.map((source) => (
-                <button
-                  key={source}
-                  onClick={() => setFilterSource(source)}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg ${
-                    filterSource === source
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/60 hover:bg-gray-200 dark:hover:bg-white/10'
-                  }`}
-                >
-                  <Image
-                    src={reviews.find((r) => r.source.name === source)?.source.logo}
-                    alt={source}
-                    width={16}
-                    height={16}
-                    className="w-4 h-4 object-contain"
-                  />
-                  {source}
-                </button>
-              ))}
+              {sources.map((source) => {
+                const logoSrc = reviews.find((r) => r.source.name === source)?.source.logo || '/path/to/default/logo.png';
+                return (
+                  <button
+                    key={source}
+                    onClick={() => setFilterSource(source)}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg ${
+                      filterSource === source
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/60 hover:bg-gray-200 dark:hover:bg-white/10'
+                    }`}
+                  >
+                    <Image
+                      src={logoSrc}
+                      alt={source}
+                      width={16}
+                      height={16}
+                      className="w-4 h-4 object-contain"
+                    />
+                    {source}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

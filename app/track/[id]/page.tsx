@@ -14,6 +14,7 @@ import {
   Tooltip,
   Legend,
   Filler,
+  Tick,
 } from 'chart.js';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -155,7 +156,9 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
           color: '#f3f4f6',
         },
         ticks: {
-          callback: (value: number) => `$${value}`,
+          callback: (tickValue: string | number, index: number, ticks: Tick[]) => {
+            return tickValue.toString();
+          }
         },
       },
     },

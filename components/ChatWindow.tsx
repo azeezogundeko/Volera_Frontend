@@ -229,7 +229,7 @@ const loadMessages = async (
 
 
 const 
-ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string }) => {
+ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { id?: string; initialFocusMode?: string; messages: Message[]; isLoading: boolean; videos?: Video[]; loading?: boolean; }) => {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get('q');
 
@@ -240,10 +240,9 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
   const [isReady, setIsReady] = useState(false);
 
   const [isWSReady, setIsWSReady] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState(false);
   const [messageAppeared, setMessageAppeared] = useState(false);
 
-  const [messages, setMessages] = useState<Message[]>([]);
   const [chatHistory, setChatHistory] = useState<{
     speaker: "human" | "assistant";
     message: string;
@@ -265,7 +264,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
 
   const [images, setImages] = useState<Image[] | null>(null);
   const [imagesLoading, setImagesLoading] = useState(false);
-  const [videos, setVideos] = useState<Video[] | null>(null);
+  const [videosState, setVideosState] = useState<Video[] | null>(videos ?? []);
   const [videosLoading, setVideosLoading] = useState(false);
 
   const [searchProgress, setSearchProgress] = useState<{
@@ -281,6 +280,8 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
   const [error, setError] = useState<string | null>(null);
 
   const [userEmail, setUserEmail] = useState<string>('');
+
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     // Get user data from localStorage
@@ -304,11 +305,11 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
       chatId &&
       !newChatCreated &&
       !isMessagesLoaded &&
-      messages.length === 0
+      localMessages.length === 0
     ) {
       loadMessages(
         chatId,
-        setMessages,
+        setLocalMessages,
         setIsMessagesLoaded,
         setChatHistory,
         setFocusMode,
@@ -322,7 +323,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
       setChatId(crypto.randomBytes(20).toString('hex'));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [chatId, localMessages.length, newChatCreated]);
 
   useEffect(() => {
     return () => {
@@ -335,14 +336,16 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
   }, []);
 
   useEffect(() => {
-    return setFocusMode(initialFocusMode);
+    if (initialFocusMode !== undefined) {
+      setFocusMode(initialFocusMode);
+    }
   }, [initialFocusMode]);
 
   const messagesRef = useRef<Message[]>([]);
 
   useEffect(() => {
-    messagesRef.current = messages;
-  }, [messages]);
+    messagesRef.current = localMessages;
+  }, [localMessages]);
 
   useEffect(() => {
     if (isMessagesLoaded && isWSReady) {
@@ -353,7 +356,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
       isMessagesLoaded,
       isWSReady,
       chatId,
-      messages: messages.length,
+      localMessages: localMessages.length,
       newChatCreated
     });
   }, [isMessagesLoaded, isWSReady]);
@@ -372,7 +375,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
         case 'message':
           if (data.content) {
             const content = typeof data.content === 'string' ? data.content : JSON.stringify(data.content);
-            setMessages(messages => [...messages, {
+            setLocalMessages(localMessages => [...localMessages, {
               messageId: crypto.randomBytes(16).toString('hex'),
               chatId: chatId || '',
               content: content,
@@ -389,13 +392,13 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
               status: null
             });
           }
-          setLoading(false);
+          setLoadingState(false);
           break;
 
         case 'progress':
           console.log('[DEBUG] Progress update:', data);
-          if (!loading) {
-            setLoading(true);
+          if (!loadingState) {
+            setLoadingState(true);
             setMessageAppeared(false);
           }
           if (data.progress) {
@@ -421,7 +424,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
         case 'error':
           console.error('[STREAMING DEBUG] Error:', data.error);
           setError(data.error);
-          setLoading(false);
+          setLoadingState(false);
           break;
 
         case 'image':
@@ -434,7 +437,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
             type: 'image'
           };
           
-          setMessages(prevMessages => [...prevMessages, imageMessage]);
+          setLocalMessages(prevMessages => [...prevMessages, imageMessage]);
           break;
 
         case 'image_search':
@@ -456,14 +459,14 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
               url: item.url,
               title: item.title
             }));
-            setVideos(convertedVideos);
+            setVideosState(convertedVideos);
           }
           break;
 
         case 'sources':
           let sources: Document[] = data.data;
           let added = false;
-          setMessages((prevMessages) => {
+          setLocalMessages((prevMessages) => {
             // If it's the first message or a new message
             if (prevMessages.length === 0 || prevMessages[prevMessages.length - 1].role === 'user') {
               console.log('[STREAMING DEBUG] Creating new assistant message');
@@ -520,13 +523,13 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
             }
           ]);
 
-          setLoading(false);
+          setLoadingState(false);
           setMessageAppeared(true);
           break;
 
         case 'messageEnd':
           console.log('[STREAMING DEBUG] Message streaming completed');
-          setLoading(false);
+          setLoadingState(false);
           setMessageAppeared(true);
           break;
 
@@ -535,9 +538,9 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
       }
     } catch (error) {
       console.error('[STREAMING DEBUG] Error parsing WebSocket message:', error);
-      setLoading(false);
+      setLoadingState(false);
     }
-  }, [chatId, setMessages, setChatHistory, setLoading, setMessageAppeared]);
+  }, [loadingState]);
 
   const ws = useSocket(
     getWebSocketURL(),
@@ -556,7 +559,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
     const chatIdToUse = chatId || crypto.randomBytes(20).toString('hex');
     setChatId(chatIdToUse);
     
-    setLoading(true);
+    setLoadingState(true);
     setMessageAppeared(false);
     
     const newMessage: Message = {
@@ -567,7 +570,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
       createdAt: new Date(),
     };
   
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setLocalMessages((prevMessages) => [...prevMessages, newMessage]);
     setChatHistory((prevHistory) => [
       ...prevHistory,
       { speaker: 'human', message: message, timestamp: new Date() },
@@ -593,17 +596,17 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
   };
 
     const rewrite = (messageId: string) => {
-      const index = messages.findIndex((msg) => msg.messageId === messageId);
+      const index = localMessages.findIndex((msg) => msg.messageId === messageId);
   
       if (index === -1) return;
   
-      const message = messages[index - 1];
+      const message = localMessages[index - 1];
   
-      setMessages((prev) => {
-        return [...prev.slice(0, messages.length > 2 ? index - 1 : 0)];
+      setLocalMessages((prev) => {
+        return [...prev.slice(0, localMessages.length > 2 ? index - 1 : 0)];
       });
       setChatHistory((prev) => {
-        return [...prev.slice(0, messages.length > 2 ? index - 1 : 0)];
+        return [...prev.slice(0, localMessages.length > 2 ? index - 1 : 0)];
       });
   
       sendMessage(message.content, message.messageId);
@@ -623,7 +626,7 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
       }
 
       // Get the last message content to use as search query
-      const lastMessage = messages[messages.length - 1];
+      const lastMessage = localMessages[localMessages.length - 1];
       if (!lastMessage) return;
 
       ws.send(JSON.stringify({
@@ -671,16 +674,16 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
       ) : (
         <div className="flex flex-1 relative overflow-hidden">
           <div className="flex-1 flex flex-col">
-            {messages.length > 0 ? (
+            {localMessages.length > 0 ? (
               <>
                 <Navbar
-                  messages={messages}
+                  messages={localMessages}
                   chatId={id || ''}
                   userEmail={userEmail}
                 />
                 <Chat
-                  loading={loading}
-                  messages={messages}
+                  loading={loadingState}
+                  messages={localMessages}
                   messageAppeared={messageAppeared}
                   searchProgress={searchProgress}
                   searchStatusMessage={getSearchStatusMessage()}
@@ -714,14 +717,14 @@ ChatWindow = ({ id, initialFocusMode }: { id?: string, initialFocusMode?: string
               />
             </div>
           )}
-          {videos && videos.length > 0 && (
+          {/* {videosState && videosState.length > 0 && (
             <div className="w-[250px] flex-shrink-0 h-screen sticky top-0 right-0 pt-16 px-3">
               <SearchVideos 
-                videos={videos} 
+                videos={videosState} 
                 loading={videosLoading}
               />
             </div>
-          )}
+          )} */}
           <Lightbox open={open} close={() => setOpen(false)} slides={slides} />
         </div>
       )

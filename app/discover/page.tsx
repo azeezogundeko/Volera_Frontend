@@ -8,6 +8,7 @@ import SearchBar from '@/components/discover/SearchBar';
 import Filters, { FilterState } from '@/components/discover/Filters';
 import { dummyDiscover } from '@/data/dummyDiscover';
 import { X, SlidersHorizontal, Bookmark } from 'lucide-react';
+import Image from 'next/image';
 
 interface Product {
   id: string;
@@ -366,9 +367,11 @@ const Page = () => {
                 className="group relative bg-white dark:bg-[#141414] rounded-xl overflow-hidden border border-gray-200 dark:border-[#222] hover:border-gray-300 dark:hover:border-[#333] transition-colors duration-300 shadow-sm hover:shadow-md"
               >
                 <div className="aspect-[16/10] relative overflow-hidden">
-                  <img
+                  <Image
                     src={search.image}
                     alt={search.query}
+                    width={500}
+                    height={300}
                     className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>

@@ -14,6 +14,7 @@ import {
   ZoomIn
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ImageModal from '@/components/marketplace/ImageModal';
 import PriceWatchModal from '@/components/marketplace/PriceWatchModal';
 import ReviewSection from '@/components/marketplace/ReviewSection';
@@ -224,9 +225,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <div className="space-y-6">
             {/* Main Image */}
             <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-[#1a1a1a] group">
-              <img
+              <Image
                 src={images[activeImage]}
                 alt={product.title}
+                width={500}
+                height={500}
                 className="w-full h-full object-cover cursor-zoom-in"
                 onClick={() => setIsImageModalOpen(true)}
               />
@@ -248,9 +251,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                   }`}
                   onClick={() => setActiveImage(index)}
                 >
-                  <img
+                  <Image
                     src={image}
                     alt={`${product.title} - View ${index + 1}`}
+                    width={100}
+                    height={100}
                     className="w-full h-full object-cover"
                   />
                 </button>

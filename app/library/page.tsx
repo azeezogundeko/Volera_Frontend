@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import ChatThreads from '@/components/ChatThreads';
 
 export interface Chat {
+  id: string;
   title: string;
   user_id: string;
   focus_mode: string;

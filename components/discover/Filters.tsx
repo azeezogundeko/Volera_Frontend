@@ -12,6 +12,7 @@ export interface FilterState {
   inStock: boolean;
   freeShipping: boolean;
   minRating: number;
+  dateRange: string;
 }
 
 const Filters = ({ onFilterChange }: FiltersProps) => {
@@ -22,6 +23,7 @@ const Filters = ({ onFilterChange }: FiltersProps) => {
     inStock: false,
     freeShipping: false,
     minRating: 0,
+    dateRange: '',
   });
 
   const categories = [

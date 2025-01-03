@@ -24,7 +24,6 @@ const features = [
     color: 'bg-yellow-500/10 text-yellow-500',
   },
 ];
-
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -66,7 +65,7 @@ export default function WelcomeStep() {
           Welcome to Your Shopping Assistant! 🛍️
         </h1>
         <p className="text-base text-black/70 dark:text-white/70 max-w-lg mx-auto">
-          Let's personalize your shopping experience to find the best deals and products for you.
+          Let&apos;s personalize your shopping experience to find the best deals and products for you.
         </p>
       </motion.div>
 
