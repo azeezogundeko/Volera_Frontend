@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
-import React, { useState, type ReactNode, useEffect } from 'react';
+import React, { useState, type ReactNode, useEffect, useCallback } from 'react';
 import Layout from './Layout';
 import SettingsDialog from './SettingsDialog';
 import LoadingSpinner from './LoadingSpinner';
@@ -126,17 +126,36 @@ const NavSection = ({
   );
 };
 
-const UserButton = () => {
+const ProFeature = ({ expanded }: { expanded: boolean }) => {
+  if (!expanded) return null;
+  
+  return (
+    <div className="px-3 mt-2 mb-4">
+      <div className="rounded-lg bg-emerald-600 p-3 space-y-3">
+        <h3 className="text-white text-sm font-medium">Try Pro</h3>
+        <p className="text-xs text-emerald-100">
+          Upgrade for image upload, smarter AI, and more Pro Search.
+        </p>
+        <Link
+          href="/pro"
+          className="inline-flex items-center gap-1 text-xs text-white/90 hover:text-white transition-colors group"
+        >
+          Learn More
+          <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+const UserButton = ({ expanded }: { expanded: boolean }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     // Check authentication status
     const token = localStorage.getItem('auth_token');
-    const email = localStorage.getItem('user_email');
     setIsAuthenticated(!!token);
-    setUserEmail(email || '');
   }, []);
 
   const handleLogout = () => {
@@ -148,37 +167,30 @@ const UserButton = () => {
 
   if (!isAuthenticated) {
     return (
-      <Link href="/login" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors">
-        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center">
-          <User className="w-4 h-4" />
-        </div>
-        <span>Sign in</span>
+      <Link href="/login" className={cn(
+        "flex items-center gap-2",
+        expanded ? "px-3 py-2" : "justify-center p-2",
+        "text-sm text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+      )}>
+        <span>{expanded ? "Sign in" : "→"}</span>
       </Link>
     );
   }
 
   return (
-    <div className="group relative">
-      <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors">
-        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-          <span className="text-white text-sm font-medium">
-            {userEmail.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <span className="truncate flex-1 text-left">{userEmail}</span>
-      </button>
-      
-      {/* Logout dropdown */}
-      <div className="absolute bottom-full left-0 w-full mb-1 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all">
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
-        </button>
+    <button 
+      onClick={handleLogout}
+      className={cn(
+        "flex items-center gap-2 w-full",
+        expanded ? "px-3 py-2" : "justify-center p-2",
+        "text-sm text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+      )}
+    >
+      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center flex-shrink-0">
+        <LogOut className="w-4 h-4" />
       </div>
-    </div>
+      {expanded && <span className="flex-1 text-left">Logout</span>}
+    </button>
   );
 };
 
@@ -234,16 +246,35 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const segments = useSelectedLayoutSegments();
   const { theme } = useTheme();
 
-  // Close mobile menu when route changes
+  // Store current path to detect actual route changes
+  const [currentPath, setCurrentPath] = useState('');
+
+  // Debug logging for state changes
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [segments]);
+    console.log('Mobile menu state changed:', isMobileMenuOpen);
+  }, [isMobileMenuOpen]);
+
+  // Close mobile menu only on actual route changes
+  useEffect(() => {
+    const pathname = window.location.pathname;
+    if (currentPath && pathname !== currentPath) {
+      console.log('Actual route change detected:', pathname);
+      setIsMobileMenuOpen(false);
+    }
+    setCurrentPath(pathname);
+  }, [segments, currentPath]);
 
   // Handle expanded state based on screen size and mobile menu
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) { // lg breakpoint
+      const width = window.innerWidth;
+      console.log('Window resized:', width);
+      if (width >= 1024) { // lg breakpoint
         setExpanded(true);
+        if (isMobileMenuOpen) {
+          setIsMobileMenuOpen(false); // Close mobile menu on desktop
+          console.log('Desktop breakpoint reached, closing mobile menu');
+        }
       }
     };
 
@@ -251,17 +282,17 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
     handleResize(); // Initial check
 
     return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileMenuOpen]);
+
+  const toggleMobileMenu = useCallback((e: React.MouseEvent) => {
+    console.log('Toggle mobile menu clicked');
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMobileMenuOpen(prev => {
+      console.log('Setting mobile menu to:', !prev);
+      return !prev;
+    });
   }, []);
-
-  const toggleExpanded = () => {
-    if (window.innerWidth >= 1024) { // Only toggle on desktop
-      setExpanded(!expanded);
-    }
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
 
   // Mobile sidebar content with always expanded state
   const mobileSidebarContent = (
@@ -275,14 +306,14 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
       {/* Navigation */}
       <div className="flex-1 overflow-hidden">
-        <nav className="space-y-6 py-6 px-3">
+        <nav className="space-y-4 py-6 px-3">
           <div className="px-2">
             <NewChatButton expanded={true} />
           </div>
 
-          <NavSection title="Overview" expanded={true}>
+          <div className="space-y-1">
             <IconButton
-                  href="/" 
+              href="/" 
               icon={Home}
               label="Dashboard"
               expanded={true}
@@ -302,9 +333,6 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               expanded={true}
               active={segments[0] === 'library'}
             />
-          </NavSection>
-
-          <NavSection title="Explorer" expanded={true}>
             <IconButton
               href="/discover"
               icon={Compass}
@@ -320,30 +348,13 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               active={segments[0] === 'trending'}
             />
             <IconButton
-              href="/favorites"
-              icon={Heart}
-              label="Favorites"
-              expanded={true}
-              active={segments[0] === 'favorites'}
-            />
-          </NavSection>
-
-          <NavSection title="Shopping" expanded={true}>
-            <IconButton
               href="/store"
               icon={Store}
               label="Browse Store"
               expanded={true}
               active={segments[0] === 'store'}
             />
-            <IconButton
-              href="/chat"
-              icon={MessageSquare}
-              label="AI Assistant"
-              expanded={true}
-              active={segments[0] === 'chat'}
-            />
-          </NavSection>
+          </div>
         </nav>
       </div>
 
@@ -356,7 +367,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           expanded={true}
           onClick={() => setIsSettingsOpen(true)}
         />
-        <UserButton />
+        <UserButton expanded={true} />
       </div>
     </div>
   );
@@ -375,15 +386,15 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
         'flex items-center',
         expanded ? 'justify-center' : 'justify-center',
         'h-16 px-4 border-b border-gray-200 dark:border-white/10',
-        'relative' // Added for absolute positioning of the toggle button
+        'relative'
       )}>
         {expanded && (
           <span className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent tracking-tight">
-                        Volera
+            Volera
           </span>
-                  )}
-                  <button
-                    onClick={toggleExpanded}
+        )}
+        <button
+          onClick={toggleMobileMenu}
           className="absolute right-4 p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 lg:block hidden"
         >
           {expanded ? (
@@ -391,17 +402,17 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           ) : (
             <ChevronRight className="w-5 h-5 text-gray-400 dark:text-white/40" />
           )}
-                  </button>
-              </div>
+        </button>
+      </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-hidden py-6 px-3">
-        <nav className="space-y-6">
+        <nav className="space-y-4">
           <div className="px-2">
             <NewChatButton expanded={expanded} />
-            </div>
+          </div>
 
-          <NavSection title="Overview" expanded={expanded}>
+          <div className="space-y-1">
             <IconButton
               href="/"
               icon={Home}
@@ -409,89 +420,73 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               expanded={expanded}
               active={segments.length === 0}
             />
-                  <IconButton
-                    href="/track"
-                    icon={Target}
+            <IconButton
+              href="/track"
+              icon={Target}
               label="Track Items"
               expanded={expanded}
-                    active={segments[0] === 'track'}
-                  />
-                  <IconButton
+              active={segments[0] === 'track'}
+            />
+            <IconButton
               href="/library"
               icon={BookOpen}
               label="Library"
               expanded={expanded}
               active={segments[0] === 'library'}
             />
-          </NavSection>
-
-          <NavSection title="Explorer" expanded={expanded}>
             <IconButton
               href="/discover"
               icon={Compass}
               label="Discover"
               expanded={expanded}
               active={segments[0] === 'discover'}
-                  />
-                  <IconButton
+            />
+            <IconButton
               href="/trending"
               icon={TrendingUp}
               label="Trending"
               expanded={expanded}
               active={segments[0] === 'trending'}
-                  />
-                  <IconButton
-              href="/favorites"
-              icon={Heart}
-              label="Favorites"
-              expanded={expanded}
-              active={segments[0] === 'favorites'}
             />
-          </NavSection>
-
-          <NavSection title="Shopping" expanded={expanded}>
             <IconButton
               href="/store"
-                    icon={Store}
+              icon={Store}
               label="Browse Store"
               expanded={expanded}
-                    active={segments[0] === 'store'}
-                  />
-                  <IconButton
-              href="/chat"
-              icon={MessageSquare}
-              label="AI Assistant"
-              expanded={expanded}
-              active={segments[0] === 'chat'}
+              active={segments[0] === 'store'}
             />
-          </NavSection>
-                </nav>
-              </div>
+          </div>
+
+          <ProFeature expanded={expanded} />
+        </nav>
+      </div>
 
       {/* Settings and User Profile */}
       <div className={cn(
         'mt-auto border-t border-gray-200 dark:border-white/10',
         'p-4 space-y-3'
       )}>
-                  <IconButton
+        <IconButton
           href="#"
-                    icon={Settings}
-                    label="Settings"
+          icon={Settings}
+          label="Settings"
           expanded={expanded}
-                    onClick={() => setIsSettingsOpen(true)}
-                  />
-        <UserButton />
-                </div>
-              </div>
+          onClick={() => setIsSettingsOpen(true)}
+        />
+        <UserButton expanded={expanded} />
+      </div>
+    </div>
   );
 
   return (
     <>
       <Toaster position="top-center" />
       {/* Mobile Menu Button */}
-            <button
+      <button
         onClick={toggleMobileMenu}
-        className="fixed top-4 left-4 z-[60] p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-gray-200 dark:border-white/10 lg:hidden"
+        type="button"
+        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+        className="fixed top-4 left-4 z-[99] p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-gray-200 dark:border-white/10 lg:hidden flex items-center justify-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
       >
         {isMobileMenuOpen ? (
           <X className="w-5 h-5 text-gray-500 dark:text-white/50" />
@@ -510,16 +505,30 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[55] lg:hidden"
-              onClick={toggleMobileMenu}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[97] lg:hidden"
+              onClick={(e) => {
+                console.log('Backdrop clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                setIsMobileMenuOpen(false);
+              }}
             />
             <motion.div
               key="sidebar"
-              initial={{ x: -280 }}
+              initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
-              className="fixed top-0 left-0 bottom-0 z-[60] lg:hidden"
+              exit={{ x: '-100%' }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 300,
+                damping: 30,
+                duration: 0.3
+              }}
+              className="fixed top-0 left-0 bottom-0 z-[98] lg:hidden"
+              onClick={(e) => {
+                console.log('Sidebar clicked');
+                e.stopPropagation();
+              }}
             >
               {mobileSidebarContent}
             </motion.div>
@@ -536,7 +545,8 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       <main className={cn(
         'min-h-screen',
         expanded ? 'lg:pl-[280px]' : 'lg:pl-16',
-        'transition-all duration-300'
+        'transition-all duration-300',
+        'pt-16 lg:pt-0'
       )}>
         {children}
       </main>

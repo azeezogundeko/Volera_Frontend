@@ -52,16 +52,16 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
       exit={{ opacity: 0, y: -20 }}
       className="h-full flex flex-col justify-center"
     >
-      <h2 className="text-xl font-semibold text-black/90 dark:text-white/90 mb-6">
+      <h2 className="text-xl font-semibold text-black/90 dark:text-white/90 mb-6 text-center">
         Complete Your Profile
       </h2>
 
-      <div className="grid grid-cols-[200px_1fr] gap-8">
+      <div className="flex flex-col sm:grid sm:grid-cols-[200px_1fr] gap-6">
         {/* Avatar Upload */}
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-start">
           <div className="relative group">
             <div className={cn(
-              'w-32 h-32 rounded-full overflow-hidden',
+              'w-24 sm:w-32 h-24 sm:h-32 rounded-full overflow-hidden',
               'bg-light-100 dark:bg-dark-100',
               'flex items-center justify-center',
               'border-2 border-dashed border-primary/30',
@@ -94,7 +94,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
         </div>
 
         {/* Profile Form */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
               Gender
@@ -139,7 +139,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
               Address
             </label>

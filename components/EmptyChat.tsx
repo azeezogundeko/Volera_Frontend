@@ -38,7 +38,7 @@ const EmptyChat = ({
       </div>
       <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto p-2 space-y-8">
         <div className="flex flex-col items-center space-y-4 -mt-8">
-          <p className="text-black/50 dark:text-white/50 text-4xl font-bold">
+          <p className="text-black/50 dark:text-white/50 text-2xl sm:text-3xl md:text-4xl font-bold text-center px-4">
             What do you want to buy?
           </p>
         </div>

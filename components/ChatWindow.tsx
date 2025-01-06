@@ -27,6 +27,8 @@ export type Message = {
   sources?: Document[];
   type?: 'image';
   alt?: string;
+  images?: Image[] | null;
+  imagesLoading?: boolean;
 };
 
 export interface File {
@@ -376,8 +378,6 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
   const [open, setOpen] = useState(false);
   const [slides, setSlides] = useState<any[]>([]);
 
-  const [images, setImages] = useState<Image[] | null>(null);
-  const [imagesLoading, setImagesLoading] = useState(false);
   const [videosState, setVideosState] = useState<Video[] | null>(videos ?? []);
   const [videosLoading, setVideosLoading] = useState(false);
 
@@ -492,7 +492,9 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
               role: 'assistant',
               sources: data.sources || [],
               suggestions: data.suggestions || [],
-              createdAt: new Date()
+              createdAt: new Date(),
+              images: null,
+              imagesLoading: false
             }]);
             setMessageAppeared(true);
             // Reset search progress when message is complete
@@ -551,14 +553,23 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
           break;
 
         case 'image_search':
-          setImagesLoading(false);
           if (data.data) {
             const convertedImages = data.data.map((item: any) => ({
               url: item.url,
               img_url: item.img_url,
               title: item.title
             }));
-            setImages(convertedImages);
+            
+            // Update the specific message's images
+            setLocalMessages(prevMessages => {
+              const updatedMessages = [...prevMessages];
+              const lastMessage = updatedMessages[updatedMessages.length - 1];
+              if (lastMessage && lastMessage.role === 'assistant') {
+                lastMessage.images = convertedImages;
+                lastMessage.imagesLoading = false;
+              }
+              return updatedMessages;
+            });
           }
           break;
 
@@ -574,67 +585,26 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
           break;
 
         case 'sources':
-          let sources: Document[] = data.data;
-          let added = false;
-          setLocalMessages((prevMessages) => {
-            // If it's the first message or a new message
-            if (prevMessages.length === 0 || prevMessages[prevMessages.length - 1].role === 'user') {
-              console.log('[STREAMING DEBUG] Creating new assistant message');
-              return [
-                ...prevMessages,
-                {
-                  messageId: crypto.randomBytes(16).toString('hex'),
-                  chatId: chatId || '',
-                  createdAt: new Date(),
-                  content: '',
-                  role: 'assistant',
-                  sources: sources,
-                  $createdAt: new Date(),
-                },
-              ];
+          setLocalMessages(prevMessages => {
+            const updatedMessages = [...prevMessages];
+            const lastMessage = updatedMessages[updatedMessages.length - 1];
+            if (lastMessage && lastMessage.role === 'assistant') {
+              lastMessage.sources = data.sources;
             } else {
-              // Update the last message if it's a continuation
-              console.log('[STREAMING DEBUG] Appending to existing message');
-              const updatedMessages = [...prevMessages];
-              const lastMessage = updatedMessages[updatedMessages.length - 1];
-              
-              // Ensure we're only appending to an assistant message
-              if (lastMessage.role === 'assistant') {
-                // Avoid appending duplicate content
-                if (!lastMessage.content.endsWith(data.content)) {
-                  lastMessage.content += data.content;
-                }
-                lastMessage.sources = data.sources || lastMessage.sources;
-                return updatedMessages;
-              }
-              
-              // If last message is not an assistant message, create a new one
-              return [
-                ...prevMessages,
-                {
-                  messageId: crypto.randomBytes(16).toString('hex'),
-                  chatId: chatId || '',
-                  createdAt: new Date(),
-                  content: data.content,
-                  role: 'assistant',
-                  sources: data.sources || [],
-                  suggestions: data.suggestions || []
-                }
-              ];
+              // If no assistant message exists, create one
+              updatedMessages.push({
+                messageId: crypto.randomBytes(16).toString('hex'),
+                chatId: chatId || '',
+                content: '',
+                role: 'assistant',
+                sources: data.sources,
+                createdAt: new Date(),
+                images: null,
+                imagesLoading: false
+              });
             }
+            return updatedMessages;
           });
-
-          setChatHistory(prevHistory => [
-            ...prevHistory, 
-            { 
-              speaker: 'assistant', 
-              message: data.content, 
-              timestamp: new Date() 
-            }
-          ]);
-
-          setLoadingState(false);
-          setMessageAppeared(true);
           break;
 
         case 'messageEnd':
@@ -807,34 +777,18 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
               </>
             ) : (
               <EmptyChat
-                    sendMessage={sendMessage}
-                    focusMode={focusMode}
-                    setFocusMode={setFocusMode}
-                    optimizationMode={optimizationMode}
-                    setOptimizationMode={setOptimizationMode}
-                    fileIds={fileIds}
-                    setFileIds={setFileIds}
-                    files={files}
-                    setFiles={setFiles}             />
+                sendMessage={sendMessage}
+                focusMode={focusMode}
+                setFocusMode={setFocusMode}
+                optimizationMode={optimizationMode}
+                setOptimizationMode={setOptimizationMode}
+                fileIds={fileIds}
+                setFileIds={setFileIds}
+                files={files}
+                setFiles={setFiles}
+              />
             )}
           </div>
-          {images && images.length > 0 && (
-            <div className="w-[250px] flex-shrink-0 h-screen sticky top-0 right-0 pt-16 px-3">
-              <SearchImages 
-                images={images} 
-                loading={imagesLoading}
-                onSearchVideos={handleSearchVideos}
-              />
-            </div>
-          )}
-          {/* {videosState && videosState.length > 0 && (
-            <div className="w-[250px] flex-shrink-0 h-screen sticky top-0 right-0 pt-16 px-3">
-              <SearchVideos 
-                videos={videosState} 
-                loading={videosLoading}
-              />
-            </div>
-          )} */}
           <Lightbox open={open} close={() => setOpen(false)} slides={slides} />
         </div>
       )

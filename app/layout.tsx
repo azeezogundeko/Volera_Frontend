@@ -16,7 +16,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'Volera - Shop with Artificial Intelligience',
+  title: 'Volera - Shop with Artificial Intelligence',
   description:
     'Volera is an AI powered agentic shopping assistant.',
 };
@@ -29,20 +29,7 @@ export default function RootLayout({
   return (
     <html className="h-full" lang="en" suppressHydrationWarning>
       <body className={cn('h-full', montserrat.className)}>
-        <ThemeProvider>
-          <Suspense fallback={<LoadingPage />}>
-            <Sidebar>{children}</Sidebar>
-          </Suspense>
-          <Toaster
-            toastOptions={{
-              unstyled: true,
-              classNames: {
-                toast:
-                  'bg-light-primary dark:bg-dark-secondary dark:text-white/70 text-black-70 rounded-lg p-4 flex flex-row items-center space-x-2',
-              },
-            }}
-          />
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

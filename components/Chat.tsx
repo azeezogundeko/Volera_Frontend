@@ -39,8 +39,15 @@ export default function Chat({
   setFiles: (files: File[]) => void;
 }) {
   const [dividerWidth, setDividerWidth] = useState(0);
+  const [visibleMessageId, setVisibleMessageId] = useState<string | null>(null);
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const messageEnd = useRef<HTMLDivElement | null>(null);
+
+  const handleVisibilityChange = (messageId: string, isVisible: boolean) => {
+    if (isVisible) {
+      setVisibleMessageId(messageId);
+    }
+  };
 
   useEffect(() => {
     const updateDividerWidth = () => {
@@ -68,7 +75,7 @@ export default function Chat({
 
   return (
     <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 sm:pt-6 relative z-0 mb-24 sm:mb-32">
+      <div className="flex-1 overflow-y-auto px-1 sm:px-2 pt-4 sm:pt-6 relative z-0 mb-24 sm:mb-32">
         {messages.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center space-y-4">
             <VoleraLogo />
@@ -77,10 +84,11 @@ export default function Chat({
         )}
         {messages.map((msg, i) => {
           const isLast = i === messages.length - 1;
+          const currentImages = msg.role === 'assistant' && msg.messageId === visibleMessageId ? (msg.images || null) : null;
 
           return (
             <Fragment key={msg.messageId}>
-              <div className="mb-4 sm:mb-6 max-w-3xl mx-auto">
+              <div className="mb-4 sm:mb-6 max-w-[95%] w-full mx-auto">
                 <MessageBox
                   key={msg.messageId}
                   message={msg}
@@ -91,8 +99,9 @@ export default function Chat({
                   isLast={isLast}
                   rewrite={rewrite}
                   sendMessage={sendMessage}
-                  images={null}
-                  imagesLoading={false}
+                  images={currentImages}
+                  imagesLoading={msg.imagesLoading || false}
+                  onVisibilityChange={handleVisibilityChange}
                 />
               </div>
               {!isLast && msg.role === 'assistant' && (

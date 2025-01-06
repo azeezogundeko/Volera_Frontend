@@ -94,6 +94,7 @@ const ImageCard = ({
           alt={image.title}
           width={400}
           height={300}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className={clsx(
             "absolute inset-0 w-full h-full object-cover",
             "transition-all duration-700",
@@ -112,11 +113,11 @@ const ImageCard = ({
         />
       )}
       <div className={clsx(
-        "absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/0",
-        "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        "absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent",
+        "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300"
       )}>
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <p className="text-white text-sm font-medium line-clamp-2">{image.title}</p>
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+          <p className="text-white text-xs sm:text-sm font-medium line-clamp-2 drop-shadow-lg bg-black/30 p-2 rounded-lg">{image.title}</p>
         </div>
       </div>
     </div>
@@ -127,15 +128,26 @@ const SearchImages = ({
   images,
   loading,
   onSearchVideos,
+  messageId,
 }: {
   images: Image[] | null;
   loading: boolean;
-  onSearchVideos?: () => void;
+  onSearchVideos?: () => Promise<void>;
+  messageId: string;
 }) => {
-  const [open, setOpen] = useState(false);
-  const [slides, setSlides] = useState<any[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [openStates, setOpenStates] = useState<Record<string, boolean>>({});
+  const [selectedIndices, setSelectedIndices] = useState<Record<string, number>>({});
+  const [showImagesOnMobile, setShowImagesOnMobile] = useState<Record<string, boolean>>({});
   const [isSearchingVideos, setIsSearchingVideos] = useState(false);
+  const [slides, setSlides] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (messageId && !openStates.hasOwnProperty(messageId)) {
+      setOpenStates(prev => ({ ...prev, [messageId]: false }));
+      setSelectedIndices(prev => ({ ...prev, [messageId]: 0 }));
+      setShowImagesOnMobile(prev => ({ ...prev, [messageId]: false }));
+    }
+  }, [messageId]);
 
   useEffect(() => {
     if (images) {
@@ -156,6 +168,13 @@ const SearchImages = ({
         setIsSearchingVideos(false);
       }
     }
+  };
+
+  const toggleMobileView = () => {
+    setShowImagesOnMobile(prev => ({
+      ...prev,
+      [messageId]: !prev[messageId]
+    }));
   };
 
   if (!loading && images === null) {
@@ -182,81 +201,80 @@ const SearchImages = ({
 
   if (images && images.length > 0) {
     return (
-      <>
-        <div className="flex flex-col space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-medium text-sm">Search Results</h3>
-            <span className="text-xs text-gray-500">{images.length} images</span>
+      <div className="bg-white dark:bg-dark-100 rounded-xl border border-gray-200 dark:border-dark-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-dark-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-emerald-500" />
+              <h3 className="font-medium text-sm text-black/90 dark:text-white/90">Visual Results</h3>
+            </div>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">
+              {images.length}
+            </span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+        </div>
+
+        <div className={clsx(
+          "transition-all duration-300 ease-in-out",
+          "hidden sm:block",
+          showImagesOnMobile[messageId] && "block"
+        )}>
+          <div className="p-3 grid gap-2">
+            {/* Featured Image */}
             <ImageCard 
               image={images[0]}
-              className="col-span-2 aspect-[2/1] rounded-xl"
+              className="aspect-video rounded-lg"
               onClick={() => {
-                setSelectedIndex(0);
-                setOpen(true);
+                setSelectedIndices(prev => ({ ...prev, [messageId]: 0 }));
+                setOpenStates(prev => ({ ...prev, [messageId]: true }));
               }}
               delay={0}
             />
-            {images.slice(1, 4).map((image, i) => (
-              <ImageCard
-                key={i}
-                image={image}
-                className="aspect-square rounded-xl"
-                onClick={() => {
-                  setSelectedIndex(i + 1);
-                  setOpen(true);
-                }}
-                delay={(i + 1) * 150}
-              />
-            ))}
-            {images.length > 4 && (
-              <div
+            
+            {/* Grid Images */}
+            <div className="grid grid-cols-2 gap-2">
+              {images.slice(1, 5).map((image, i) => (
+                <ImageCard
+                  key={i}
+                  image={image}
+                  className="aspect-square rounded-lg"
+                  onClick={() => {
+                    setSelectedIndices(prev => ({ ...prev, [messageId]: i + 1 }));
+                    setOpenStates(prev => ({ ...prev, [messageId]: true }));
+                  }}
+                  delay={(i + 1) * 100}
+                />
+              ))}
+            </div>
+
+            {/* See More Button */}
+            {images.length > 5 && (
+              <button
                 className={clsx(
-                  "relative aspect-square rounded-xl overflow-hidden cursor-pointer",
-                  "bg-light-100 dark:bg-dark-100 group",
-                  "transition-all duration-300"
+                  "w-full p-2 rounded-lg text-center",
+                  "bg-light-100 dark:bg-dark-200 hover:bg-light-200 dark:hover:bg-dark-300",
+                  "transition-all duration-300 text-sm"
                 )}
                 onClick={() => {
-                  setSelectedIndex(4);
-                  setOpen(true);
+                  setSelectedIndices(prev => ({ ...prev, [messageId]: 5 }));
+                  setOpenStates(prev => ({ ...prev, [messageId]: true }));
                 }}
               >
-                <Image
-                  src={images[4].img_url}
-                  alt={images[4].title}
-                  width={0}
-                  height={0}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/60 group-hover:bg-black/70 transition-colors duration-300">
-                  <div className="text-center">
-                    <p className="text-white font-medium mb-1">See More</p>
-                    <p className="text-white/70 text-sm">+{images.length - 4} images</p>
-                  </div>
-                </div>
-              </div>
+                View {images.length - 5} more images
+              </button>
             )}
           </div>
 
           {onSearchVideos && (
-            <VideoSearchButton 
-              onSearch={handleVideoSearch}
-              isLoading={isSearchingVideos}
-            />
+            <div className="p-3 pt-0">
+              <VideoSearchButton 
+                onSearch={handleVideoSearch}
+                isLoading={isSearchingVideos}
+              />
+            </div>
           )}
         </div>
-
-        <Lightbox
-          open={open}
-          close={() => setOpen(false)}
-          index={selectedIndex}
-          slides={slides}
-          styles={{
-            container: { backgroundColor: 'rgba(0, 0, 0, .9)' },
-          }}
-        />
-      </>
+      </div>
     );
   }
 
