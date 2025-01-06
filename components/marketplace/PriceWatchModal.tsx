@@ -15,7 +15,6 @@ interface PriceWatchModalProps {
   stores: Store[];
   onSubmit: (data: {
     targetPrice: number;
-    selectedStores: string[];
     notifyEmail: boolean;
     notifyPush: boolean;
   }) => void;
@@ -28,7 +27,6 @@ const PriceWatchModal = ({
   onSubmit,
 }: PriceWatchModalProps) => {
   const [targetPrice, setTargetPrice] = useState('');
-  const [selectedStores, setSelectedStores] = useState<string[]>([]);
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
 
@@ -36,24 +34,15 @@ const PriceWatchModal = ({
     e.preventDefault();
     onSubmit({
       targetPrice: parseFloat(targetPrice),
-      selectedStores,
       notifyEmail,
       notifyPush,
     });
     onClose();
   };
 
-  const toggleStore = (storeName: string) => {
-    setSelectedStores((prev) =>
-      prev.includes(storeName)
-        ? prev.filter((name) => name !== storeName)
-        : [...prev, storeName]
-    );
-  };
-
   if (!isOpen) return null;
 
-  const lowestPrice = Math.min(...stores.map((store) => store.price));
+  const currentPrice = stores[0].price;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -104,42 +93,9 @@ const PriceWatchModal = ({
                   required
                   value={targetPrice}
                   onChange={(e) => setTargetPrice(e.target.value)}
-                  placeholder={`Current lowest: $${lowestPrice.toFixed(2)}`}
+                  placeholder={`Current price: $${currentPrice.toFixed(2)}`}
                   className="block w-full pl-8 pr-4 py-2.5 text-gray-900 dark:text-white border border-gray-200 dark:border-[#333] rounded-lg bg-white dark:bg-[#111] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                 />
-              </div>
-            </div>
-
-            {/* Store Selection */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-white/70">
-                Select Stores to Track
-              </label>
-              <div className="space-y-2">
-                {stores.map((store) => (
-                  <label
-                    key={store.name}
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-[#333] hover:border-gray-300 dark:hover:border-[#444] cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedStores.includes(store.name)}
-                        onChange={() => toggleStore(store.name)}
-                        className="w-4 h-4 text-emerald-500 border-gray-300 rounded focus:ring-emerald-500"
-                      />
-                      <div className="flex items-center gap-2">
-                        <StoreIcon className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:text-white/40 dark:group-hover:text-white/60" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {store.name}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-white/60">
-                      ${store.price.toFixed(2)}
-                    </span>
-                  </label>
-                ))}
               </div>
             </div>
 

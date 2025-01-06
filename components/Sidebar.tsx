@@ -14,7 +14,16 @@ import {
   Search, 
   Plus, 
   Target, 
-  Store 
+  Store,
+  Menu,
+  X,
+  UserCircle2,
+  BookOpen,
+  Compass,
+  TrendingUp,
+  Heart,
+  User,
+  LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
@@ -24,10 +33,9 @@ import SettingsDialog from './SettingsDialog';
 import LoadingSpinner from './LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatTimeDifference } from '@/lib/utils';
-import logoLight  from '@/public/logo-light.png';
-import logoDark  from '@/public/logo-dark.png';
 import { useTheme } from 'next-themes';
-import Image from 'next/image';
+import { useChat } from '@/hooks/useChat';
+import { Toaster, toast } from 'sonner';
 
 interface Thread {
   id: string;
@@ -60,23 +68,34 @@ const IconButton = ({ href, icon: Icon, label, expanded, active, onClick }: Icon
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-2',
-        expanded ? 'px-4 py-2.5' : 'justify-center py-2.5',
+        'flex items-center gap-3',
+        expanded ? 'px-3 py-2' : 'justify-center p-2',
         'rounded-lg w-full',
-        'bg-transparent hover:bg-light-100 dark:hover:bg-dark-100',
-        'transition-colors duration-200',
-        active && 'bg-light-100 dark:bg-dark-100'
+        'hover:bg-gray-50 dark:hover:bg-white/5',
+        'transition-all duration-200',
+        active && 'bg-emerald-50 dark:bg-emerald-500/10',
+        active && 'text-emerald-600 dark:text-emerald-500'
       )}
       onClick={onClick}
     >
-      <Icon className="w-5 h-5 text-black/70 dark:text-white/70" />
+      <Icon className={cn(
+        "w-5 h-5",
+        active 
+          ? "text-emerald-600 dark:text-emerald-500" 
+          : "text-gray-500 dark:text-white/50"
+      )} />
       {expanded && (
         <AnimatePresence mode="wait">
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="text-sm font-medium text-black/90 dark:text-white/90"
+            className={cn(
+              "text-sm font-medium whitespace-nowrap",
+              active 
+                ? "text-emerald-600 dark:text-emerald-500"
+                : "text-gray-600 dark:text-white/70"
+            )}
           >
             {label}
           </motion.span>
@@ -86,444 +105,447 @@ const IconButton = ({ href, icon: Icon, label, expanded, active, onClick }: Icon
   );
 };
 
-const ThreadItem = ({ 
-  thread, 
-  active, 
+const NavSection = ({ 
+  title, 
+  children, 
   expanded 
 }: { 
-  thread: Thread; 
-  active: boolean;
+  title: string; 
+  children: React.ReactNode;
   expanded: boolean;
 }) => {
   return (
-    <Link href={`/c/${thread.id}`}>
-      <motion.div
-        whileHover={{ x: 4 }}
-        className={cn(
-          "flex items-center gap-3 px-3 py-1.5 rounded-lg cursor-pointer group ml-8",
-          "transition-all duration-200 relative",
-          active
-            ? "bg-gradient-to-br from-light-100 to-light-200 dark:from-dark-100 dark:to-dark-200"
-            : "hover:bg-light-100/50 dark:hover:bg-dark-100/50"
-        )}
-      >
-        <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-3 h-px bg-light-200 dark:bg-dark-200" />
-        {expanded ? (
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1 min-w-0"
-            >
-              <div className="text-xs text-black/70 dark:text-white/70 truncate">
-                {thread.title}
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        ) : (
-          <div className="w-full flex justify-center">
-            <div className="w-1 h-1 rounded-full bg-black/40 dark:bg-white/40" />
+    <div className="space-y-1">
+      {expanded && (
+        <h3 className="text-xs font-medium text-gray-400 dark:text-white/30 uppercase tracking-wider px-3 mb-2">
+          {title}
+        </h3>
+      )}
+      {children}
           </div>
-        )}
-      </motion.div>
-    </Link>
   );
 };
 
-const TryProButton = ({ expanded }: { expanded: boolean }) => {
-  return (
-    <Link
-      href="/pro"
-      className={cn(
-        'w-full flex items-center gap-2 px-4 py-2.5 rounded-lg',
-        'bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600',
-        'transition-all duration-200'
-      )}
-    >
-      <Sparkles className="w-5 h-5 text-white" />
-      {expanded && (
-        <AnimatePresence mode="wait">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col"
-          >
-            <span className="text-sm font-medium text-white">Try Pro</span>
-            <span className="text-xs text-white/80">Upgrade for image upload, smarter AI</span>
-          </motion.div>
-        </AnimatePresence>
-      )}
-    </Link>
-  );
-};
-
-const UserProfile = ({ user, expanded }: { user: User; expanded: boolean }) => {
-  return (
-    <div className="flex items-center gap-3">
-      <div className={cn(
-        'w-8 h-8 rounded-full',
-        'bg-primary',
-        'flex items-center justify-center',
-        'flex-shrink-0'
-      )}>
-        {user.avatar ? (
-          <Image
-            src={user.avatar}
-            alt={`${user.first_name}'s avatar`}
-            width={32}
-            height={32}
-            className="rounded-full"
-          />
-        ) : (
-          <span className="text-white text-sm font-medium">
-            {user.first_name.charAt(0).toUpperCase()}
-          </span>
-        )}
-      </div>
-      {expanded && (
-        <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-sm font-medium text-black/90 dark:text-white/90 truncate">
-            {user.first_name} {user.last_name}
-          </span>
-          <span className="text-xs text-black/60 dark:text-white/60 truncate" title={user.email}>
-            {user.email}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const AuthButtons = ({ expanded }: { expanded: boolean }) => {
-  if (!expanded) return null;
-  
-  return (
-    <div className={cn(
-      'flex flex-col gap-2',
-      expanded ? 'px-4' : 'px-2'
-    )}>
-      <Link
-        href="/signup"
-        className={cn(
-          'w-full flex items-center gap-2 rounded-lg',
-          'bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600',
-          'transition-all duration-200',
-          expanded ? 'px-4 py-2.5' : 'justify-center py-2.5'
-        )}
-      >
-        <ArrowUpRight className="w-5 h-5 text-white" />
-        {expanded && (
-          <AnimatePresence mode="wait">
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-sm font-medium text-white"
-            >
-              Sign Up
-            </motion.span>
-          </AnimatePresence>
-        )}
-      </Link>
-      <Link
-        href="/login"
-        className={cn(
-          'w-full flex items-center gap-2 rounded-lg',
-          'bg-light-100 dark:bg-dark-100 hover:bg-light-200 dark:hover:bg-dark-200',
-          'transition-all duration-200',
-          expanded ? 'px-4 py-2.5' : 'justify-center py-2.5'
-        )}
-      >
-        <MessageSquare className="w-5 h-5 text-black/70 dark:text-white/70" />
-        {expanded && (
-          <AnimatePresence mode="wait">
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-sm font-medium text-black/90 dark:text-white/90"
-            >
-              Log In
-            </motion.span>
-          </AnimatePresence>
-        )}
-      </Link>
-    </div>
-  );
-};
-
-const Sidebar = ({ children }: { children: React.ReactNode }) => {
-  const segments = useSelectedLayoutSegments();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+const UserButton = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const router = useRouter();
-  const { theme } = useTheme();
-
-  const createNewChat = async () => {
-    try {
-      setIsCreatingChat(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/new`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create new chat');
-      }
-
-      const data = await response.json();
-      router.push(`/c/${data.id}`);
-    } catch (error) {
-      console.error('Error creating new chat:', error);
-    } finally {
-      setIsCreatingChat(false);
-    }
-  };
-
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('auth_token');
-      const userData = localStorage.getItem('user');
-      
-      if (token && userData) {
-        setIsAuthenticated(true);
-        setUser(JSON.parse(userData));
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    };
-
-    checkAuth();
-
-    window.addEventListener('storage', checkAuth);
-
-    return () => {
-      window.removeEventListener('storage', checkAuth);
-    };
+    // Check authentication status
+    const token = localStorage.getItem('auth_token');
+    const email = localStorage.getItem('user_email');
+    setIsAuthenticated(!!token);
+    setUserEmail(email || '');
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
-    localStorage.removeItem('token_type');
-    localStorage.removeItem('user');
+    localStorage.removeItem('user_email');
     setIsAuthenticated(false);
-    setUser(null);
     router.push('/login');
   };
 
+  if (!isAuthenticated) {
+    return (
+      <Link href="/login" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors">
+        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-white/10 flex items-center justify-center">
+          <User className="w-4 h-4" />
+        </div>
+        <span>Sign in</span>
+      </Link>
+    );
+  }
+
   return (
-    <>
-      <SettingsDialog isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
-      <div className="flex h-full">
-        <motion.div
-          initial={false}
-          animate={{
-            width: isExpanded ? 220 : 72,
-          }}
-          className={cn(
-            'h-full flex-shrink-0 overflow-y-auto overflow-x-hidden relative',
-            'border-r border-light-100 dark:border-dark-100',
-            'bg-light-primary dark:bg-dark-primary',
-          )}
+    <div className="group relative">
+      <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors">
+        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+          <span className="text-white text-sm font-medium">
+            {userEmail.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <span className="truncate flex-1 text-left">{userEmail}</span>
+      </button>
+      
+      {/* Logout dropdown */}
+      <div className="absolute bottom-full left-0 w-full mb-1 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
         >
-          <div className="h-full flex flex-col">
-            {/* Logo Section */}
-            <div className="p-3 border-b border-light-100 dark:border-dark-100">
-              <div className="flex items-center justify-between">
-                <Link 
+          <LogOut className="w-4 h-4" />
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const NewChatButton = ({ expanded }: { expanded: boolean }) => {
+  const { createNewChat, isCreatingChat } = useChat();
+  const router = useRouter();
+
+  const handleNewChat = async () => {
+    try {
+      const data = await createNewChat();
+      if (data?.id) {
+        router.push(`/c/${data.id}`);
+      }
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+      toast.error('Failed to create new chat');
+    }
+  };
+  
+  return (
+    <button
+      onClick={handleNewChat}
+      disabled={isCreatingChat}
+        className={cn(
+        'flex items-center gap-3 w-full',
+        expanded ? 'px-3 py-2' : 'justify-center p-2',
+        'rounded-lg',
+        'bg-emerald-500 hover:bg-emerald-600',
+          'transition-all duration-200',
+        'disabled:opacity-50 disabled:cursor-not-allowed'
+      )}
+    >
+      {isCreatingChat ? (
+        <LoadingSpinner className="w-5 h-5 text-white" />
+      ) : (
+        <Plus className="w-5 h-5 text-white" />
+      )}
+        {expanded && (
+        <span className="text-sm font-medium text-white">
+          New Chat
+        </span>
+      )}
+    </button>
+  );
+};
+
+const Sidebar = ({ children }: { children: React.ReactNode }) => {
+  const [expanded, setExpanded] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const segments = useSelectedLayoutSegments();
+  const { theme } = useTheme();
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [segments]);
+
+  // Handle expanded state based on screen size and mobile menu
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) { // lg breakpoint
+        setExpanded(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleExpanded = () => {
+    if (window.innerWidth >= 1024) { // Only toggle on desktop
+      setExpanded(!expanded);
+    }
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Mobile sidebar content with always expanded state
+  const mobileSidebarContent = (
+    <div className="flex flex-col h-full w-[280px] bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-white/10">
+      {/* Logo Section - Mobile */}
+      <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-white/10">
+        <span className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent tracking-tight">
+          Volera
+        </span>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 overflow-hidden">
+        <nav className="space-y-6 py-6 px-3">
+          <div className="px-2">
+            <NewChatButton expanded={true} />
+          </div>
+
+          <NavSection title="Overview" expanded={true}>
+            <IconButton
                   href="/" 
-                  className={cn(
-                    'flex items-center gap-2',
-                    !isExpanded && 'justify-center w-full'
-                  )}
-                >
-                  <Image
-                    src={theme === 'dark' ? logoDark : logoLight}
-                    alt="Logo"
-                    width={28}
-                    height={28}
-                    className="flex-shrink-0"
-                  />
-                  {isExpanded && (
-                    <AnimatePresence mode="wait">
-                      <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="text-base font-semibold text-black/90 dark:text-white/90"
-                      >
+              icon={Home}
+              label="Dashboard"
+              expanded={true}
+              active={segments.length === 0}
+            />
+            <IconButton
+              href="/track"
+              icon={Target}
+              label="Track Items"
+              expanded={true}
+              active={segments[0] === 'track'}
+            />
+            <IconButton
+              href="/library"
+              icon={BookOpen}
+              label="Library"
+              expanded={true}
+              active={segments[0] === 'library'}
+            />
+          </NavSection>
+
+          <NavSection title="Explorer" expanded={true}>
+            <IconButton
+              href="/discover"
+              icon={Compass}
+              label="Discover"
+              expanded={true}
+              active={segments[0] === 'discover'}
+            />
+            <IconButton
+              href="/trending"
+              icon={TrendingUp}
+              label="Trending"
+              expanded={true}
+              active={segments[0] === 'trending'}
+            />
+            <IconButton
+              href="/favorites"
+              icon={Heart}
+              label="Favorites"
+              expanded={true}
+              active={segments[0] === 'favorites'}
+            />
+          </NavSection>
+
+          <NavSection title="Shopping" expanded={true}>
+            <IconButton
+              href="/store"
+              icon={Store}
+              label="Browse Store"
+              expanded={true}
+              active={segments[0] === 'store'}
+            />
+            <IconButton
+              href="/chat"
+              icon={MessageSquare}
+              label="AI Assistant"
+              expanded={true}
+              active={segments[0] === 'chat'}
+            />
+          </NavSection>
+        </nav>
+      </div>
+
+      {/* Settings and User Profile */}
+      <div className="mt-auto border-t border-gray-200 dark:border-white/10 p-4 space-y-3">
+        <IconButton
+          href="#"
+          icon={Settings}
+          label="Settings"
+          expanded={true}
+          onClick={() => setIsSettingsOpen(true)}
+        />
+        <UserButton />
+      </div>
+    </div>
+  );
+
+  // Desktop sidebar content with collapsible state
+  const desktopSidebarContent = (
+    <div className={cn(
+      'flex flex-col h-full',
+      expanded ? 'w-[280px]' : 'w-16',
+      'bg-white dark:bg-[#111111]',
+      'border-r border-gray-200 dark:border-white/10',
+      'transition-all duration-300'
+    )}>
+      {/* Logo Section - Desktop */}
+      <div className={cn(
+        'flex items-center',
+        expanded ? 'justify-center' : 'justify-center',
+        'h-16 px-4 border-b border-gray-200 dark:border-white/10',
+        'relative' // Added for absolute positioning of the toggle button
+      )}>
+        {expanded && (
+          <span className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent tracking-tight">
                         Volera
-                      </motion.span>
-                    </AnimatePresence>
+          </span>
                   )}
-                </Link>
-                {isExpanded && (
                   <button
                     onClick={toggleExpanded}
-                    className={cn(
-                      'p-1.5 rounded-lg',
-                      'hover:bg-light-100 dark:hover:bg-dark-100',
-                      'transition-colors duration-200'
-                    )}
-                  >
-                    <ChevronLeft className="w-4 h-4 text-black/70 dark:text-white/70" />
+          className="absolute right-4 p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 lg:block hidden"
+        >
+          {expanded ? (
+            <ChevronLeft className="w-5 h-5 text-gray-400 dark:text-white/40" />
+          ) : (
+            <ChevronRight className="w-5 h-5 text-gray-400 dark:text-white/40" />
+          )}
                   </button>
-                )}
               </div>
+
+      {/* Navigation */}
+      <div className="flex-1 overflow-hidden py-6 px-3">
+        <nav className="space-y-6">
+          <div className="px-2">
+            <NewChatButton expanded={expanded} />
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* Navigation Section */}
-              <div className="flex-1 flex flex-col justify-center">
-                <nav className={cn(
-                  'space-y-1',
-                  isExpanded ? 'px-3' : 'px-2'
-                )}>
+          <NavSection title="Overview" expanded={expanded}>
+            <IconButton
+              href="/"
+              icon={Home}
+              label="Dashboard"
+              expanded={expanded}
+              active={segments.length === 0}
+            />
                   <IconButton
-                    href="/comingsoon"
+                    href="/track"
                     icon={Target}
-                    label="Track"
-                    expanded={isExpanded}
+              label="Track Items"
+              expanded={expanded}
                     active={segments[0] === 'track'}
                   />
                   <IconButton
-                    href="/comingsoon"
-                    icon={Home}
-                    label="Home"
-                    expanded={isExpanded}
-                    active={segments.length === 0}
+              href="/library"
+              icon={BookOpen}
+              label="Library"
+              expanded={expanded}
+              active={segments[0] === 'library'}
+            />
+          </NavSection>
+
+          <NavSection title="Explorer" expanded={expanded}>
+            <IconButton
+              href="/discover"
+              icon={Compass}
+              label="Discover"
+              expanded={expanded}
+              active={segments[0] === 'discover'}
                   />
                   <IconButton
-                    href="/comingsoon"
-                    icon={Search}
-                    label="Explore"
-                    expanded={isExpanded}
-                    active={segments[0] === 'explore'}
+              href="/trending"
+              icon={TrendingUp}
+              label="Trending"
+              expanded={expanded}
+              active={segments[0] === 'trending'}
                   />
                   <IconButton
-                    href="/comingsoon"
+              href="/favorites"
+              icon={Heart}
+              label="Favorites"
+              expanded={expanded}
+              active={segments[0] === 'favorites'}
+            />
+          </NavSection>
+
+          <NavSection title="Shopping" expanded={expanded}>
+            <IconButton
+              href="/store"
                     icon={Store}
-                    label="Store"
-                    expanded={isExpanded}
+              label="Browse Store"
+              expanded={expanded}
                     active={segments[0] === 'store'}
                   />
                   <IconButton
-                    href="/library"
-                    icon={BookOpenText}
-                    label="Library"
-                    expanded={isExpanded}
-                    active={segments[0] === 'library'}
-                  />
-                  <button
-                    onClick={createNewChat}
-                    disabled={isCreatingChat}
-                    className={cn(
-                      'w-full flex items-center gap-2 px-3 py-2.5 rounded-lg',
-                      'bg-light-100 dark:bg-dark-100 hover:bg-light-200 dark:hover:bg-dark-200',
-                      'transition-all duration-200',
-                      isCreatingChat && 'opacity-50 cursor-not-allowed'
-                    )}
-                  >
-                    {isCreatingChat ? (
-                      <LoadingSpinner className="w-4 h-4" />
-                    ) : (
-                      <Plus className="w-4 h-4 text-black/70 dark:text-white/70" />
-                    )}
-                    {isExpanded && (
-                      <AnimatePresence mode="wait">
-                        <motion.span
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="text-sm font-medium text-black/90 dark:text-white/90"
-                        >
-                          New Chat
-                        </motion.span>
-                      </AnimatePresence>
-                    )}
-                  </button>
+              href="/chat"
+              icon={MessageSquare}
+              label="AI Assistant"
+              expanded={expanded}
+              active={segments[0] === 'chat'}
+            />
+          </NavSection>
                 </nav>
               </div>
 
-              {/* Bottom Section */}
-              <div className="p-3 border-t border-light-100 dark:border-dark-100">
-                {isAuthenticated ? (
-                  <div className="space-y-3">
-                    {user && !user.isPro && <TryProButton expanded={isExpanded} />}
-                    {user && (
-                      <div className="space-y-2">
-                        <UserProfile user={user} expanded={isExpanded} />
-                        {isExpanded && (
-                          <button
-                            onClick={handleLogout}
-                            className={cn(
-                              'w-full px-3 py-2 rounded-lg',
-                              'text-sm text-red-600 dark:text-red-400',
-                              'hover:bg-light-100 dark:hover:bg-dark-100',
-                              'transition-colors duration-200'
-                            )}
-                          >
-                            Sign Out
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  isExpanded && <AuthButtons expanded={isExpanded} />
-                )}
-                <div className="mt-3">
+      {/* Settings and User Profile */}
+      <div className={cn(
+        'mt-auto border-t border-gray-200 dark:border-white/10',
+        'p-4 space-y-3'
+      )}>
                   <IconButton
-                    href="/settings"
+          href="#"
                     icon={Settings}
                     label="Settings"
-                    expanded={isExpanded}
-                    active={isSettingsOpen}
+          expanded={expanded}
                     onClick={() => setIsSettingsOpen(true)}
                   />
+        <UserButton />
                 </div>
               </div>
-            </div>
-          </div>
+  );
 
-          {/* Expand Button */}
-          {!isExpanded && (
+  return (
+    <>
+      <Toaster position="top-center" />
+      {/* Mobile Menu Button */}
             <button
-              onClick={toggleExpanded}
-              className={cn(
-                'absolute -right-4 top-6',
-                'w-8 h-8 rounded-full',
-                'bg-white dark:bg-dark-secondary',
-                'border border-light-100 dark:border-dark-100',
-                'shadow-md',
-                'flex items-center justify-center',
-                'hover:bg-light-100 dark:hover:bg-dark-100',
-                'transition-colors duration-200'
-              )}
-            >
-              <ChevronRight className="w-5 h-5 text-black/70 dark:text-white/70" />
-            </button>
-          )}
-        </motion.div>
+        onClick={toggleMobileMenu}
+        className="fixed top-4 left-4 z-[60] p-2 rounded-lg bg-white dark:bg-[#1a1a1a] shadow-lg border border-gray-200 dark:border-white/10 lg:hidden"
+      >
+        {isMobileMenuOpen ? (
+          <X className="w-5 h-5 text-gray-500 dark:text-white/50" />
+        ) : (
+          <Menu className="w-5 h-5 text-gray-500 dark:text-white/50" />
+        )}
+      </button>
 
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+      {/* Mobile Sidebar */}
+      <AnimatePresence mode="wait">
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[55] lg:hidden"
+              onClick={toggleMobileMenu}
+            />
+            <motion.div
+              key="sidebar"
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+              className="fixed top-0 left-0 bottom-0 z-[60] lg:hidden"
+            >
+              {mobileSidebarContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block fixed top-0 left-0 bottom-0 z-[40]">
+        {desktopSidebarContent}
       </div>
+
+      {/* Main Content */}
+      <main className={cn(
+        'min-h-screen',
+        expanded ? 'lg:pl-[280px]' : 'lg:pl-16',
+        'transition-all duration-300'
+      )}>
+        {children}
+      </main>
+
+      {/* Settings Dialog */}
+      <SettingsDialog
+        isOpen={isSettingsOpen}
+        setIsOpen={setIsSettingsOpen}
+      />
     </>
   );
 };

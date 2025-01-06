@@ -68,7 +68,7 @@ export default function Chat({
 
   return (
     <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-4 pt-6 relative z-0 mb-32">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pt-4 sm:pt-6 relative z-0 mb-24 sm:mb-32">
         {messages.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center space-y-4">
             <VoleraLogo />
@@ -80,7 +80,7 @@ export default function Chat({
 
           return (
             <Fragment key={msg.messageId}>
-              <div className="mb-6">
+              <div className="mb-4 sm:mb-6 max-w-3xl mx-auto">
                 <MessageBox
                   key={msg.messageId}
                   message={msg}
@@ -96,23 +96,23 @@ export default function Chat({
                 />
               </div>
               {!isLast && msg.role === 'assistant' && (
-                <div className="h-px w-full bg-[#222222] mb-6" />
+                <div className="h-px w-full max-w-3xl mx-auto bg-[#222222] mb-4 sm:mb-6" />
               )}
             </Fragment>
           );
         })}
         {loading && !messageAppeared && (
-          <div className="flex flex-col space-y-4 mb-6">
-            <div className="flex items-start space-x-4">
+          <div className="flex flex-col space-y-4 mb-4 sm:mb-6 max-w-3xl mx-auto">
+            <div className="flex items-start space-x-3 sm:space-x-4">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 animate-pulse flex items-center justify-center">
                 <Bot size={16} className="text-white" />
               </div>
               <div className="flex-1">
                 <div className="flex flex-col">
-                  <h3 className="text-white font-medium text-xl mb-1">
+                  <h3 className="text-white font-medium text-lg sm:text-xl mb-1">
                     Response
                   </h3>
-                  <p className="text-sm text-white/60 mb-3">
+                  <p className="text-xs sm:text-sm text-white/60 mb-3">
                     {searchStatusMessage}
                   </p>
                 </div>
@@ -148,7 +148,7 @@ export default function Chat({
 
       <div className="fixed bottom-0 left-0 right-0 bg-transparent z-20">
         <div className="absolute inset-0 bg-white/20 dark:bg-[#111111]/20 backdrop-blur-sm"></div>
-        <div className="max-w-[800px] mx-auto px-6 py-4 relative">
+        <div className="max-w-3xl mx-auto px-3 sm:px-6 py-3 sm:py-4 relative">
           <MessageInput
             sendMessage={sendMessage}
             loading={loading}

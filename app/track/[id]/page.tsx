@@ -171,7 +171,7 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111]">
-      <div className="max-w-[1200px] w-full mx-auto px-6 py-6">
+      <div className="max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-6">
         {/* Back Button and Title */}
         <div className="flex items-center gap-4 mb-6">
           <button
@@ -191,16 +191,16 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Product Info */}
-          <div className="col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Product Card */}
-            <div className="p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
-              <div className="flex gap-6">
+            <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
+              <div className="flex flex-col sm:flex-row gap-6">
                 <img
                   src={product.image}
                   alt={product.title}
-                  className="w-40 h-40 rounded-xl object-cover"
+                  className="w-full sm:w-40 h-40 rounded-xl object-cover"
                 />
                 <div className="flex-1">
                   <h2 className="text-xl font-medium text-gray-900 dark:text-white/90 mb-2">
@@ -209,7 +209,7 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
                   <p className="text-gray-500 dark:text-white/50 mb-4">
                     {product.description}
                   </p>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div>
                       <div className="text-sm text-gray-500 dark:text-white/50">Current Price</div>
                       <div className="text-2xl font-medium text-gray-900 dark:text-white/90">
@@ -222,11 +222,11 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
                         ${product.targetPrice}
                       </div>
                     </div>
-                    <div className="ml-auto">
+                    <div className="w-full sm:w-auto sm:ml-auto mt-4 sm:mt-0">
                       <Link
                         href={product.url}
                         target="_blank"
-                        className="px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+                        className="block w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
                       >
                         Visit Store
                       </Link>
@@ -237,7 +237,7 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Price History Graph */}
-            <div className="p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
+            <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
                 Price History
               </h3>
@@ -248,81 +248,60 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
 
             {/* Specifications */}
             {product.specs && (
-              <div className="p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
+              <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
                   Specifications
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {product.specs.map((spec, index) => (
                     <div key={index} className="flex flex-col">
-                      <span className="text-sm text-gray-500 dark:text-white/50">
+                      <div className="text-sm text-gray-500 dark:text-white/50">
                         {spec.label}
-                      </span>
-                      <span className="text-gray-900 dark:text-white/90">
+                      </div>
+                      <div className="text-gray-900 dark:text-white/90">
                         {spec.value}
-                      </span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+          </div>
 
+          {/* Features and Actions */}
+          <div className="space-y-6">
             {/* Features */}
             {product.features && (
-              <div className="p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
+              <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
                   Key Features
                 </h3>
-                <ul className="list-disc list-inside space-y-2">
+                <ul className="space-y-3">
                   {product.features.map((feature, index) => (
-                    <li key={index} className="text-gray-500 dark:text-white/50">
-                      {feature}
+                    <li key={index} className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-gray-500 dark:text-white/50">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-          </div>
 
-          {/* Price Alerts */}
-          <div className="col-span-1">
-            <div className="space-y-6">
-              <div className="p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
-                  Price Status
-                </h3>
-                <div className={cn(
-                  "p-4 rounded-lg mb-4",
-                  product.currentPrice > product.targetPrice
-                    ? "bg-red-50 dark:bg-red-500/10"
-                    : "bg-emerald-50 dark:bg-emerald-500/10"
-                )}>
-                  <div className={cn(
-                    "flex items-center gap-2 text-base font-medium",
-                    product.currentPrice > product.targetPrice
-                      ? "text-red-500"
-                      : "text-emerald-500"
-                  )}>
-                    {product.currentPrice > product.targetPrice ? (
-                      <>
-                        <ArrowUp className="w-5 h-5 flex-shrink-0" />
-                        <span>
-                          ${(product.currentPrice - product.targetPrice).toFixed(2)} above target
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <ArrowDown className="w-5 h-5 flex-shrink-0" />
-                        <span>
-                          ${(product.targetPrice - product.currentPrice).toFixed(2)} below target
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
+            {/* Actions */}
+            <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
+                Actions
+              </h3>
+              <div className="space-y-4">
                 <button
+                  onClick={() => {
+                    setProduct(prev => prev ? {
+                      ...prev,
+                      notificationsEnabled: !prev.notificationsEnabled
+                    } : null);
+                  }}
                   className={cn(
-                    "w-full p-3 rounded-lg flex items-center justify-center gap-2 transition-colors",
+                    "w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors",
                     product.notificationsEnabled
                       ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
                       : "bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-white/50 hover:bg-gray-200 dark:hover:bg-white/10"
@@ -340,39 +319,6 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
                     </>
                   )}
                 </button>
-              </div>
-
-              {/* Price Statistics */}
-              <div className="p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
-                  Price Statistics
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-white/50">
-                      Highest Price (30 days)
-                    </div>
-                    <div className="text-gray-900 dark:text-white/90 font-medium">
-                      ${Math.max(...priceHistory.map(entry => entry.price)).toFixed(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-white/50">
-                      Lowest Price (30 days)
-                    </div>
-                    <div className="text-gray-900 dark:text-white/90 font-medium">
-                      ${Math.min(...priceHistory.map(entry => entry.price)).toFixed(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-white/50">
-                      Average Price (30 days)
-                    </div>
-                    <div className="text-gray-900 dark:text-white/90 font-medium">
-                      ${(priceHistory.reduce((acc, entry) => acc + entry.price, 0) / priceHistory.length).toFixed(2)}
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

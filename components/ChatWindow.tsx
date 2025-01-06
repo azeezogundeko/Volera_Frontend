@@ -60,64 +60,178 @@ const useSocket = (
   onMessageCallback?: (event: MessageEvent) => void,
 ) => {
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [reconnectAttempt, setReconnectAttempt] = useState(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const maxReconnectAttempts = 5;
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // Stabilize callback references
+  const setIsWSReadyRef = useRef(setIsWSReady);
+  const setErrorRef = useRef(setError);
+  const onMessageCallbackRef = useRef(onMessageCallback);
 
   useEffect(() => {
-    const establishWebSocketConnection = () => {
-      const websocket = new WebSocket(url);
+    setIsWSReadyRef.current = setIsWSReady;
+    setErrorRef.current = setError;
+    onMessageCallbackRef.current = onMessageCallback;
+  }, [setIsWSReady, setError, onMessageCallback]);
 
-      const connectionTimeout = setTimeout(() => {
+  const connectWebSocket = useCallback(() => {
+    console.log('[WS Lifecycle] Attempting to connect WebSocket');
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const websocket = new WebSocket(url);
+      let connectionTimeout: NodeJS.Timeout;
+
+      connectionTimeout = setTimeout(() => {
         if (websocket.readyState !== WebSocket.OPEN) {
-          console.error('[DEBUG] WebSocket connection timeout');
+          console.error('[WS Lifecycle] Connection timeout after 15s');
           toast.error('Failed to connect to the server. Please try again later.');
-          setError(true);
+          setErrorRef.current(true);
           websocket.close();
-      }}, 15000); // Increased timeout to 15 seconds
+        }
+      }, 15000);
 
       websocket.onopen = () => {
         clearTimeout(connectionTimeout);
-        setIsWSReady(true);
-        console.log('[DEBUG] WebSocket opened successfully');
+        setIsWSReadyRef.current(true);
+        setReconnectAttempt(0);
+        console.log('[WS Lifecycle] Connection opened successfully', {
+          readyState: websocket.readyState,
+          url: websocket.url
+        });
+        wsRef.current = websocket;
       };
 
       websocket.onerror = (error) => {
         clearTimeout(connectionTimeout);
-        console.error('[DEBUG] WebSocket error:', error);
+        console.error('[WS Lifecycle] WebSocket error:', error, {
+          readyState: websocket.readyState,
+          url: websocket.url
+        });
         toast.error('Connection error. Please try again later.');
-        setError(true);
+        setErrorRef.current(true);
       };
 
       websocket.onclose = (event) => {
         clearTimeout(connectionTimeout);
-        console.log('[DEBUG] WebSocket closed:', event);
-        setIsWSReady(false);
+        console.log('[WS Lifecycle] Connection closed:', {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+          readyState: websocket.readyState
+        });
+        setIsWSReadyRef.current(false);
+        setWs(null);
+        wsRef.current = null;
         
-        // Handle authentication errors
         if (event.code === 4001) {
+          console.log('[WS Lifecycle] Authentication required');
           toast.error('Authentication required. Please sign in.');
-          // Optionally redirect to login page
           window.location.href = '/login';
+          return;
+        }
+
+        if (event.code === 1000 || event.code === 1001) {
+          console.log('[WS Lifecycle] Normal closure');
+          return;
+        }
+
+        if (reconnectAttempt < maxReconnectAttempts) {
+          const timeout = Math.min(1000 * Math.pow(2, reconnectAttempt), 10000);
+          console.log(`[WS Lifecycle] Scheduling reconnect:`, {
+            attempt: reconnectAttempt + 1,
+            maxAttempts: maxReconnectAttempts,
+            timeout: timeout
+          });
+          
+          reconnectTimeoutRef.current = setTimeout(() => {
+            setReconnectAttempt(prev => prev + 1);
+            console.log('[WS Lifecycle] Attempting reconnect', {
+              attempt: reconnectAttempt + 1
+            });
+            const newWs = connectWebSocket();
+            setWs(newWs);
+          }, timeout);
         } else {
-          setError(true);
+          console.log('[WS Lifecycle] Max reconnection attempts reached');
+          setErrorRef.current(true);
+          toast.error('Connection lost. Please refresh the page to reconnect.');
         }
       };
 
-      websocket.onmessage = onMessageCallback || ((event) => {
-        console.log('[DEBUG] WebSocket message:', event.data);
-      });
+      websocket.onmessage = (event) => {
+        console.log('[WS Message] Received:', {
+          type: typeof event.data,
+          size: event.data.length,
+          readyState: websocket.readyState
+        });
+        if (onMessageCallbackRef.current) {
+          onMessageCallbackRef.current(event);
+        }
+      };
 
       setWs(websocket);
+      return websocket;
+    } catch (error) {
+      console.error('[WS Lifecycle] Error creating WebSocket:', error);
+      setErrorRef.current(true);
+      return null;
+    }
+  }, [url, reconnectAttempt]); // Reduced dependencies
 
-      return () => {
-        clearTimeout(connectionTimeout);
-        if (websocket.readyState === WebSocket.OPEN) {
-          websocket.close();
-        }
-      };
+  // Single effect to manage WebSocket lifecycle
+  useEffect(() => {
+    console.log('[Component Lifecycle] Setting up WebSocket connection');
+    const websocket = connectWebSocket();
+    const currentReconnectTimeout = reconnectTimeoutRef.current;
+
+    return () => {
+      console.log('[Component Lifecycle] Cleanup triggered', {
+        isCurrentWS: websocket === wsRef.current,
+        readyState: websocket?.readyState,
+        hasReconnectTimeout: !!currentReconnectTimeout
+      });
+      
+      if (currentReconnectTimeout) {
+        clearTimeout(currentReconnectTimeout);
+      }
+
+      // Only close if this is the current active connection
+      if (websocket === wsRef.current && websocket?.readyState === WebSocket.OPEN) {
+        console.log('[Component Lifecycle] Closing WebSocket connection');
+        websocket.close(1000, 'Component unmounting');
+      }
     };
+  }, [url]); // Only recreate connection when URL changes
 
-    const cleanup = establishWebSocketConnection();
-    return cleanup;
-  }, [url, setIsWSReady, setError, onMessageCallback]);
+  // Keep connection alive with ping
+  // useEffect(() => {
+  //   if (!ws) return;
+
+  //   console.log('[Ping] Setting up ping interval');
+  //   const pingInterval = setInterval(() => {
+  //     if (ws.readyState === WebSocket.OPEN) {
+  //       try {
+  //         ws.send(JSON.stringify({ type: 'ping' }));
+  //         console.log('[Ping] Sent');
+  //       } catch (error) {
+  //         console.error('[Ping] Error sending:', error);
+  //         clearInterval(pingInterval);
+  //       }
+  //     } else {
+  //       console.log('[Ping] Skipped - WebSocket not open:', {
+  //         readyState: ws.readyState
+  //       });
+  //     }
+  //   }, 30000);
+
+  //   return () => {
+  //     console.log('[Ping] Clearing interval');
+  //     clearInterval(pingInterval);
+  //   };
+  // }, [ws]);
 
   return ws;
 };
@@ -326,16 +440,6 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
   }, [chatId, localMessages.length, newChatCreated]);
 
   useEffect(() => {
-    return () => {
-      if (ws?.readyState === 1) {
-        ws.close();
-        console.log('[DEBUG] closed');
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
     if (initialFocusMode !== undefined) {
       setFocusMode(initialFocusMode);
     }
@@ -370,6 +474,12 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
         : JSON.parse(new TextDecoder().decode(event.data));
       
       console.log('[WS DEBUG] Parsed message:', data);
+      
+      // Ignore ping messages
+      if (data.type === 'ping') {
+        console.log('[WS DEBUG] Received ping message');
+        return;
+      }
       
       switch (data.type) {
         case 'message':

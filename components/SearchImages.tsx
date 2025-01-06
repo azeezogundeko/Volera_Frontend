@@ -92,8 +92,8 @@ const ImageCard = ({
         <Image
           src={image.img_url}
           alt={image.title}
-          width={0}
-          height={0}
+          width={400}
+          height={300}
           className={clsx(
             "absolute inset-0 w-full h-full object-cover",
             "transition-all duration-700",

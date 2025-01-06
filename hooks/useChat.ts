@@ -1,38 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Message } from '@/lib/types';
 import crypto from 'crypto';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 
 export function useChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [chatId, setChatId] = useState(crypto.randomBytes(16).toString('hex'));
   const [isCreatingChat, setIsCreatingChat] = useState(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/new`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create new chat');
-      }
-
-      const data = await response.json();
-      if (typeof window !== 'undefined') {
-        router.push(`/c/${data.id}`);
-      }
-    };
-
-    fetchData();
-  }, []); // Dependency array as needed
+  const router = useRouter();
 
   const createNewChat = async (): Promise<any> => {
     if (typeof window === 'undefined') {
@@ -55,20 +30,19 @@ export function useChat() {
       }
 
       const data = await response.json();
-      console.log('Chat created successfully:', data); 
+      console.log('Chat created successfully:', data);
       return data;
 
     } catch (error) {
-      console.error('Error creating new chat:', error); // Log any errors
-    } 
-    
+      console.error('Error creating new chat:', error);
+      throw error;
+    } finally {
+      setIsCreatingChat(false);
+    }
   };
 
   return { 
-    createNewChat, 
-    messages, 
-    isLoading, 
-    chatId, 
-    isCreatingChat 
+    createNewChat,
+    isCreatingChat
   };
 }

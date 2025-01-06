@@ -9,6 +9,7 @@ import CopilotToggle from './MessageInputActions/Copilot';
 import { File } from './ChatWindow';
 import AttachSmall from './MessageInputActions/AttachSmall';
 import AuthDialog from './AuthDialog';
+import { Loader2, Send } from 'lucide-react';
 
 interface MessageInputProps {
   sendMessage: (message: string) => void;
@@ -80,83 +81,51 @@ const MessageInput = ({
   };
 
   return (
-    <>
-      <AuthDialog isOpen={isAuthDialogOpen} setIsOpen={setIsAuthDialogOpen} />
-      <form
-        onSubmit={(e) => {
-          if (loading) return;
-          e.preventDefault();
-          handleSubmit();
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey && !loading) {
-            e.preventDefault();
-            handleSubmit();
-          }
-        }}
-        className={cn(
-          'bg-white dark:bg-[#111111] p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
-          mode === 'multi' 
-            ? 'flex-col rounded-2xl' 
-            : 'flex-row rounded-full hover:border-[#4ade80]/50 transition-colors duration-200',
-        )}
-      >
-        {mode === 'single' && (
-          <AttachSmall
-            fileIds={fileIds}
-            setFileIds={setFileIds}
-            files={files}
-            setFiles={setFiles}
-          />
-        )}
-        <TextareaAutosize
+    <div className="relative">
+      <div className="relative">
+        <textarea
           ref={inputRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onHeightChange={(height, props) => {
-            setTextareaRows(Math.ceil(height / props.rowHeight));
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !loading) {
+              e.preventDefault();
+              handleSubmit();
+            }
           }}
-          className="transition bg-transparent placeholder:text-black/50 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full px-2 max-h-24 lg:max-h-36 xl:max-h-48 flex-grow flex-shrink"
-          placeholder="Ask your follow up questions?"
+          placeholder="Type your message..."
+          rows={1}
+          className={cn(
+            "w-full resize-none bg-white dark:bg-[#1a1a1a]",
+            "rounded-xl border border-light-200 dark:border-dark-200",
+            "py-3 pl-3 pr-20 sm:pr-24",
+            "text-sm sm:text-base placeholder:text-black/30 dark:placeholder:text-white/30",
+            "focus:outline-none focus:ring-2 focus:ring-emerald-500/50",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "transition-all duration-200"
+          )}
+          disabled={loading}
         />
-        {mode === 'single' && (
-          <div className="flex flex-row items-center space-x-4">
-            <CopilotToggle
-              copilotEnabled={copilotEnabled}
-              setCopilotEnabled={setCopilotEnabled}
-            />
-            <button
-              disabled={message.trim().length === 0 || loading}
-              className="bg-[#24A0ED] text-white disabled:text-black/50 dark:disabled:text-white/50 hover:bg-opacity-85 transition duration-100 disabled:bg-[#e0e0dc79] dark:disabled:bg-[#ececec21] rounded-full p-2"
-            >
-              <ArrowUp className="bg-background" size={17} />
-            </button>
-          </div>
-        )}
-        {mode === 'multi' && (
-          <div className="flex flex-row items-center justify-between w-full pt-2">
-            <AttachSmall
-              fileIds={fileIds}
-              setFileIds={setFileIds}
-              files={files}
-              setFiles={setFiles}
-            />
-            <div className="flex flex-row items-center space-x-4">
-              <CopilotToggle
-                copilotEnabled={copilotEnabled}
-                setCopilotEnabled={setCopilotEnabled}
-              />
-              <button
-                disabled={message.trim().length === 0 || loading}
-                className="bg-[#24A0ED] text-white text-black/50 dark:disabled:text-white/50 hover:bg-opacity-85 transition duration-100 disabled:bg-[#e0e0dc79] dark:disabled:bg-[#ececec21] rounded-full p-2"
-              >
-                <ArrowUp className="bg-background" size={17} />
-              </button>
-            </div>
-          </div>
-        )}
-      </form>
-    </>
+        <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1 sm:space-x-2">
+          <button
+            onClick={handleSubmit}
+            disabled={!message.trim() || loading}
+            className={cn(
+              "p-1.5 sm:p-2 rounded-lg",
+              "bg-emerald-500 hover:bg-emerald-600",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "transition-all duration-200"
+            )}
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-spin" />
+            ) : (
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
