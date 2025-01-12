@@ -25,10 +25,11 @@ export type Message = {
   role: 'user' | 'assistant';
   suggestions?: string[];
   sources?: Document[];
-  type?: 'image';
+  type?: 'image' | 'product';
   alt?: string;
   images?: Image[] | null;
   imagesLoading?: boolean;
+  products?: Product[];
 };
 
 export interface File {
@@ -54,6 +55,22 @@ type Video = {
   url: string;
   title: string;
 }
+
+type Product = {
+  name: string;
+  current_price: number;
+  original_price: number;
+  brand: string;
+  discount: number;
+  rating: number;
+  reviews_count: string;
+  product_id: string;
+  image: string;
+  relevance_score?: number;
+  url: string;
+  currency: string;
+  source: string;
+};
 
 const useSocket = (
   url: string,
@@ -570,6 +587,37 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
               }
               return updatedMessages;
             });
+          }
+          break;
+
+        case 'product':
+          if (data.products) {
+            const productMessage: Message = {
+              messageId: crypto.randomBytes(16).toString('hex'),
+              chatId: chatId || '',
+              content: data.content || 'Here are some product suggestions:',
+              role: 'assistant',
+              type: 'product',
+              products: data.products.map((item: any) => ({
+                name: item.name,
+                current_price: item.current_price,
+                original_price: item.original_price,
+                brand: item.brand,
+                discount: item.discount,
+                rating: item.rating,
+                reviews_count: item.reviews_count,
+                product_id: item.product_id,
+                image: item.image,
+                relevance_score: item.relevance_score,
+                url: item.url,
+                currency: item.currency,
+                source: item.source
+              })),
+              createdAt: new Date()
+            };
+            setLocalMessages(prevMessages => [...prevMessages, productMessage]);
+            setMessageAppeared(true);
+            setLoadingState(false);
           }
           break;
 

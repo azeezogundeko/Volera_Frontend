@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import AddItemModal from '@/components/AddItemModal';
+import { getAllTrackedItems } from '@/lib/api';
 
 interface TrackedItem {
   id: string;
@@ -113,45 +114,13 @@ const Page = () => {
   // Simulate fetching tracked items
   useEffect(() => {
     const fetchTrackedItems = async () => {
-      setLoading(true);
       try {
-        // This would be replaced with an actual API call
-        const dummyItems: TrackedItem[] = [
-          {
-            id: '1',
-            title: 'Apple MacBook Pro 14"',
-            currentPrice: 1599,
-            targetPrice: 1499,
-            image: 'https://source.unsplash.com/random/800x600?macbook',
-            url: '#',
-            dateAdded: new Date().toISOString(),
-            notificationsEnabled: true,
-          },
-          {
-            id: '2',
-            title: 'Sony WH-1000XM4 Wireless Headphones',
-            currentPrice: 299,
-            targetPrice: 249,
-            image: 'https://source.unsplash.com/random/800x600?headphones',
-            url: '#',
-            dateAdded: new Date().toISOString(),
-            notificationsEnabled: true,
-          },
-          {
-            id: '3',
-            title: 'Samsung 49" Odyssey G9 Gaming Monitor',
-            currentPrice: 1299,
-            targetPrice: 999,
-            image: 'https://source.unsplash.com/random/800x600?monitor',
-            url: '#',
-            dateAdded: new Date().toISOString(),
-            notificationsEnabled: false,
-          },
-        ];
-        setTrackedItems(dummyItems);
+        setLoading(true);
+        const items = await getAllTrackedItems();
+        setTrackedItems(items);
       } catch (error) {
         console.error('Error fetching tracked items:', error);
-        toast.error('Failed to load tracked items');
+        toast.error('Failed to load tracked items. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -224,13 +193,18 @@ const Page = () => {
                     {trackedItems.length} items
                   </span>
                 </div>
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
+                <Link 
+                  href="/marketplace"
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium",
+                    "bg-gray-900 text-white hover:bg-gray-800",
+                    "dark:bg-white dark:text-gray-900 dark:hover:bg-white/90",
+                    "transition-colors duration-200"
+                  )}
                 >
                   <Plus className="w-4 h-4" />
                   <span className="inline sm:inline">Add</span>
-                </button>
+                </Link>
               </div>
             </div>
           </div>

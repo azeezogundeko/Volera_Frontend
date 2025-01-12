@@ -449,7 +449,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               active={segments[0] === 'trending'}
             />
             <IconButton
-              href="/store"
+              href="/marketplace"
               icon={Store}
               label="Browse Store"
               expanded={expanded}

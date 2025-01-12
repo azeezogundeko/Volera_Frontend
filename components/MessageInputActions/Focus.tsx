@@ -20,39 +20,44 @@ import { Fragment } from 'react';
 const focusModes = [
   {
     key: 'all',
-    title: 'All',
+    title: 'Q/A',
     description: 'General product search and information',
     icon: <Globe size={20} className="text-[#4CAF50]" />,
   },
   {
+    key: 'producthunt',
+    title: 'Product Hunt (Coming Soon)',
+    description: 'User experiences and product feedback analysis',
+    icon: <MessageSquareText size={20} className="text-[#E91E63]/50" />,
+    disabled: true,
+  },
+  {
     key: 'copilot',
-    title: 'Copilot',
+    title: 'Copilot (Coming Soon)',
     description: 'AI-powered shopping assistant for smart purchases',
-    icon: <ScanEye size={20} className="text-[#2196F3]" />,
+    icon: <ScanEye size={20} className="text-[#2196F3]/50" />,
+    disabled: true,
   },
   {
     key: 'comparison',
-    title: 'Comparison',
+    title: 'Comparison (Coming Soon)',
     description: 'Side-by-side product feature and price comparison',
-    icon: <Scale size={20} className="text-[#FF9800]" />,
+    icon: <Scale size={20} className="text-[#FF9800]/50" />,
+    disabled: true,
   },
   {
     key: 'metrics',
-    title: 'Metrics',
+    title: 'Metrics (Coming Soon)',
     description: 'Historical price data and market trends analysis',
-    icon: <BarChart3 size={20} className="text-[#9C27B0]" />,
-  },
-  {
-    key: 'reviews',
-    title: 'Reviews',
-    description: 'User experiences and product feedback analysis',
-    icon: <MessageSquareText size={20} className="text-[#E91E63]" />,
+    icon: <BarChart3 size={20} className="text-[#9C27B0]/50" />,
+    disabled: true,
   },
   {
     key: 'insights',
-    title: 'Insights',
+    title: 'Insights (Coming Soon)',
     description: 'Detailed product specifications and expert analysis',
-    icon: <Star size={20} className="text-[#FFC107]" />,
+    icon: <Star size={20} className="text-[#FFC107]/50" />,
+    disabled: true,
   },
 ];
 
@@ -93,13 +98,15 @@ const Focus = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 w-64 md:w-[500px] p-4 max-h-[400px] overflow-y-auto">
               {focusModes.map((mode, i) => (
                 <PopoverButton
-                  onClick={() => setFocusMode(mode.key)}
+                  onClick={() => !mode.disabled && setFocusMode(mode.key)}
                   key={i}
+                  disabled={mode.disabled}
                   className={cn(
-                    'p-2 rounded-lg flex flex-col items-start justify-start text-start space-y-2 duration-200 cursor-pointer transition',
+                    'p-2 rounded-lg flex flex-col items-start justify-start text-start space-y-2 duration-200 transition',
                     focusMode === mode.key
                       ? 'bg-light-secondary dark:bg-dark-secondary'
                       : 'hover:bg-light-secondary dark:hover:bg-dark-secondary',
+                    mode.disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
                   )}
                 >
                   <div className="flex flex-row items-center space-x-2">

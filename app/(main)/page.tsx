@@ -3,92 +3,85 @@
 import { MessageSquare, TrendingUp, Bell, Package, ArrowUp, ArrowDown } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-// Dummy data for price history
-const priceHistoryData = [
-  { date: '2024-01-01', price: 1599 },
-  { date: '2024-01-08', price: 1550 },
-  { date: '2024-01-15', price: 1575 },
-  { date: '2024-01-22', price: 1525 },
-  { date: '2024-01-29', price: 1499 },
-  { date: '2024-02-05', price: 1489 },
-];
-
-// Dummy data for recent chats
-const recentChats = [
-  {
-    id: '1',
-    title: 'MacBook Pro Price Analysis',
-    lastMessage: 'The price has dropped by $100 since last week',
-    timestamp: '2 hours ago',
-  },
-  {
-    id: '2',
-    title: 'Gaming Monitor Research',
-    lastMessage: 'Here are some alternatives to consider...',
-    timestamp: '1 day ago',
-  },
-  {
-    id: '3',
-    title: 'Headphones Comparison',
-    lastMessage: 'Based on your preferences, I recommend...',
-    timestamp: '3 days ago',
-  },
-];
-
-// Dummy data for tracked items
-const trackedItems = [
-  {
-    id: '1',
-    title: 'Apple MacBook Pro 14"',
-    currentPrice: 1599,
-    targetPrice: 1499,
-    image: 'https://source.unsplash.com/random/800x600?macbook',
-    priceChange: -50,
-  },
-  {
-    id: '2',
-    title: 'Sony WH-1000XM4',
-    currentPrice: 299,
-    targetPrice: 249,
-    image: 'https://source.unsplash.com/random/800x600?headphones',
-    priceChange: 10,
-  },
-];
-
-// Dummy data for trending products
-const trendingProducts = [
-  {
-    id: '1',
-    title: 'Samsung S24 Ultra',
-    price: 1199,
-    image: 'https://source.unsplash.com/random/800x600?smartphone',
-    trend: 'up',
-    trendValue: '15%',
-  },
-  {
-    id: '2',
-    title: 'PlayStation 5',
-    price: 499,
-    image: 'https://source.unsplash.com/random/800x600?playstation',
-    trend: 'down',
-    trendValue: '8%',
-  },
-  {
-    id: '3',
-    title: 'iPad Pro 12.9"',
-    price: 1099,
-    image: 'https://source.unsplash.com/random/800x600?ipad',
-    trend: 'up',
-    trendValue: '5%',
-  },
-];
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import {
+  DashboardStats,
+  PriceHistory,
+  Chat,
+  TrackedItem,
+  TrendingProduct,
+  getDashboardStats,
+  getPriceHistory,
+  getRecentChats,
+  getTrackedItems,
+  getTrendingProducts,
+} from '@/lib/api';
 
 export default function Home() {
+  const [stats, setStats] = useState<DashboardStats>({
+    activeChats: 0,
+    trackedItems: 0,
+    priceAlerts: 0,
+  });
+  const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
+  const [recentChats, setRecentChats] = useState<Chat[]>([]);
+  const [trackedItems, setTrackedItems] = useState<TrackedItem[]>([]);
+  const [trendingProducts, setTrendingProducts] = useState<TrendingProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const [
+          statsData,
+          historyData,
+          chatsData,
+          itemsData,
+          productsData,
+        ] = await Promise.all([
+          getDashboardStats(),
+          getPriceHistory(),
+          getRecentChats(),
+          getTrackedItems(),
+          getTrendingProducts(),
+        ]);
+
+        setStats(statsData);
+        setPriceHistory(historyData);
+        setRecentChats(chatsData);
+        setTrackedItems(itemsData);
+        setTrendingProducts(productsData);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const fetchRecentChats = async () => {
+      try {
+        const response = await fetch('/api/recent-chats'); 
+        const data = await response.json();
+        setRecentChats(data); 
+      } catch (error) {
+        console.error('Error fetching recent chats:', error);
+      }
+    };
+
+    fetchRecentChats();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
-      {/* Header */}
+        {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-medium bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-white/70 text-transparent bg-clip-text">
             Dashboard
@@ -107,7 +100,9 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Active Chats</p>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">3</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
+                  {stats.activeChats}
+                </p>
               </div>
             </div>
           </div>
@@ -118,7 +113,9 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Tracked Items</p>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">8</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
+                  {stats.trackedItems}
+                </p>
               </div>
             </div>
           </div>
@@ -129,7 +126,9 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Price Alerts</p>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">5</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
+                  {stats.priceAlerts}
+                </p>
               </div>
             </div>
           </div>
@@ -145,7 +144,7 @@ export default function Home() {
                 Price History
               </h2>
               <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
-                {priceHistoryData.map((data, index) => (
+                {priceHistory.map((data, index) => (
                   <div key={data.date} className="flex items-center justify-between">
                     <span className="text-gray-500 dark:text-white/50">
                       {new Date(data.date).toLocaleDateString()}
@@ -156,16 +155,16 @@ export default function Home() {
                       </span>
                       {index > 0 && (
                         <span className={`flex items-center gap-0.5 ${
-                          data.price < priceHistoryData[index - 1].price 
+                          data.price < priceHistory[index - 1].price 
                             ? 'text-emerald-500' 
                             : 'text-red-500'
                         }`}>
-                          {data.price < priceHistoryData[index - 1].price ? (
+                          {data.price < priceHistory[index - 1].price ? (
                             <ArrowDown className="w-3 h-3" />
                           ) : (
                             <ArrowUp className="w-3 h-3" />
                           )}
-                          ${Math.abs(data.price - priceHistoryData[index - 1].price)}
+                          ${Math.abs(data.price - priceHistory[index - 1].price)}
                         </span>
                       )}
                     </div>
@@ -179,8 +178,8 @@ export default function Home() {
               <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">
                 Recent Chats
               </h2>
-              <div className="space-y-3 sm:space-y-4">
-                {recentChats.map((chat) => (
+              {Array.isArray(recentChats) && recentChats.length > 0 ? (
+                recentChats.map((chat) => (
                   <Link
                     key={chat.id}
                     href={`/chat/${chat.id}`}
@@ -198,8 +197,10 @@ export default function Home() {
                       {chat.lastMessage}
                     </p>
                   </Link>
-                ))}
-              </div>
+                ))
+              ) : (
+                <div>No recent chats available.</div>
+              )}
             </div>
           </div>
 
@@ -236,16 +237,9 @@ export default function Home() {
                         <span className="text-xs text-gray-500 dark:text-white/50">
                           Target: ${item.targetPrice}
                         </span>
-                        <span className={`text-xs flex items-center gap-0.5 ${
-                          item.priceChange < 0 ? 'text-emerald-500' : 'text-red-500'
-                        }`}>
-                          {item.priceChange < 0 ? (
-                            <ArrowDown className="w-3 h-3" />
-                          ) : (
-                            <ArrowUp className="w-3 h-3" />
-                          )}
-                          ${Math.abs(item.priceChange)}
-                        </span>
+                        <p>
+                          Price Change: {item.priceChange !== undefined ? item.priceChange : 'N/A'}
+                        </p>
                       </div>
                     </div>
                   </Link>

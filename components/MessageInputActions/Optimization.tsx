@@ -17,20 +17,17 @@ const OptimizationModes = [
   },
   {
     key: 'balanced',
-    title: 'Balanced',
+    title: 'Balanced (Coming Soon)',
     description: 'Find the right balance between speed and accuracy',
-    icon: <Sliders size={20} className="text-[#4CAF50]" />,
+    icon: <Sliders size={20} className="text-[#4CAF50]/50" />,
+    disabled: true,
   },
   {
     key: 'quality',
-    title: 'Quality (Soon)',
+    title: 'Quality (Coming Soon)',
     description: 'Get the most thorough and accurate answer',
-    icon: (
-      <Star
-        size={16}
-        className="text-[#2196F3] dark:text-[#BBDEFB] fill-[#BBDEFB] dark:fill-[#2196F3]"
-      />
-    ),
+    icon: <Star size={16} className="text-[#2196F3]/50" />,
+    disabled: true,
   },
 ];
 
@@ -41,24 +38,20 @@ const Optimization = ({
   optimizationMode: string;
   setOptimizationMode: (mode: string) => void;
 }) => {
+  const currentMode = OptimizationModes.find((mode) => mode.key === optimizationMode);
+
   return (
-    <Popover className="relative w-full max-w-[15rem] md:max-w-md lg:max-w-lg">
+    <Popover className="relative">
       <PopoverButton
         type="button"
-        className="p-2 text-black/50 dark:text-white/50 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary active:scale-95 transition duration-200 hover:text-black dark:hover:text-white"
+        className="flex items-center text-black/50 dark:text-white/50 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary transition duration-200 hover:text-black dark:hover:text-white px-2 py-1 focus:outline-none"
       >
         <div className="flex flex-row items-center space-x-1">
-          {
-            OptimizationModes.find((mode) => mode.key === optimizationMode)
-              ?.icon
-          }
-          <p className="text-xs font-medium">
-            {
-              OptimizationModes.find((mode) => mode.key === optimizationMode)
-                ?.title
-            }
+          {currentMode ? currentMode.icon : <Zap size={20} />}
+          <p className="text-xs font-medium hidden lg:block">
+            {currentMode ? currentMode.title : 'Speed'}
           </p>
-          <ChevronDown size={20} />
+          <ChevronDown size={20} className="-translate-x-1" />
         </div>
       </PopoverButton>
       <Transition
@@ -70,30 +63,32 @@ const Optimization = ({
         leaveFrom="opacity-100 translate-y-0"
         leaveTo="opacity-0 translate-y-1"
       >
-        <PopoverPanel className="absolute z-10 w-64 md:w-[250px] right-0">
-          <div className="flex flex-col gap-2 bg-light-primary dark:bg-dark-primary border rounded-lg border-light-200 dark:border-dark-200 w-full p-4 max-h-[200px] md:max-h-none overflow-y-auto">
-            {OptimizationModes.map((mode, i) => (
-              <PopoverButton
-                onClick={() => setOptimizationMode(mode.key)}
-                key={i}
-                disabled={mode.key === 'quality'}
-                className={cn(
-                  'p-2 rounded-lg flex flex-col items-start justify-start text-start space-y-1 duration-200 cursor-pointer transition',
-                  optimizationMode === mode.key
-                    ? 'bg-light-secondary dark:bg-dark-secondary'
-                    : 'hover:bg-light-secondary dark:hover:bg-dark-secondary',
-                  mode.key === 'quality' && 'opacity-50 cursor-not-allowed',
-                )}
-              >
-                <div className="flex flex-row items-center space-x-1 text-black dark:text-white">
-                  {mode.icon}
-                  <p className="text-sm font-medium">{mode.title}</p>
-                </div>
-                <p className="text-black/70 dark:text-white/70 text-xs">
-                  {mode.description}
-                </p>
-              </PopoverButton>
-            ))}
+        <PopoverPanel className="fixed z-[100] transform -translate-x-1/2 left-1/2 bottom-32 lg:bottom-24">
+          <div className="bg-light-primary dark:bg-dark-primary border rounded-lg border-light-200 dark:border-dark-200 shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 w-64 md:w-[500px] p-4 max-h-[400px] overflow-y-auto">
+              {OptimizationModes.map((mode, i) => (
+                <PopoverButton
+                  onClick={() => !mode.disabled && setOptimizationMode(mode.key)}
+                  key={i}
+                  disabled={mode.disabled}
+                  className={cn(
+                    'p-2 rounded-lg flex flex-col items-start justify-start text-start space-y-2 duration-200 transition',
+                    optimizationMode === mode.key
+                      ? 'bg-light-secondary dark:bg-dark-secondary'
+                      : 'hover:bg-light-secondary dark:hover:bg-dark-secondary',
+                    mode.disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
+                  )}
+                >
+                  <div className="flex flex-row items-center space-x-2">
+                    {mode.icon}
+                    <p className="text-sm font-medium">{mode.title}</p>
+                  </div>
+                  <p className="text-black/70 dark:text-white/70 text-xs">
+                    {mode.description}
+                  </p>
+                </PopoverButton>
+              ))}
+            </div>
           </div>
         </PopoverPanel>
       </Transition>

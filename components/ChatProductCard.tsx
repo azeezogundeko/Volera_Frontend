@@ -1,0 +1,140 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Star, Heart } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
+
+interface Product {
+  name: string;
+  current_price: number;
+  original_price: number;
+  brand: string;
+  discount: number;
+  rating: number;
+  reviews_count: string;
+  product_id: string;
+  image: string;
+  relevance_score?: number;
+  url: string;
+  currency: string;
+  source: string;
+}
+
+interface ChatProductCardProps {
+  product: Product;
+}
+
+const ChatProductCard = ({ product }: ChatProductCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('savedProducts');
+    if (saved) {
+      const savedProducts = JSON.parse(saved);
+      setIsSaved(savedProducts.some((p: any) => p.product_id === product.product_id));
+    }
+    setIsLoaded(true);
+  }, [product.product_id]);
+
+  const toggleSave = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation(); // Prevent event bubbling
+
+    const saved = localStorage.getItem('savedProducts');
+    let savedProducts = saved ? JSON.parse(saved) : [];
+
+    if (isSaved) {
+      savedProducts = savedProducts.filter((p: any) => p.product_id !== product.product_id);
+    } else {
+      savedProducts.push({
+        ...product,
+        dateAdded: new Date().toISOString()
+      });
+    }
+
+    localStorage.setItem('savedProducts', JSON.stringify(savedProducts));
+    setIsSaved(!isSaved);
+  };
+
+  return (
+    <Link href={`/marketplace/${product.product_id}`}>
+      <div
+        className={`relative group bg-white dark:bg-[#141414] rounded-lg border border-gray-200 dark:border-[#222] overflow-hidden transition-all duration-300 ${
+          isHovered ? 'shadow-lg' : 'hover:shadow-md'
+        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="flex">
+          {/* Image */}
+          <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-[#1a1a1a]">
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+
+          {/* Content */}
+          <div className="p-3 flex-grow">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2">
+              {product.name}
+            </h3>
+            
+            <div className="flex items-center gap-1 mt-1">
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-3 h-3 ${
+                      i < Math.round(product.rating)
+                        ? 'text-yellow-400 fill-yellow-400'
+                        : 'text-gray-300 dark:text-gray-600'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400">({product.reviews_count})</span>
+            </div>
+
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                {product.currency} {product.current_price.toFixed(2)}
+              </span>
+              {product.discount > 0 && (
+                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                  {product.currency} {product.original_price.toFixed(2)}
+                </span>
+              )}
+            </div>
+
+            <div className="mt-1 flex items-center justify-between">
+              <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                {product.source}
+              </span>
+              {product.discount > 0 && (
+                <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                  {product.discount}% OFF
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={toggleSave}
+          className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-emerald-50"
+          title={isSaved ? "Remove from wishlist" : "Save to wishlist"}
+        >
+          <Heart className={`w-4 h-4 ${isSaved ? 'fill-emerald-600 text-emerald-600' : 'text-emerald-600 hover:fill-emerald-100'}`} />
+        </button>
+      </div>
+    </Link>
+  );
+};
+
+export default ChatProductCard;

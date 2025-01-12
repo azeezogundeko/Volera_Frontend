@@ -1,5 +1,10 @@
 // WebSocket configuration
 const WS_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'ws://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+export const getBaseURL = () => {
+  return API_BASE_URL;
+};
 
 export const getWebSocketURL = () => {
   // Ensure we're using 'ws' protocol
