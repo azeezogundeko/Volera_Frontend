@@ -1,7 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import VerificationForm from '@/components/VerificationForm';
+import {  VerificationForm } from '@/components/VerificationForm';
 
 export const metadata: Metadata = {
   title: 'Verify Your Account - Volera',

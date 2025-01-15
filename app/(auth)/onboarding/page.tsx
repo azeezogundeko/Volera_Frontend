@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import WelcomeStep from '@/components/onboarding/WelcomeStep';
@@ -20,19 +20,31 @@ export default function OnboardingPage() {
     preferences: {},
   });
 
+
   const handleNext = async () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(prev => prev + 1);
     } else {
       // Submit all data
+      const payload = {
+        ...formData.preferences, ...formData.profile
+      }
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/onboarding`, {
+        const formDataToSend = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (typeof value === 'string' || value instanceof Blob) {
+            formDataToSend.append(key, value);
+          } else {
+            console.error(`Invalid type for value: ${value}`);
+          }
+        });
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/onboarding`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
           },
-          body: JSON.stringify(formData),
+          body: formDataToSend,
         });
 
         if (response.ok) {
@@ -50,19 +62,19 @@ export default function OnboardingPage() {
     router.push('/');
   };
 
-  const handleProfileSave = (data: any) => {
+  const handleProfileSave = useCallback((data: any) => {
     setFormData(prev => ({
       ...prev,
       profile: data,
     }));
-  };
+  }, []);
 
-  const handlePreferencesSave = (data: any) => {
+  const handlePreferencesSave = useCallback((data: any) => {
     setFormData(prev => ({
       ...prev,
       preferences: data,
     }));
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-light-100 to-light-200 dark:from-dark-100 dark:to-dark-200 flex items-center justify-center p-2 sm:p-4">

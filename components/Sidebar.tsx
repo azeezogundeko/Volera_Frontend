@@ -341,18 +341,18 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               active={segments[0] === 'discover'}
             />
             <IconButton
-              href="/trending"
-              icon={TrendingUp}
-              label="Trending"
+              href="/wishlist"
+              icon={Heart}
+              label="Wishlist"
               expanded={true}
-              active={segments[0] === 'trending'}
+              active={segments[0] === 'wishlist'}
             />
             <IconButton
-              href="/store"
+              href="/marketplace"
               icon={Store}
-              label="Browse Store"
+              label="Marketplace"
               expanded={true}
-              active={segments[0] === 'store'}
+              active={segments[0] === 'marketplace'}
             />
           </div>
         </nav>
@@ -442,18 +442,18 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               active={segments[0] === 'discover'}
             />
             <IconButton
-              href="/trending"
-              icon={TrendingUp}
-              label="Trending"
+              href="/wishlist"
+              icon={Heart}
+              label="Wishlist"
               expanded={expanded}
-              active={segments[0] === 'trending'}
+              active={segments[0] === 'wishlist'}
             />
             <IconButton
               href="/marketplace"
               icon={Store}
-              label="Browse Store"
+              label="Marketplace"
               expanded={expanded}
-              active={segments[0] === 'store'}
+              active={segments[0] === 'marketplace'}
             />
           </div>
 

@@ -1,16 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 
 interface PreferencesData {
   interests: string[];
-  priceRange: string;
-  shoppingFrequency: string;
-  preferredCategories: string[];
-  notificationPreferences: string[];
+  price_range: string;
+  shopping_frequency: string;
+  preferred_categories: string[];
+  notification_preferences: string[];
 }
 
 interface PreferencesStepProps {
@@ -29,30 +29,36 @@ const NOTIFICATION_TYPES = [
   'Similar Items', 'Back in Stock', 'Daily Deals'
 ];
 
+
 export default function PreferencesStep({ onSave, initialData = {} }: PreferencesStepProps) {
   const [formData, setFormData] = useState<PreferencesData>({
     interests: initialData.interests || [],
-    priceRange: initialData.priceRange || '',
-    shoppingFrequency: initialData.shoppingFrequency || '',
-    preferredCategories: initialData.preferredCategories || [],
-    notificationPreferences: initialData.notificationPreferences || [],
+    price_range: initialData.price_range || '',
+    shopping_frequency: initialData.shopping_frequency || '',
+    preferred_categories: initialData.preferred_categories || [],
+    notification_preferences: initialData.notification_preferences || [],
   });
 
   const toggleCategory = (category: string) => {
     setFormData(prev => ({
       ...prev,
-      preferredCategories: prev.preferredCategories.includes(category)
-        ? prev.preferredCategories.filter(c => c !== category)
-        : [...prev.preferredCategories, category],
+      preferred_categories: prev.preferred_categories.includes(category)
+        ? prev.preferred_categories.filter(c => c !== category)
+        : [...prev.preferred_categories, category],
     }));
   };
+
+  // In PreferencesStep component
+    useEffect(() => {
+      onSave(formData);
+    }, [formData, onSave]);
 
   const toggleNotification = (type: string) => {
     setFormData(prev => ({
       ...prev,
-      notificationPreferences: prev.notificationPreferences.includes(type)
-        ? prev.notificationPreferences.filter(t => t !== type)
-        : [...prev.notificationPreferences, type],
+      notification_preferences: prev.notification_preferences.includes(type)
+        ? prev.notification_preferences.filter(t => t !== type)
+        : [...prev.notification_preferences, type],
     }));
   };
 
@@ -75,9 +81,9 @@ export default function PreferencesStep({ onSave, initialData = {} }: Preference
               Shopping Frequency
             </label>
             <select
-              name="shoppingFrequency"
-              value={formData.shoppingFrequency}
-              onChange={(e) => setFormData(prev => ({ ...prev, shoppingFrequency: e.target.value }))}
+              name="shopping_frequency"
+              value={formData.shopping_frequency}
+              onChange={(e) => setFormData(prev => ({ ...prev, shopping_frequency: e.target.value }))}
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
                 'bg-light-100 dark:bg-dark-100',
@@ -99,9 +105,9 @@ export default function PreferencesStep({ onSave, initialData = {} }: Preference
               Preferred Price Range
             </label>
             <select
-              name="priceRange"
-              value={formData.priceRange}
-              onChange={(e) => setFormData(prev => ({ ...prev, priceRange: e.target.value }))}
+              name="price_range"
+              value={formData.price_range}
+              onChange={(e) => setFormData(prev => ({ ...prev, price_range: e.target.value }))}
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
                 'bg-light-100 dark:bg-dark-100',
@@ -131,12 +137,12 @@ export default function PreferencesStep({ onSave, initialData = {} }: Preference
                     'px-3 py-2 rounded-lg text-sm',
                     'border transition-colors',
                     'flex items-center gap-2',
-                    formData.notificationPreferences.includes(type)
+                    formData.notification_preferences.includes(type)
                       ? 'bg-primary/10 border-primary/30 text-primary'
                       : 'bg-light-100 dark:bg-dark-100 border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70'
                   )}
                 >
-                  {formData.notificationPreferences.includes(type) && (
+                  {formData.notification_preferences.includes(type) && (
                     <Check className="w-4 h-4" />
                   )}
                   {type}
@@ -160,12 +166,12 @@ export default function PreferencesStep({ onSave, initialData = {} }: Preference
                   'px-3 py-2 rounded-lg text-sm',
                   'border transition-colors',
                   'flex items-center gap-2',
-                  formData.preferredCategories.includes(category)
+                  formData.preferred_categories.includes(category)
                     ? 'bg-primary/10 border-primary/30 text-primary'
                     : 'bg-light-100 dark:bg-dark-100 border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70'
                 )}
               >
-                {formData.preferredCategories.includes(category) && (
+                {formData.preferred_categories.includes(category) && (
                   <Check className="w-4 h-4" />
                 )}
                 {category}

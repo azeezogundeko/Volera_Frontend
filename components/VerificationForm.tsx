@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-export default function VerificationForm() {
+export const VerificationForm: React.FC = (): JSX.Element => {
   const router = useRouter();
   const [pin, setPin] = useState<string[]>(Array(6).fill(''));
   const [loading, setLoading] = useState(false);
@@ -63,9 +63,24 @@ export default function VerificationForm() {
 
     setLoading(true);
     try {
-      // TODO: Add API call to verify the code
-      // Simulating API call for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // const payload = {
+      //   token: code,
+      // };
+      const params = new URLSearchParams();
+      params.set('verification_code', code);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify_account?${params.toString()}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+        // body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Verification failed: ${response.status} - ${errorText}`);
+      }
       
       // If verification is successful
       toast.success('Email verified successfully!');
@@ -77,11 +92,22 @@ export default function VerificationForm() {
       setLoading(false);
     }
   };
-
+  
   const handleResend = async () => {
     try {
-      // TODO: Add API call to resend verification code
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-verification-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+        }
+      });
+    
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to resend code: ${response.status} - ${errorText}`);
+      }
+
       toast.success('Verification code resent to your email');
     } catch (error) {
       toast.error('Failed to resend code. Please try again.');
@@ -96,7 +122,11 @@ export default function VerificationForm() {
           {pin.map((digit, i) => (
             <input
               key={i}
-              ref={el => inputRefs.current[i] = el}
+              ref={(el: HTMLInputElement | null) => {
+                if (el) {
+                  inputRefs.current[i] = el;
+                }
+              }}
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -140,4 +170,4 @@ export default function VerificationForm() {
       </button>
     </form>
   );
-} 
+};

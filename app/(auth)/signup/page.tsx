@@ -17,7 +17,7 @@ export default function SignupPage() {
     password: '',
     firstName: '',
     lastName: '',
-    country: '',
+    // country: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +38,7 @@ export default function SignupPage() {
     try {
       console.log('Starting registration process...', { email: formData.email, firstName: formData.firstName });
 
-      if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.country) {
+      if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
         console.warn('Missing required fields');
         throw new Error('All fields are required');
       }
@@ -76,8 +76,8 @@ export default function SignupPage() {
         localStorage.setItem('token_type', data.token.token_type);
         localStorage.setItem('user', JSON.stringify(data.user));
 
-        // Redirect to onboarding
-        router.push('/onboarding');
+        // Redirect to verification page
+        router.push('/verify');
       } else {
         console.error('Registration failed:', data);
         // Handle specific error cases
@@ -251,7 +251,7 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Country
               </label>
@@ -276,7 +276,7 @@ export default function SignupPage() {
                   placeholder="United States"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
 
           {error && (

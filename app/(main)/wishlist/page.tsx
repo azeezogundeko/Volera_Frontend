@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, MessageSquare, Trash2, Calendar, ExternalLink } from 'lucide-react';
 import ProductCard from '@/components/marketplace/ProductCard';
 import Link from 'next/link';
+import process from 'process';
 
 interface SavedProduct {
   product_id: string;
@@ -36,27 +37,80 @@ export default function WishlistPage() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('savedProducts');
-    const savedChatsData = localStorage.getItem('savedChats');
-    setSavedProducts(saved ? JSON.parse(saved) : []);
-    setSavedChats(savedChatsData ? JSON.parse(savedChatsData) : []);
-    setIsLoaded(true);
+    const fetchData = async () => {
+      try {
+        const params = new URLSearchParams();
+        params.set('limit', '10');
+        const token = localStorage.getItem('auth_token'); // Retrieve the token
+        const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/saved_products?${params.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`, 
+          },
+        });
+        const chatsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/saved_chats?${params.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const productsData = await productsResponse.json();
+        const chatsData = await chatsResponse.json();
+    
+        setSavedProducts(productsData);
+        setSavedChats(chatsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const removeProduct = (productId: string) => {
-    setSavedProducts(prev => {
-      const updated = prev.filter(p => p.product_id !== productId);
-      localStorage.setItem('savedProducts', JSON.stringify(updated));
-      return updated;
-    });
+  const removeProduct = async (productId: string) => {
+    const token = localStorage.getItem('auth_token'); 
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/unsave_product/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        setSavedProducts(prev => {
+          const updated = prev.filter(p => p.product_id !== productId);
+          return updated;
+        });
+      } else {
+        console.error('Failed to remove product');
+      }
+    } catch (error) {
+      console.error('Error removing product:', error);
+    }
   };
 
-  const removeChat = (chatId: string) => {
-    setSavedChats(prev => {
-      const updated = prev.filter(c => c.id !== chatId);
-      localStorage.setItem('savedChats', JSON.stringify(updated));
-      return updated;
-    });
+  const removeChat = async (chatId: string) => {
+    const token = localStorage.getItem('auth_token'); 
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/unstar_chat/${chatId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        setSavedChats(prev => {
+          const updated = prev.filter(c => c.id !== chatId);
+          return updated;
+        });
+      } else {
+        console.error('Failed to remove chat');
+      }
+    } catch (error) {
+      console.error('Error removing chat:', error);
+    }
   };
 
   if (!isLoaded) {
@@ -98,7 +152,7 @@ export default function WishlistPage() {
               className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
             >
               <MessageSquare className="w-4 h-4" />
-              Saved Chats ({savedChats.length})
+              Starred Chats ({savedChats.length})
             </TabsTrigger>
           </TabsList>
 

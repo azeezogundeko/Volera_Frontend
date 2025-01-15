@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { Camera, Upload } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Camera, Globe2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -12,6 +12,7 @@ interface ProfileData {
   phone: string;
   address: string;
   city: string;
+  country: string;
 }
 
 interface ProfileStepProps {
@@ -26,6 +27,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
     phone: initialData.phone || '',
     address: initialData.address || '',
     city: initialData.city || '',
+    country: initialData.country || '',
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +41,11 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
       reader.readAsDataURL(file);
     }
   };
+
+  // In ProfileStep component
+  useEffect(() => {
+    onSave(formData);
+  }, [formData, onSave]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -114,8 +121,8 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
               <option value="">Select gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
-              <option value="other">Other</option>
-              <option value="prefer_not_to_say">Prefer not to say</option>
+              {/* <option value="other">Other</option>
+              <option value="prefer_not_to_say">Prefer not to say</option> */}
             </select>
           </div>
 
@@ -178,6 +185,32 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
               )}
             />
           </div>
+          <div>
+              <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Country
+              </label>
+              <div className="mt-1 relative">
+                <Globe2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="country"
+                  id="country"
+                  required
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  className={cn(
+                    "block w-full pl-10 pr-3 py-2 rounded-lg",
+                    "border border-gray-300 dark:border-gray-600",
+                    "bg-white dark:bg-dark-secondary",
+                    "text-gray-900 dark:text-white",
+                    "placeholder-gray-400 dark:placeholder-gray-500",
+                    "focus:ring-2 focus:ring-emerald-500 focus:border-transparent",
+                    "transition duration-200"
+                  )}
+                  placeholder="Nigeria"
+                />
+              </div>
+            </div>
         </div>
       </div>
     </motion.div>
