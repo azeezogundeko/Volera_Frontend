@@ -16,24 +16,29 @@ interface ProfileData {
 }
 
 interface ProfileStepProps {
-  onSave: (data: ProfileData) => void;
-  initialData?: Partial<ProfileData>;
+  onNext: () => void;
+  setFormData: (data: any) => void;
+  formData: {
+    profile: Partial<ProfileData>;
+    preferences: any;
+  };
 }
 
-export default function ProfileStep({ onSave, initialData = {} }: ProfileStepProps) {
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [formData, setFormData] = useState<ProfileData>({
-    gender: initialData.gender || '',
-    phone: initialData.phone || '',
-    address: initialData.address || '',
-    city: initialData.city || '',
-    country: initialData.country || '',
+export default function ProfileStep({ onNext, setFormData, formData }: ProfileStepProps) {
+  const [profileData, setProfileData] = useState<ProfileData>({
+    gender: formData.profile.gender || '',
+    phone: formData.profile.phone || '',
+    address: formData.profile.address || '',
+    city: formData.profile.city || '',
+    country: formData.profile.country || ''
   });
+
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData(prev => ({ ...prev, avatar: file }));
+      setProfileData(prev => ({ ...prev, avatar: file }));
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
@@ -42,14 +47,13 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
     }
   };
 
-  // In ProfileStep component
   useEffect(() => {
-    onSave(formData);
-  }, [formData, onSave]);
+    setFormData({ ...formData, profile: profileData });
+  }, [profileData, formData, setFormData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -108,7 +112,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
             </label>
             <select
               name="gender"
-              value={formData.gender}
+              value={profileData.gender}
               onChange={handleInputChange}
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
@@ -133,7 +137,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
             <input
               type="tel"
               name="phone"
-              value={formData.phone}
+              value={profileData.phone}
               onChange={handleInputChange}
               placeholder="+1 (555) 000-0000"
               className={cn(
@@ -153,7 +157,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
             <input
               type="text"
               name="address"
-              value={formData.address}
+              value={profileData.address}
               onChange={handleInputChange}
               placeholder="Street address"
               className={cn(
@@ -173,7 +177,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
             <input
               type="text"
               name="city"
-              value={formData.city}
+              value={profileData.city}
               onChange={handleInputChange}
               placeholder="City"
               className={cn(
@@ -196,7 +200,7 @@ export default function ProfileStep({ onSave, initialData = {} }: ProfileStepPro
                   name="country"
                   id="country"
                   required
-                  value={formData.country}
+                  value={profileData.country}
                   onChange={handleInputChange}
                   className={cn(
                     "block w-full pl-10 pr-3 py-2 rounded-lg",

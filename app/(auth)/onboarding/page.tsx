@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Star } from 'lucide-react';
 import WelcomeStep from '@/components/onboarding/WelcomeStep';
 import ProfileStep from '@/components/onboarding/ProfileStep';
 import PreferencesStep from '@/components/onboarding/PreferencesStep';
 import ProgressBar from '@/components/onboarding/ProgressBar';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const TOTAL_STEPS = 3;
 
@@ -19,7 +19,6 @@ export default function OnboardingPage() {
     profile: {},
     preferences: {},
   });
-
 
   const handleNext = async () => {
     if (currentStep < TOTAL_STEPS) {
@@ -49,11 +48,9 @@ export default function OnboardingPage() {
 
         if (response.ok) {
           router.push('/');
-        } else {
-          throw new Error('Failed to save onboarding data');
         }
       } catch (error) {
-        console.error('Onboarding error:', error);
+        console.error('Error submitting onboarding data:', error);
       }
     }
   };
@@ -62,86 +59,71 @@ export default function OnboardingPage() {
     router.push('/');
   };
 
-  const handleProfileSave = useCallback((data: any) => {
-    setFormData(prev => ({
-      ...prev,
-      profile: data,
-    }));
-  }, []);
-
-  const handlePreferencesSave = useCallback((data: any) => {
-    setFormData(prev => ({
-      ...prev,
-      preferences: data,
-    }));
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-light-100 to-light-200 dark:from-dark-100 dark:to-dark-200 flex items-center justify-center p-2 sm:p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
-      
-      {/* Content Card */}
-      <div className="relative w-full max-w-[95%] sm:max-w-[90%] md:max-w-2xl lg:max-w-4xl bg-white dark:bg-[#1a1a1a] rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8">
-        <div className="flex flex-col items-center text-center">
-          {/* Welcome Text */}
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-black dark:text-white mb-2 sm:mb-3">
-            Welcome to Your Shopping Assistant! 🛍️
+    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
+      {/* Header */}
+      <div className="relative py-24">
+        <div className="text-center space-y-4 max-w-3xl mx-auto px-6">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Star className="w-4 h-4" />
+            Onboarding
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
+            Welcome to Volera!
           </h1>
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-black/70 dark:text-white/70 mb-6 sm:mb-8 max-w-2xl">
-            Let's personalize your shopping experience to find the best deals and products for you.
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            Follow these simple steps to get started with your smart shopping journey.
           </p>
-
-          {/* Progress Bar */}
-          <div className="w-full mb-6 sm:mb-8">
-            <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-          </div>
-
-          {/* Step Content */}
-          <div className="w-full">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="w-full"
-              >
-                {currentStep === 1 && <WelcomeStep />}
-                {currentStep === 2 && (
-                  <ProfileStep
-                    onSave={handleProfileSave}
-                    initialData={formData.profile}
-                  />
-                )}
-                {currentStep === 3 && (
-                  <PreferencesStep
-                    onSave={handlePreferencesSave}
-                    initialData={formData.preferences}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between items-center w-full mt-6 sm:mt-8">
-            <button
-              onClick={handleSkip}
-              className="text-xs sm:text-sm text-black/50 dark:text-white/50 hover:text-black/70 dark:hover:text-white/70 transition-colors"
-            >
-              Skip for now
-            </button>
-
-            <button
-              onClick={handleNext}
-              className="px-4 sm:px-6 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
-            >
-              Continue
-            </button>
-          </div>
         </div>
       </div>
+
+      {/* Revamped Progress Bar */}
+      <div className="w-full max-w-3xl mx-auto mb-6">
+        <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      </div>
+
+      {/* Steps Section */}
+      <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+        {currentStep === 1 && <WelcomeStep onNext={handleNext} />}
+        {currentStep === 2 && <ProfileStep onNext={handleNext} setFormData={setFormData} formData={formData} />}
+        {currentStep === 3 && <PreferencesStep onNext={handleNext} setFormData={setFormData} formData={formData} />}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between items-center w-full max-w-3xl mx-auto px-6 mb-6">
+        <button onClick={handleSkip} className="text-xs sm:text-sm text-gray-400 hover:text-gray-300 transition-colors">
+          Skip for now
+        </button>
+        <button onClick={handleNext} className="px-4 sm:px-6 py-2 bg-emerald-500 text-white text-sm rounded-lg hover:bg-emerald-600 transition-colors">
+          Continue
+        </button>
+      </div>
+
+      {/* CTA Section
+      <div className="relative bg-[#0c0c0c] py-24 border-t border-white/5">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent mb-6">
+            Ready to Start Shopping Smarter?
+          </h2>
+          <p className="text-gray-400 mb-8">
+            Join thousands of smart shoppers who are already saving time and money with Volera.
+          </p>
+          <Link
+            href="/auth/signup"
+            className="relative inline-flex px-8 py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
+          >
+            <span className="relative z-10 flex items-center gap-2 font-medium">
+              Get Started Free
+              <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </Link>
+          <div className="mt-4 text-gray-400 text-sm flex items-center justify-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+            No credit card required
+          </div>
+        </div>
+      </div> */}
     </div>
   );
 }

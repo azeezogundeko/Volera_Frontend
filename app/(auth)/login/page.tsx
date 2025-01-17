@@ -8,16 +8,26 @@ import { Mail, Lock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useChat } from '@/hooks/useChat';
+import { NotificationContainer } from '@/components/Notification';
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const { createNewChat } = useChat();
+
+  const [notifications, setNotifications] = useState<Array<{ id: string; message: string; type: 'success' | 'error' }>>([]);
+
+  const addNotification = (message: string, type: 'success' | 'error') => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setNotifications(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(notification => notification.id !== id));
+    }, 3300); // Slightly longer than the notification display time
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -25,13 +35,12 @@ export default function LoginPage() {
       ...prev,
       [name]: value
     }));
-    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setNotifications([]);
 
     try {
       // console.log('Starting login process...', { email: formData.email });
@@ -88,13 +97,14 @@ export default function LoginPage() {
         } else {
           console.error('Failed to create chat, sendMessage not available.');
         }
+        addNotification('Login successful!', 'success');
       } else {
         console.error('Invalid response format:', data);
         throw new Error('Invalid response from server');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to log in. Please try again.');
+      addNotification(err.message, 'error');
     } finally {
       setLoading(false);
       // console.log('Login process completed');
@@ -107,13 +117,14 @@ export default function LoginPage() {
       // Implement Google OAuth sign-in
       router.push('/api/auth/google');
     } catch (err) {
-      setError('Google sign-in failed. Please try again.');
+      addNotification('Google sign-in failed. Please try again.', 'error');
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-light-primary dark:bg-dark-primary p-4">
+      <NotificationContainer notifications={notifications} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -195,12 +206,6 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
-
-          {error && (
-            <div className="text-red-500 text-sm text-center">
-              {error}
-            </div>
-          )}
 
           <div>
             <button
