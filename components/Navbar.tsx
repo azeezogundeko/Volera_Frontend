@@ -5,6 +5,8 @@ import { formatTimeDifference } from '@/lib/utils';
 import DeleteChat from './DeleteChat';
 import { useRouter } from 'next/navigation';
 
+import process from 'process';
+
 const Navbar = ({
   chatId,
   messages,
@@ -18,6 +20,22 @@ const Navbar = ({
   const [title, setTitle] = useState<string>('');
   const [timeAgo, setTimeAgo] = useState<string>('');
   const [isMobile, setIsMobile] = useState(false);
+  
+  // const BookmarkButton = () => {
+    const handleClick = async () => {
+      try {
+        const params = new URLSearchParams();
+        params.set('chat_id', chatId);
+        const token = localStorage.getItem('auth_token'); 
+        const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/star_chat?${params.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`, 
+          },
+        });
+      } catch (error) {
+        console.error("Error adding bookmark:", error);
+      }
+    };
 
   useEffect(() => {
     // Check if window is available (client-side)
@@ -87,7 +105,9 @@ const Navbar = ({
               <button className="hidden sm:flex p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
                 <Share2 size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
-              <button className="hidden sm:flex p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
+              <button className="hidden sm:flex p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors"
+                onClick={handleClick}
+              >
                 <Bookmark size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
               <button className="p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">

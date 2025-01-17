@@ -92,16 +92,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [targetPrice, setTargetPrice] = useState<string>('');
   const [trackingError, setTrackingError] = useState<string>('');
-  const [isSaved, setIsSaved] = useState(() => {
-    if (typeof window !== 'undefined' && product) {
-      const saved = localStorage.getItem('savedProducts');
-      if (saved) {
-        const savedProducts = JSON.parse(saved);
-        return savedProducts.some((p: any) => p.product_id === product.product_id);
-      }
-    }
-    return false;
-  });
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -123,14 +114,34 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   }, [params.id]);
 
   useEffect(() => {
-    if (product) {
-      // Update saved state when product changes
-      const saved = localStorage.getItem('savedProducts');
-      if (saved) {
-        const savedProducts = JSON.parse(saved);
-        setIsSaved(savedProducts.some((p: any) => p.product_id === product.product_id));
+    const checkIfSaved = async () => {
+      if (product) {
+        try {
+          if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/check-saved`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+              body: JSON.stringify( params.id ),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              setIsSaved(!isSaved);
+            } else {
+              console.error('Failed to check if product is saved');
+            }
+          }
+        } catch (error) {
+          console.error('Error checking if product is saved:', error);
+        }
       }
-    }
+    };
+
+    checkIfSaved();
   }, [product]);
 
   const handleTrackPrice = async () => {
@@ -146,7 +157,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          productId: params.id,
+          productId: String(params.id),
           targetPrice: Number(targetPrice),
         }),
       });
@@ -164,23 +175,32 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }
   };
 
-  const toggleSave = () => {
-    if (!product) return;
+  const toggleSave = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('auth_token');
+        if (product) {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/save_product`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(product),
+          });
 
-    const saved = localStorage.getItem('savedProducts');
-    let savedProducts = saved ? JSON.parse(saved) : [];
-
-    if (isSaved) {
-      savedProducts = savedProducts.filter((p: any) => p.product_id !== product.product_id);
-    } else {
-      savedProducts.push({
-        ...product,
-        dateAdded: new Date().toISOString()
-      });
+          if (response.ok) {
+            setIsSaved(!isSaved);
+          } else {
+            console.error('Failed to save products');
+          }
+        } else {
+          console.error('Product is null');
+        }
+      }
+    } catch (error) {
+      console.error('Error saving products:', error);
     }
-
-    localStorage.setItem('savedProducts', JSON.stringify(savedProducts));
-    setIsSaved(!isSaved);
   };
 
   if (loading) {
@@ -208,7 +228,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     setCurrentImageIndex((prev) => (prev - 1 + (product.images?.length || 1)) % (product.images?.length || 1));
   };
 
-  const currentImage = product.images?.[currentImageIndex] || { url: product.image };
+  const images = product?.images || [];
+  const currentImage = images[currentImageIndex] || { url: product.image };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -227,7 +248,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   className="object-contain cursor-zoom-in"
                   onClick={() => currentImage.zoom_url && setShowZoomedImage(true)}
                 />
-                {product.images.length > 1 && (
+                {images.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
@@ -246,9 +267,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               </div>
               
               {/* Thumbnail Images */}
-              {product.images?.length > 1 && (
+              {images.length > 1 && (
                 <div className="grid grid-cols-6 gap-2">
-                  {product.images?.map((image, index) => (
+                  {images.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}

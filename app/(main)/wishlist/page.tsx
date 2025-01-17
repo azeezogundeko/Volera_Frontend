@@ -41,10 +41,13 @@ export default function WishlistPage() {
       try {
         const params = new URLSearchParams();
         params.set('limit', '10');
-        const token = localStorage.getItem('auth_token'); // Retrieve the token
+        let token;
+        if (typeof window !== 'undefined') {
+          token = localStorage.getItem('auth_token'); // Retrieve the token
+        }
         const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/saved_products?${params.toString()}`, {
           headers: {
-            'Authorization': `Bearer ${token}`, 
+            'Authorization': `Bearer ${token}`,
           },
         });
         const chatsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/saved_chats?${params.toString()}`, {
@@ -56,7 +59,7 @@ export default function WishlistPage() {
         const chatsData = await chatsResponse.json();
     
         setSavedProducts(productsData);
-        setSavedChats(chatsData);
+        setSavedChats(chatsData.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -68,7 +71,10 @@ export default function WishlistPage() {
   }, []);
 
   const removeProduct = async (productId: string) => {
-    const token = localStorage.getItem('auth_token'); 
+    let token;
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('auth_token'); 
+    }
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/unsave_product/${productId}`, {
         method: 'DELETE',
@@ -91,7 +97,10 @@ export default function WishlistPage() {
   };
 
   const removeChat = async (chatId: string) => {
-    const token = localStorage.getItem('auth_token'); 
+    let token;
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('auth_token'); 
+    }
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/unstar_chat/${chatId}`, {
         method: 'DELETE',

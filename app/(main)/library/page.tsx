@@ -37,7 +37,9 @@ const Page = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
+          ...(typeof window !== 'undefined' && {
+            'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
+          })
         },
       });
 
@@ -185,9 +187,9 @@ const Page = () => {
                   "text-sm text-black/90 dark:text-white/90"
                 )}>
                   <option value="all">All Modes</option>
-                  <option value="default">Default</option>
-                  <option value="focused">Focused</option>
-                  <option value="creative">Creative</option>
+                  <option value="Q/A">Q/A</option>
+                  {/* <option value="focused">Focused</option>
+                  <option value="creative">Creative</option> */}
                 </select>
               </div>
             </div>

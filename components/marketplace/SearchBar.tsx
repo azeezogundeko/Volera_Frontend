@@ -135,7 +135,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
       {/* Main Search Bar */}
       <div className="flex flex-col sm:flex-row items-stretch bg-white dark:bg-[#141414] rounded-2xl sm:rounded-full border border-gray-200 dark:border-[#222] shadow-sm hover:shadow-md transition-shadow">
         {/* Where */}
-        <button 
+        <div 
           onClick={() => setActiveFilter(activeFilter === 'where' ? null : 'where')}
           className={`flex-1 flex items-center px-4 sm:px-6 py-3 sm:py-3.5 rounded-t-2xl sm:rounded-l-full sm:rounded-tr-none hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${
             activeFilter === 'where' ? 'bg-gray-50 dark:bg-white/5' : ''
@@ -164,7 +164,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
               </button>
             )}
           </div>
-        </button>
+        </div>
 
         {/* Divider */}
         <div className="hidden sm:block w-px self-center h-8 bg-gray-200 dark:bg-[#333]" />
@@ -194,7 +194,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
         </div>
 
         {/* Smart Filter */}
-        <button 
+        <div 
           onClick={() => setActiveFilter(activeFilter === 'smart' ? null : 'smart')}
           className={`px-4 sm:px-6 py-3 sm:py-3.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-t border-gray-200 dark:border-[#222] sm:border-t-0 ${
             activeFilter === 'smart' ? 'bg-gray-50 dark:bg-white/5' : ''
@@ -207,12 +207,11 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
             </div>
             <Sparkles className="w-4 h-4 text-emerald-500" />
           </div>
-        </button>
+        </div>
 
         {/* Search Button */}
-        <button 
+        <div 
           onClick={handleSearch}
-          disabled={isLoading}
           className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-b-2xl sm:rounded-r-full sm:rounded-bl-none transition-colors disabled:opacity-50"
         >
           {isLoading ? (
@@ -221,7 +220,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
             <Search className="w-4 h-4" />
           )}
           <span className="font-medium text-sm">Search</span>
-        </button>
+        </div>
       </div>
 
       {/* Dropdowns */}

@@ -19,6 +19,7 @@ import MessageSources from './MessageSources';
 import SearchImages from './SearchImages';
 import { useSpeech } from 'react-text-to-speech';
 import { Image } from './SearchImages';
+import ProductCard from './ProductCard'; // Import ProductCard component
 
 const MessageBox = ({
   message,
@@ -102,25 +103,39 @@ const MessageBox = ({
             <div className="flex items-start space-x-2">
               <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-2.5 border border-light-200 dark:border-dark-200 shadow-sm">
                 <div className="prose prose-sm dark:prose-invert w-full break-words whitespace-pre-wrap [&>p]:my-1.5 [&>p]:pr-1">
-                  <Markdown
-                    className={cn(
-                      'prose prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                      'max-w-none text-black/90 dark:text-white/90',
-                      'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
-                      'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
-                    )}
-                    options={{
-                      overrides: {
-                        code: {
-                          props: {
-                            className: 'language-text'
+                  {message.type === 'product' ? (
+                    <div>
+                      <p>{message.content || 'Here are some product suggestions:'}</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        {message.products?.slice(0, 10).map((product, index) => (
+                          <ProductCard 
+                            key={index} 
+                            product={product} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Markdown
+                      className={cn(
+                        'prose prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
+                        'max-w-none text-black/90 dark:text-white/90',
+                        'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
+                        'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
+                      )} 
+                      options={{
+                        overrides: {
+                          code: {
+                            props: {
+                              className: 'language-text'
+                            }
                           }
                         }
-                      }
-                    }}
-                  >
-                    {parsedMessage}
-                  </Markdown>
+                      }}
+                    >
+                      {parsedMessage}
+                    </Markdown>
+                  )}
                 </div>
               </div>
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-light-100 dark:bg-dark-100 border border-light-200 dark:border-dark-200 flex items-center justify-center">
@@ -141,25 +156,39 @@ const MessageBox = ({
                 <div className="flex flex-col space-y-4">
                   <div className="bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200">
                     <div className="prose dark:prose-invert w-full [&>p]:my-1.5">
-                      <Markdown
-                        className={cn(
-                          'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                          'max-w-none text-black dark:text-white',
-                          'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
-                          'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
-                        )}
-                        options={{
-                          overrides: {
-                            code: {
-                              props: {
-                                className: 'language-text'
+                      {message.type === 'product' ? (
+                        <div>
+                          <p>{message.content || 'Here are some product suggestions:'}</p>
+                          <div className="grid grid-cols-2 gap-4">
+                            {message.products?.slice(0, 10).map((product, index) => (
+                              <ProductCard 
+                                key={index} 
+                                product={product} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <Markdown
+                          className={cn(
+                            'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
+                            'max-w-none text-black dark:text-white',
+                            'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
+                            'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
+                          )} 
+                          options={{
+                            overrides: {
+                              code: {
+                                props: {
+                                  className: 'language-text'
+                                }
                               }
                             }
-                          }
-                        }}
-                      >
-                        {parsedMessage}
-                      </Markdown>
+                          }}
+                        >
+                          {parsedMessage}
+                        </Markdown>
+                      )}
                     </div>
                   </div>
 
@@ -177,8 +206,8 @@ const MessageBox = ({
 
                   {loading && isLast ? null : (
                     <div className="flex flex-row items-center justify-between w-full text-black dark:text-white py-4">
-                      <Rewrite rewrite={rewrite} messageId={message.messageId} />
-                      <div className="flex flex-row items-center space-x-1">
+                      {/* <Rewrite rewrite={rewrite} messageId={message.messageId} /> */}
+                      {/* <div className="flex flex-row items-center space-x-1">
                         <Copy initialMessage={message.content} message={message} />
                         <button
                           onClick={() => {
@@ -196,7 +225,7 @@ const MessageBox = ({
                             <Volume2 size={18} />
                           )}
                         </button>
-                      </div>
+                      </div> */}
                     </div>
                   )}
                 </div>

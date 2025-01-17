@@ -15,41 +15,59 @@ const Attach = ({
   showText,
   files,
   setFiles,
+  params,
 }: {
   fileIds: string[];
   setFileIds: (fileIds: string[]) => void;
   showText?: boolean;
   files: FileType[];
   setFiles: (files: FileType[]) => void;
+  params: { id: string };
 }) => {
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<any>();
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoading(true);
-    const data = new FormData();
+    const allowedExtensions = ['png', 'jpg', 'jpeg'];
 
-    for (let i = 0; i < e.target.files!.length; i++) {
-      data.append('files', e.target.files![i]);
+    const filesArray = Array.from(e.target.files || []).filter(file => {
+      const fileExtension = file.name.split('.').pop() || 'unknown';
+      return allowedExtensions.includes(fileExtension.toLowerCase());
+    });
+
+    if (filesArray.length === 0) {
+      console.error("No valid image files selected. Please upload png, jpg, or jpeg files.");
+      setLoading(false);
+      return;
     }
 
-    const embeddingModelProvider = localStorage.getItem(
-      'embeddingModelProvider',
-    );
-    const embeddingModel = localStorage.getItem('embeddingModel');
+    const formData = new FormData();
+    filesArray.forEach(file => {
+      formData.append('files', file); 
+    });
 
-    data.append('embedding_model_provider', embeddingModelProvider!);
-    data.append('embedding_model', embeddingModel!);
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/uploads`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/uploads`, {
       method: 'POST',
-      body: data,
+      headers: {
+        'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
+      },
+      body: formData, 
     });
 
     const resData = await res.json();
 
-    setFiles([...files, ...resData.files]);
-    setFileIds([...fileIds, ...resData.files.map((file: any) => file.fileId)]);
+    if (Array.isArray(resData.files)) {
+      if (resData.files.every((file: any) => file.fileId)) {
+        setFiles([...files, ...resData.files]);
+        setFileIds([...fileIds, ...resData.files.map((file: any) => file.fileId)]);
+      } else {
+        console.error('Invalid file structure:', resData);
+      }
+    } else {
+      console.error('Invalid response structure:', resData);
+    }
+
     setLoading(false);
   };
 
@@ -116,7 +134,7 @@ const Attach = ({
                     type="file"
                     onChange={handleChange}
                     ref={fileInputRef}
-                    accept=".pdf,.docx,.txt"
+                    accept="image/*" // Accept all image types
                     multiple
                     hidden
                   />
@@ -172,7 +190,7 @@ const Attach = ({
         type="file"
         onChange={handleChange}
         ref={fileInputRef}
-        accept=".pdf,.docx,.txt"
+        accept="image/*" // Accept all image types
         multiple
         hidden
       />

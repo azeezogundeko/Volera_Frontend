@@ -41,15 +41,19 @@ const MarketplacePage = () => {
   const [clearToggle, setClearToggle] = useState(false);
 
   useEffect(() => {
-    const cached = localStorage.getItem('searchResults');
-    if (cached) {
-      setProducts(JSON.parse(cached));
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('searchResults');
+      if (cached) {
+        setProducts(JSON.parse(cached));
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (products.length > 0) {
-      localStorage.setItem('searchResults', JSON.stringify(products));
+    if (typeof window !== 'undefined') {
+      if (products.length > 0) {
+        localStorage.setItem('searchResults', JSON.stringify(products));
+      }
     }
   }, [products]);
 
@@ -60,27 +64,36 @@ const MarketplacePage = () => {
   const handleSearchStart = (query: string) => {
     setIsSearching(true);
     setProducts([]);
-    setLastSearchQuery(query);
-    localStorage.setItem('lastSearchQuery', query);
+    if (typeof window !== 'undefined') {
+      setLastSearchQuery(query);
+      localStorage.setItem('lastSearchQuery', query);
+    }
   };
 
   const handleSearchComplete = (searchResults: ProductResponse[]) => {
     setProducts(searchResults);
     setIsSearching(false);
-    localStorage.setItem('searchResults', JSON.stringify(searchResults));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('searchResults', JSON.stringify(searchResults));
+    }
   };
 
   const clearSearchResults = () => {
-    console.log('Before clearing:', products); 
-    console.log('Local Storage before clearing:', localStorage.getItem('savedProducts')); 
-    
-    setProducts([]); // Clear products
-    setLastSearchQuery(''); // Clear search query
+  console.log('Before clearing:', products); 
+  console.log('Local Storage before clearing:', localStorage.getItem('searchResults')); 
+  
+  setProducts([]); // Clear products
+  if (typeof window !== 'undefined') {
+    setLastSearchQuery('');
     localStorage.removeItem('searchResults');
     localStorage.removeItem('lastSearchQuery');
     localStorage.removeItem('savedProducts');
-    
-    setClearToggle(prev => !prev); // Trigger re-render
+  }
+  
+  setClearToggle(prev => !prev); // Trigger re-render
+
+  console.log('After clearing:', products); 
+  console.log('Local Storage after clearing:', localStorage.getItem('searchResults')); 
 };
 
 // Debug state updates with useEffect
@@ -123,8 +136,8 @@ useEffect(() => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.slice(0, 4).map((product) => (
-          <ProductCard key={product.product_id} product={product} />
+        {products.slice(0, 4).map((product, index) => (
+          <ProductCard key={`${product.product_id}-${index}`} product={product} />
         ))}
       </div>
     </section>
@@ -242,11 +255,8 @@ useEffect(() => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {products
                       .filter(product => product.current_price > 0)
-                      .map((product) => (
-                      <ProductCard
-                        key={product.product_id}
-                        product={{...product, product_id: product.product_id}}
-                      />
+                      .map((product, index) => (
+                      <ProductCard key={`${product.product_id}-${index}`} product={product} />
                     ))}
                   </div>
                 ) : (

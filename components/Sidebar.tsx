@@ -294,6 +294,8 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
+  const isProUser = typeof window !== 'undefined' && localStorage.getItem('userStatus') === 'true';
+
   // Mobile sidebar content with always expanded state
   const mobileSidebarContent = (
     <div className="flex flex-col h-full w-[280px] bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-white/10">
@@ -457,7 +459,26 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             />
           </div>
 
-          <ProFeature expanded={expanded} />
+          {isProUser ? (
+            <div className="space-y-1">
+              <IconButton
+                href="/pro"
+                icon={TrendingUp}
+                label="Pro Dashboard"
+                expanded={expanded}
+                active={segments[0] === 'pro'}
+              />
+              <IconButton
+                href="/pro/settings"
+                icon={Settings}
+                label="Pro Settings"
+                expanded={expanded}
+                active={segments[0] === 'pro' && segments[1] === 'settings'}
+              />
+            </div>
+          ) : (
+            <ProFeature expanded={expanded} />
+          )}
         </nav>
       </div>
 

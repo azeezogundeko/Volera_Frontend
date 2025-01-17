@@ -34,7 +34,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      console.log('Starting login process...', { email: formData.email });
+      // console.log('Starting login process...', { email: formData.email });
 
       if (!formData.email || !formData.password) {
         console.warn('Missing required fields');
@@ -57,9 +57,9 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       });
 
-      console.log('Login response status:', response.status);
+      // console.log('Login response status:', response.status);
       const data = await response.json();
-      console.log('Login response:', data);
+      // console.log('Login response:', data);
 
       if (!response.ok) {
         console.error('Login failed:', data.detail);
@@ -67,19 +67,20 @@ export default function LoginPage() {
       }
 
       if (data.token && data.user) {
-        console.log('Login successful, storing auth data...');
+        // console.log('Login successful, storing auth data...');
         
         // Store the token and user data
         localStorage.setItem('auth_token', data.token.access_token);
         localStorage.setItem('token_type', data.token.token_type);
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('userStatus', JSON.stringify(data.user.is_pro));
 
         // Trigger a storage event for other tabs
         window.dispatchEvent(new Event('storage'));
 
         // Set authorization header for future requests
         const authHeader = `${data.token.token_type} ${data.token.access_token}`;
-        console.log('Setting auth header:', authHeader);
+        // console.log('Setting auth header:', authHeader);
 
         const da = await createNewChat();
         if (da) {
@@ -96,7 +97,7 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : 'Failed to log in. Please try again.');
     } finally {
       setLoading(false);
-      console.log('Login process completed');
+      // console.log('Login process completed');
     }
   };
 

@@ -104,9 +104,7 @@ export default function Chat({
                   onVisibilityChange={handleVisibilityChange}
                 />
               </div>
-              {!isLast && msg.role === 'assistant' && (
-                <div className="h-px w-full max-w-3xl mx-auto bg-[#222222] mb-4 sm:mb-6" />
-              )}
+              {/* <div className="h-px w-full max-w-3xl mx-auto bg-[#222222] mb-4 sm:mb-6" /> */}
             </Fragment>
           );
         })}

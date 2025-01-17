@@ -300,6 +300,7 @@ const loadMessages = async (
     role: string;
     created_at: string;
     metadata: string;
+    images?: any[];
   }) => {
     
     // Remove surrounding quotes and parse metadata
@@ -321,6 +322,7 @@ const loadMessages = async (
       role: msg.role === 'human' ? 'user' : msg.role,
       createdAt: new Date(msg.created_at),
       metadata: parsedMetadata,
+      images: msg.images || [], // Add images property, default to empty array if not present
     } as Message;
   }) : [];
 
@@ -341,11 +343,26 @@ const loadMessages = async (
     document.title = messages[0].content;
   }
 
-  const files = data.chat.files.map((file: any) => ({
-    fileName: file.name,
-    fileExtension: file.name.split('.').pop(),
-    fileId: file.fileId,
-  }));
+  const allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+
+  const isValidImageFile = (file: File): boolean => {
+    return allowedImageExtensions.includes(file.fileExtension.toLowerCase());
+  };
+
+  const files = data.chat.files.map((file: any) => {
+    const newFile: File = {
+      fileName: file.name,
+      fileExtension: file.name.split('.').pop(),
+      fileId: file.fileId,
+    };
+
+    if (!isValidImageFile(newFile)) {
+      console.error(`Invalid file type: ${newFile.fileName}`);
+      return null; // Or handle invalid files as needed
+    }
+
+    return newFile;
+  }).filter((file: null) => file !== null); // Filter out invalid files
 
   setFiles(files);
   setFileIds(files.map((file: File) => file.fileId));
@@ -361,8 +378,7 @@ const loadMessages = async (
 };
 
 
-const 
-ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { id?: string; initialFocusMode?: string; messages: Message[]; isLoading: boolean; videos?: Video[]; loading?: boolean; }) => {
+const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { id?: string; initialFocusMode?: string; messages: Message[]; isLoading: boolean; videos?: Video[]; loading?: boolean; }) => {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get('q');
 
@@ -385,7 +401,7 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
   const [files, setFiles] = useState<File[]>([]);
   const [fileIds, setFileIds] = useState<string[]>([]);
 
-  const [focusMode, setFocusMode] = useState('all');
+  const [focusMode, setFocusMode] = useState('Q/A');
   const [optimizationMode, setOptimizationMode] = useState('fast');
 
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
@@ -713,7 +729,7 @@ ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading }: { 
       parentMessageId: parentMessageId,
       focusMode: focusMode,
       optimizationMode: optimizationMode,
-      fileIds: fileIds,
+      file_ids: fileIds, 
       history: [
         ...chatHistory,
         { speaker: 'human', message: newMessage.content, timestamp: new Date() },
