@@ -271,6 +271,7 @@ const loadMessages = async (
   setChatHistory: React.Dispatch<React.SetStateAction<{
     speaker: "human" | "assistant";
     message: string;
+    messageId: string;
     timestamp: Date;
     images?: Image[];
     products?: Product[];
@@ -305,13 +306,12 @@ const loadMessages = async (
 
   const messages = data.messages.documents.length > 0 ? data.messages.documents.map((msg: {
     content?: string;
-    message_id?: string;
-    id?: string;
+    messageId: string;
     role: string;
-    created_at: string;
+    createdAt: string;
     metadata: string;
     sources?: Source[];
-    images?: ImageData[];
+    images?: Image[];
     products?: Product[];
   }) => {
     
@@ -329,10 +329,10 @@ const loadMessages = async (
     return {
       ...msg,
       chatId: data.chat.id,
-      messageId: msg.message_id || msg.id,
+      messageId: msg.messageId,
       content: cleanContent,
       role: msg.role === 'human' ? 'user' : msg.role,
-      createdAt: new Date(msg.created_at),
+      createdAt: msg.createdAt,
       metadata: parsedMetadata,
       images: msg.images || [], 
       sources: msg.sources || [],
@@ -381,10 +381,12 @@ const loadMessages = async (
   setFiles(files);
   setFileIds(files.map((file: File) => file.fileId));
 
-  messages.forEach((message: { role: string; content: any; createdAt: any; images: any; products: any; sources: any[]; }) => {
+  messages.forEach((message: { role: string; content: any; createdAt: any; images: any; products: any; sources: any[]; messageId: string}) => {
+    console.log('Images for message:', message.messageId, message.images); // Log the images array
     setChatHistory(prevHistory => [...prevHistory, {
       speaker: message.role === 'user' ? 'human' : 'assistant',
       message: message.content,
+      messageId: message.messageId,
       timestamp: message.createdAt,
       images: message.images || undefined,
       products: message.products,
@@ -418,6 +420,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
     speaker: "human" | "assistant";
     message: string;
     timestamp: Date;
+    messageId: string;
     images?: Image[];
     products?: Product[];
     sources?: Source[];
@@ -544,14 +547,28 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
           if (data.content) {
             const content = typeof data.content === 'string' ? data.content : JSON.stringify(data.content);
             setLocalMessages(localMessages => [...localMessages, {
-              messageId: crypto.randomBytes(16).toString('hex'),
+              messageId: data.messageId,
               chatId: chatId || '',
               content: content,
               role: 'assistant',
               sources: data.sources || [],
-              suggestions: data.suggestions || [],
+              images: data.images || [],
+              products: data.products?.map((item: any) => ({
+                name: item.name,
+                current_price: item.current_price,
+                original_price: item.original_price,
+                brand: item.brand,
+                discount: item.discount,
+                rating: item.rating,
+                reviews_count: item.reviews_count,
+                product_id: item.product_id,
+                image: item.image,
+                relevance_score: item.relevance_score,
+                url: item.url,
+                currency: item.currency,
+                source: item.source
+              })) ?? [],
               createdAt: new Date(),
-              images: null,
               imagesLoading: false
             }]);
             setMessageAppeared(true);
@@ -597,18 +614,18 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
           setLoadingState(false);
           break;
 
-        case 'image':
-          const imageMessage: Message = {
-            messageId: crypto.randomBytes(16).toString('hex'),
-            chatId: chatId || crypto.randomBytes(16).toString('hex'), // Ensure chatId is always a string
-            createdAt: new Date(),
-            content: data.content,
-            role: 'assistant',
-            type: 'image'
-          };
+        // case 'image':
+        //   const imageMessage: Message = {
+        //     messageId: data.messageId,
+        //     chatId: chatId || crypto.randomBytes(16).toString('hex'), // Ensure chatId is always a string
+        //     createdAt: new Date(),
+        //     content: data.content,
+        //     role: 'assistant',
+        //     type: 'image'
+        //   };
           
-          setLocalMessages(prevMessages => [...prevMessages, imageMessage]);
-          break;
+        //   setLocalMessages(prevMessages => [...prevMessages, imageMessage]);
+        //   break;
 
         case 'image_search':
           if (data.data) {
@@ -631,36 +648,37 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
           }
           break;
 
-        case 'product':
-          if (data.products) {
-            const productMessage: Message = {
-              messageId: crypto.randomBytes(16).toString('hex'),
-              chatId: chatId || '',
-              content: data.content || 'Here are some product suggestions:',
-              role: 'assistant',
-              type: 'product',
-              products: data.products.map((item: any) => ({
-                name: item.name,
-                current_price: item.current_price,
-                original_price: item.original_price,
-                brand: item.brand,
-                discount: item.discount,
-                rating: item.rating,
-                reviews_count: item.reviews_count,
-                product_id: item.product_id,
-                image: item.image,
-                relevance_score: item.relevance_score,
-                url: item.url,
-                currency: item.currency,
-                source: item.source
-              })),
-              createdAt: new Date()
-            };
-            setLocalMessages(prevMessages => [...prevMessages, productMessage]);
-            setMessageAppeared(true);
-            setLoadingState(false);
-          }
-          break;
+        // case 'message':
+        //   const content = typeof data.content === 'string' ? data.content : JSON.stringify(data.content);
+        //     const productMessage: Message = {
+        //       messageId: data.messageId,
+        //       chatId: chatId || '',
+        //       content: content,
+        //       role: 'assistant',
+        //       sources: data.sources || [],
+        //       images: data.images || [],
+        //       products: data.products.map((item: any) => ({
+        //         name: item.name,
+        //         current_price: item.current_price,
+        //         original_price: item.original_price,
+        //         brand: item.brand,
+        //         discount: item.discount,
+        //         rating: item.rating,
+        //         reviews_count: item.reviews_count,
+        //         product_id: item.product_id,
+        //         image: item.image,
+        //         relevance_score: item.relevance_score,
+        //         url: item.url,
+        //         currency: item.currency,
+        //         source: item.source
+        //       })),
+        //       createdAt: new Date(),
+        //       imagesLoading: false
+        //     };
+        //     setLocalMessages(prevMessages => [...prevMessages, productMessage]);
+        //     setMessageAppeared(true);
+        //     setLoadingState(false);
+        //   break;
 
         case 'video_search':
           setVideosLoading(false);
@@ -673,28 +691,28 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
           }
           break;
 
-        case 'sources':
-          setLocalMessages(prevMessages => {
-            const updatedMessages = [...prevMessages];
-            const lastMessage = updatedMessages[updatedMessages.length - 1];
-            if (lastMessage && lastMessage.role === 'assistant') {
-              lastMessage.sources = data.sources;
-            } else {
-              // If no assistant message exists, create one
-              updatedMessages.push({
-                messageId: crypto.randomBytes(16).toString('hex'),
-                chatId: chatId || '',
-                content: '',
-                role: 'assistant',
-                sources: data.sources,
-                createdAt: new Date(),
-                images: null,
-                imagesLoading: false
-              });
-            }
-            return updatedMessages;
-          });
-          break;
+        // case 'sources':
+        //   setLocalMessages(prevMessages => {
+        //     const updatedMessages = [...prevMessages];
+        //     const lastMessage = updatedMessages[updatedMessages.length - 1];
+        //     if (lastMessage && lastMessage.role === 'assistant') {
+        //       lastMessage.sources = data.sources;
+        //     } else {
+        //       // If no assistant message exists, create one
+        //       updatedMessages.push({
+        //         messageId: data.messageId,
+        //         chatId: chatId || '',
+        //         content: '',
+        //         role: 'assistant',
+        //         sources: data.sources,
+        //         createdAt: new Date(),
+        //         images: null,
+        //         imagesLoading: false
+        //       });
+        //     }
+        //     return updatedMessages;
+        //   });
+        //   break;
 
         case 'messageEnd':
           console.log('[STREAMING DEBUG] Message streaming completed');
@@ -743,6 +761,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
     setChatHistory(prevHistory => [...prevHistory, { 
       speaker: 'human', 
       message: message, 
+      messageId: messageId,
       timestamp: new Date(), 
       images: [], 
       products: [], 

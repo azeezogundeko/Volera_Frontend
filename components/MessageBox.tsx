@@ -70,31 +70,35 @@ const MessageBox = ({
 
   const { speechStatus, start, stop } = useSpeech({ text: speechMessage });
 
-  useEffect(() => {
-    if (!messageRef.current || !onVisibilityChange) return;
+  
+useEffect(() => {
+  if (!messageRef.current || !onVisibilityChange) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            onVisibilityChange(message.messageId, true);
-          }
-        });
-      },
-      {
-        threshold: 0.5, // Message is considered visible when 50% is in view
-        rootMargin: '-10% 0px -10% 0px' // Add some margin to make transition smoother
-      }
-    );
+  const currentRef = messageRef.current; // Save a stable reference to the DOM element
 
-    observer.observe(messageRef.current);
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          console.log(`Message ID visible: ${message.messageId}`); // Debug log
+          onVisibilityChange(message.messageId, true);
+        }
+      });
+    },
+    {
+      threshold: 0.5, // Message is considered visible when 50% is in view
+      rootMargin: '-10% 0px -10% 0px', // Add some margin to make transition smoother
+    }
+  );
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [message.messageId, onVisibilityChange]);
+  observer.observe(currentRef);
 
-  return (
+  return () => {
+    observer.disconnect(); // Clean up observer to avoid memory leaks or stale references
+  };
+}, [message.messageId, onVisibilityChange, messageRef]);
+
+return (
     <div className="w-full overflow-x-hidden relative" ref={messageRef}>
       {/* Main Content Area */}
       <div className="w-full lg:w-[calc(100%-20rem)] pl-0">

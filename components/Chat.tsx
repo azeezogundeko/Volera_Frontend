@@ -86,9 +86,14 @@ export default function Chat({
         )}
         {messages.map((msg, i) => {
           const isLast = i === messages.length - 1;
-          const currentImages = msg.role === 'assistant' && msg.messageId === visibleMessageId ? (msg.images || null) : null;
+          const previousMessageId = i > 0 ? messages[i - 1].messageId : null; // Get the previous message ID
+          // console.log(msg.images)
+          // console.log(visibleMessageId)
+          // console.log(previousMessageId)
+          const currentImages = msg.role === 'assistant' && previousMessageId === visibleMessageId ? (msg.images || null) : null;
 
           return (
+            console.log('Current Images:', currentImages),
             <Fragment key={msg.messageId}>
               <div className="mb-4 sm:mb-6 max-w-[95%] w-full mx-auto">
                 <MessageBox
