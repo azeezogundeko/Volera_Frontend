@@ -124,23 +124,23 @@ export default function WishlistPage() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-[#141414] border-b border-gray-200 dark:border-[#222]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
-              <Heart className="w-7 h-7 text-emerald-600" />
-              <h1 className="text-3xl font-bold text-gray-900">My Wishlist</h1>
+              <Heart className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white/90">My Wishlist</h1>
             </div>
-            <p className="text-gray-500 ml-10">Keep track of products and conversations you're interested in</p>
+            <p className="text-gray-500 dark:text-gray-400 ml-10">Keep track of products and conversations you're interested in</p>
           </div>
         </div>
       </div>
@@ -148,17 +148,17 @@ export default function WishlistPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="products" className="w-full">
-          <TabsList className="mb-8 p-1 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <TabsList className="mb-8 p-1 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#222] rounded-lg shadow-sm">
             <TabsTrigger 
               value="products" 
-              className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
+              className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-emerald-500/10 dark:data-[state=active]:text-emerald-400"
             >
               <Heart className="w-4 h-4" />
               Saved Products ({savedProducts.length})
             </TabsTrigger>
             <TabsTrigger 
               value="chats" 
-              className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700"
+              className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-emerald-500/10 dark:data-[state=active]:text-emerald-400"
             >
               <MessageSquare className="w-4 h-4" />
               Starred Chats ({savedChats.length})
@@ -167,31 +167,94 @@ export default function WishlistPage() {
 
           <TabsContent value="products" className="focus-visible:outline-none">
             {savedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {savedProducts.map((product) => (
-                  <div key={product.product_id} className="relative group animate-fadeIn">
-                    <ProductCard product={product} />
-                    <button
-                      onClick={() => removeProduct(product.product_id)}
-                      className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
-                      title="Remove from wishlist"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </button>
-                  </div>
-                ))}
+              <div className="bg-white dark:bg-[#141414] rounded-lg border border-gray-200 dark:border-[#222] shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-[#222]">
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Product</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Price</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Source</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Date Added</th>
+                        <th className="px-6 py-4 text-right text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-[#222]">
+                      {savedProducts.map((product) => (
+                        <tr key={product.product_id} className="group hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-[#1a1a1a] overflow-hidden flex-shrink-0">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div>
+                                <Link 
+                                  href={`/wishlist/${product.product_id}`}
+                                  className="text-sm font-medium text-gray-900 dark:text-white/90 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                >
+                                  {product.name}
+                                </Link>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{product.brand}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900 dark:text-white/90">
+                                {product.currency}{product.current_price}
+                              </span>
+                              {product.discount > 0 && (
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                                  {product.discount}% OFF
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm text-gray-600 dark:text-gray-300">{product.source}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                              {new Date(product.dateAdded).toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <a
+                                href={product.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                                title="View on site"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
+                              <button
+                                onClick={() => removeProduct(product.product_id)}
+                                className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                                title="Remove from wishlist"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12">
+              <div className="bg-white dark:bg-[#141414] rounded-lg border border-gray-200 dark:border-[#222] shadow-sm p-12">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Heart className="w-8 h-8 text-emerald-600" />
+                  <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No saved products yet</h3>
-                  <p className="text-gray-500 mb-6">Start saving products you're interested in to track them here</p>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-2">No saved products yet</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">Start saving products you're interested in to track them here</p>
                   <Link
                     href="/marketplace"
-                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 transition-colors"
                   >
                     Browse Marketplace
                   </Link>
@@ -206,22 +269,22 @@ export default function WishlistPage() {
                 {savedChats.map((chat) => (
                   <div
                     key={chat.id}
-                    className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 relative group animate-fadeIn hover:shadow-md transition-shadow"
+                    className="bg-white dark:bg-[#141414] rounded-lg border border-gray-200 dark:border-[#222] shadow-sm p-6 relative group animate-fadeIn hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-2">
                           {chat.title}
                         </h3>
-                        <p className="text-gray-600 mb-3 line-clamp-2">{chat.preview}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <p className="text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">{chat.preview}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
                             <span>{new Date(chat.dateAdded).toLocaleDateString()}</span>
                           </div>
                           <a
                             href={chat.url}
-                            className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700"
+                            className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
                           >
                             <ExternalLink className="w-4 h-4" />
                             <span>View Chat</span>
@@ -230,7 +293,7 @@ export default function WishlistPage() {
                       </div>
                       <button
                         onClick={() => removeChat(chat.id)}
-                        className="p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 rounded-full"
+                        className="p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full"
                         title="Remove chat"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
@@ -240,13 +303,13 @@ export default function WishlistPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-12">
+              <div className="bg-white dark:bg-[#141414] rounded-lg border border-gray-200 dark:border-[#222] shadow-sm p-12">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="w-8 h-8 text-emerald-600" />
+                  <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No saved chats yet</h3>
-                  <p className="text-gray-500">Interesting conversations you save will appear here</p>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-2">No saved chats yet</h3>
+                  <p className="text-gray-500 dark:text-gray-400">Interesting conversations you save will appear here</p>
                 </div>
               </div>
             )}

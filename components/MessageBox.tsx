@@ -103,19 +103,7 @@ const MessageBox = ({
             <div className="flex items-start space-x-2">
               <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-2.5 border border-light-200 dark:border-dark-200 shadow-sm">
                 <div className="prose prose-sm dark:prose-invert w-full break-words whitespace-pre-wrap [&>p]:my-1.5 [&>p]:pr-1">
-                  {message.type === 'product' ? (
-                    <div>
-                      <p>{message.content || 'Here are some product suggestions:'}</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        {message.products?.slice(0, 10).map((product, index) => (
-                          <ProductCard 
-                            key={index} 
-                            product={product} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
+                  {parsedMessage && parsedMessage.trim() !== '' && (
                     <Markdown
                       className={cn(
                         'prose prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
@@ -136,6 +124,19 @@ const MessageBox = ({
                       {parsedMessage}
                     </Markdown>
                   )}
+                  {/* {message.type === 'product' ? (
+                    <div>
+                      <p>{message.content || 'Here are some product suggestions:'}</p>
+                      <div className="grid grid-cols-2 gap-4 pt-4">
+                        {message.products?.slice(0, 10).map((product, index) => (
+                          <ProductCard 
+                            key={index} 
+                            product={product} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : null} */}
                 </div>
               </div>
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-light-100 dark:bg-dark-100 border border-light-200 dark:border-dark-200 flex items-center justify-center">
@@ -155,54 +156,56 @@ const MessageBox = ({
               <div className="flex-1 min-w-0 pl-2">
                 <div className="flex flex-col space-y-4">
                   <div className="bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200">
-                    <div className="prose dark:prose-invert w-full [&>p]:my-1.5">
-                      {message.type === 'product' ? (
-                        <div>
-                          <p>{message.content || 'Here are some product suggestions:'}</p>
-                          <div className="grid grid-cols-2 gap-4">
-                            {message.products?.slice(0, 10).map((product, index) => (
-                              <ProductCard 
-                                key={index} 
-                                product={product} 
-                              />
-                            ))}
-                          </div>
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="mt-4 p-4 bg-light-100 dark:bg-dark-100 rounded-xl border border-light-200 dark:border-dark-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookCopy className="text-black/70 dark:text-white/70" size={16} />
+                          <h3 className="text-sm font-medium text-black/70 dark:text-white/70">
+                            Sources
+                          </h3>
                         </div>
-                      ) : (
-                        <Markdown
-                          className={cn(
-                            'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                            'max-w-none text-black dark:text-white',
-                            'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
-                            'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
-                          )} 
-                          options={{
-                            overrides: {
-                              code: {
-                                props: {
-                                  className: 'language-text'
-                                }
-                              }
-                            }
-                          }}
-                        >
-                          {parsedMessage}
-                        </Markdown>
-                      )}
-                    </div>
-                  </div>
-
-                  {message.sources && message.sources.length > 0 && (
-                    <div className="mt-4 p-4 bg-light-100 dark:bg-dark-100 rounded-xl border border-light-200 dark:border-dark-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <BookCopy className="text-black/70 dark:text-white/70" size={16} />
-                        <h3 className="text-sm font-medium text-black/70 dark:text-white/70">
-                          Sources
-                        </h3>
+                        <MessageSources sources={message.sources}/>
                       </div>
-                      <MessageSources sources={message.sources} />
-                    </div>
-                  )}
+                      )}
+                        <div className="prose dark:prose-invert w-full [&>p]:my-1.5">
+                          {parsedMessage && parsedMessage.trim() !== '' && (
+                            <Markdown
+                              className={cn(
+                                'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
+                                'max-w-none text-black dark:text-white',
+                                'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
+                                'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
+                              )} 
+                              options={{
+                                overrides: {
+                                  code: {
+                                    props: {
+                                      className: 'language-text'
+                                    }
+                                  }
+                                }
+                              }}
+                            >
+                              {parsedMessage}
+                            </Markdown>
+                          )}
+                          {message.products && message.products.length > 0 && (
+                            <div className="pt-6">
+                              <b className="text-2xl">Product Suggestions</b>
+                              <div className="grid grid-cols-2 gap-4 pt-4">
+                                {message.products?.slice(0, 10).map((product, index) => (
+                                  <ProductCard 
+                                    key={index} 
+                                    product={product} 
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                  
 
                   {loading && isLast ? null : (
                     <div className="flex flex-row items-center justify-between w-full text-black dark:text-white py-4">

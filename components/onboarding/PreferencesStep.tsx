@@ -69,17 +69,17 @@ export default function PreferencesStep({ onNext, setFormData, formData }: Prefe
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="h-full flex flex-col justify-center"
+      className="h-full flex flex-col justify-center px-4 sm:px-0"
     >
-      <h2 className="text-xl font-semibold text-black/90 dark:text-white/90 mb-6">
+      <h2 className="text-xl font-semibold text-white/90 mb-6 text-center sm:text-left">
         Shopping Preferences
       </h2>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Left Column */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-2">
+            <label className="block text-sm font-medium text-white/70 mb-2">
               Shopping Frequency
             </label>
             <select
@@ -88,9 +88,9 @@ export default function PreferencesStep({ onNext, setFormData, formData }: Prefe
               onChange={(e) => setPreferencesData(prev => ({ ...prev, shopping_frequency: e.target.value }))}
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
-                'bg-light-100 dark:bg-dark-100',
-                'border border-light-200 dark:border-dark-200',
-                'text-black dark:text-white',
+                'bg-[#0a0a0a]',
+                'border border-dark-200',
+                'text-white',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
               )}
             >
@@ -103,7 +103,7 @@ export default function PreferencesStep({ onNext, setFormData, formData }: Prefe
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-2">
+            <label className="block text-sm font-medium text-white/70 mb-2">
               Preferred Price Range
             </label>
             <select
@@ -112,9 +112,9 @@ export default function PreferencesStep({ onNext, setFormData, formData }: Prefe
               onChange={(e) => setPreferencesData(prev => ({ ...prev, price_range: e.target.value }))}
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
-                'bg-light-100 dark:bg-dark-100',
-                'border border-light-200 dark:border-dark-200',
-                'text-black dark:text-white',
+                'bg-[#0a0a0a]',
+                'border border-dark-200',
+                'text-white',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
               )}
             >
@@ -127,27 +127,28 @@ export default function PreferencesStep({ onNext, setFormData, formData }: Prefe
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-2">
+            <label className="block text-sm font-medium text-white/70 mb-2">
               Notification Preferences
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
               {NOTIFICATION_TYPES.map(type => (
                 <button
                   key={type}
                   onClick={() => toggleNotification(type)}
                   className={cn(
-                    'px-3 py-2 rounded-lg text-sm',
+                    'px-3 py-2 rounded-lg text-sm w-full',
                     'border transition-colors',
                     'flex items-center gap-2',
+                    'min-h-[2.5rem]',
                     preferencesData.notification_preferences.includes(type)
                       ? 'bg-primary/10 border-primary/30 text-primary'
-                      : 'bg-light-100 dark:bg-dark-100 border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70'
+                      : 'bg-[#0a0a0a] border-dark-200 text-white/70'
                   )}
                 >
                   {preferencesData.notification_preferences.includes(type) && (
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4 flex-shrink-0" />
                   )}
-                  {type}
+                  <span className="text-left flex-1 line-clamp-1">{type}</span>
                 </button>
               ))}
             </div>
@@ -156,27 +157,28 @@ export default function PreferencesStep({ onNext, setFormData, formData }: Prefe
 
         {/* Right Column */}
         <div>
-          <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-2">
+          <label className="block text-sm font-medium text-white/70 mb-2">
             Shopping Categories
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
             {CATEGORIES.map(category => (
               <button
                 key={category}
                 onClick={() => toggleCategory(category)}
                 className={cn(
-                  'px-3 py-2 rounded-lg text-sm',
+                  'px-3 py-2 rounded-lg text-sm w-full',
                   'border transition-colors',
                   'flex items-center gap-2',
+                  'min-h-[2.5rem]',
                   preferencesData.preferred_categories.includes(category)
                     ? 'bg-primary/10 border-primary/30 text-primary'
-                    : 'bg-light-100 dark:bg-dark-100 border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70'
+                    : 'bg-[#0a0a0a] border-dark-200 text-white/70'
                 )}
               >
                 {preferencesData.preferred_categories.includes(category) && (
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4 flex-shrink-0" />
                 )}
-                {category}
+                <span className="text-left flex-1 line-clamp-1">{category}</span>
               </button>
             ))}
           </div>

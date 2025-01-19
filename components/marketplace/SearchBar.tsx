@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Camera, Mic, Users, Calendar, Tag, SlidersHorizontal, Sparkles, X, Store } from 'lucide-react';
 import Image from 'next/image';
 import process from 'process';
@@ -36,42 +36,110 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedWebsite, setSelectedWebsite] = useState<string>('all');
+  const [isListening, setIsListening] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const websites = [
-    { id: 'all', name: 'All Sites', icon: <Store className="w-4 h-4" /> },
+    { 
+      id: 'all', 
+      name: 'All Marketplaces',
+      bgColor: '#4B5563',
+      shortName: 'All'
+    },
     { 
       id: 'jumia.com.ng', 
-      name: 'Jumia', 
-      icon: (
-        <div className="w-4 h-4 relative flex items-center justify-center rounded bg-[#f68b1e]">
-          <span className="text-[8px] font-bold text-white">J</span>
-        </div>
-      ) 
+      name: 'Jumia',
+      bgColor: '#f68b1e',
+      shortName: 'J'
     },
     { 
       id: 'jiji.ng', 
       name: 'Jiji',
-      icon: (
-        <div className="w-4 h-4 relative flex items-center justify-center rounded bg-[#2bb34b]">
-          <span className="text-[8px] font-bold text-white">Ji</span>
-        </div>
-      )
+      bgColor: '#2bb34b',
+      shortName: 'Ji'
     },
     { 
       id: 'konga.com', 
       name: 'Konga',
-      icon: (
-        <div className="w-4 h-4 relative flex items-center justify-center rounded bg-[#ed017f]">
-          <span className="text-[8px] font-bold text-white">K</span>
-        </div>
-      )
+      bgColor: '#ed017f',
+      shortName: 'K'
     }
   ];
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      onImageSearch(file);
+      if (file.type.startsWith('image/')) {
+        setSelectedImage(file);
+        setShowImagePreview(true);
+        onImageSearch(file);
+      } else {
+        setError('Please select an image file');
+      }
+    }
+  };
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setShowImagePreview(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const startListening = () => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setQuery(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } else {
+      setError('Speech recognition is not supported in your browser');
+    }
+  };
+
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    if (newQuery === '') {
+      onSearch([]);
+      if (onSearchStart) {
+        onSearchStart('');
+      }
+    }
+  };
+
+  const handleClearSearch = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setQuery('');
+    onSearch([]);
+    if (onSearchStart) {
+      onSearchStart('');
     }
   };
 
@@ -110,165 +178,160 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
     }
   };
 
-  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newQuery = e.target.value;
-    setQuery(newQuery);
-    if (newQuery === '') {
-      onSearch([]);
-      if (onSearchStart) {
-        onSearchStart('');
-      }
-    }
-  };
-
-  const handleClearSearch = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setQuery('');
-    onSearch([]);
-    if (onSearchStart) {
-      onSearchStart('');
-    }
-  };
-
   return (
-    <div className="relative max-w-4xl mx-auto">
+    <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-6">
       {/* Main Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch bg-white dark:bg-[#141414] rounded-2xl sm:rounded-full border border-gray-200 dark:border-[#222] shadow-sm hover:shadow-md transition-shadow">
-        {/* Where */}
-        <div 
-          onClick={() => setActiveFilter(activeFilter === 'where' ? null : 'where')}
-          className={`flex-1 flex items-center px-4 sm:px-6 py-3 sm:py-3.5 rounded-t-2xl sm:rounded-l-full sm:rounded-tr-none hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${
-            activeFilter === 'where' ? 'bg-gray-50 dark:bg-white/5' : ''
-          }`}
-        >
-          <div className="text-left w-full">
-            <div className="text-xs font-semibold mb-0.5">Where</div>
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={query}
-              onChange={handleQueryChange}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full bg-transparent text-sm text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/40 focus:outline-none"
-            />
-            {query && (
-              <button
-                onClick={() => {
-                  setQuery('');
-                  onSearch([]); // Clear the search results
-                }}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div className="hidden sm:block w-px self-center h-8 bg-gray-200 dark:bg-[#333]" />
-
-        {/* Website Filter */}
-        <div className="relative min-w-[140px]">
-          <select
-            value={selectedWebsite}
-            onChange={(e) => setSelectedWebsite(e.target.value)}
-            className="w-full appearance-none bg-transparent border-0 py-1.5 pl-9 pr-8 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-0"
-          >
-            {websites.map((site) => (
-              <option key={site.id} value={site.id}>
-                {site.name}
-              </option>
-            ))}
-          </select>
-          <div className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none">
-            {websites.find(site => site.id === selectedWebsite)?.icon}
-          </div>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-            </svg>
-          </div>
-          <div className="absolute -bottom-1 left-2 right-2 h-[1px] bg-gray-200 dark:bg-gray-700"></div>
-        </div>
-
-        {/* Smart Filter */}
-        <div 
-          onClick={() => setActiveFilter(activeFilter === 'smart' ? null : 'smart')}
-          className={`px-4 sm:px-6 py-3 sm:py-3.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-t border-gray-200 dark:border-[#222] sm:border-t-0 ${
-            activeFilter === 'smart' ? 'bg-gray-50 dark:bg-white/5' : ''
-          }`}
-        >
-          <div className="text-left flex items-center gap-2">
-            <div>
-              <div className="text-xs font-semibold mb-0.5">Smart Filter</div>
-              <div className="text-sm text-gray-500 dark:text-white/50">AI-powered search</div>
+      <div className="flex flex-col sm:flex-row items-stretch bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm hover:shadow-md transition-shadow">
+        {/* Search Input */}
+        <div className="flex-1 flex items-center gap-3 p-3 sm:p-4">
+          <Sparkles className="hidden sm:block w-5 h-5 text-emerald-500 flex-shrink-0" />
+          <div className="flex-1">
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={query}
+                onChange={handleQueryChange}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-full bg-transparent text-sm sm:text-base text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/40 focus:outline-none pr-20"
+              />
+              <div className="absolute right-0 flex items-center gap-1 sm:gap-2">
+                <button
+                  onClick={triggerImageUpload}
+                  className="p-1 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors text-gray-400 dark:text-white/40"
+                  title="Search with image"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={startListening}
+                  className={`p-1 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors ${
+                    isListening ? 'text-emerald-500' : 'text-gray-400 dark:text-white/40'
+                  }`}
+                  title="Search with voice"
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <Sparkles className="w-4 h-4 text-emerald-500" />
+            <div className="mt-0.5 text-[10px] sm:text-xs text-gray-400 dark:text-white/30">
+              AI-powered search: Try "Gaming laptop with good battery life under $1000"
+            </div>
           </div>
+          {query && (
+            <button
+              onClick={handleClearSearch}
+              className="p-1 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
+            >
+              <X className="w-4 h-4 text-gray-400 dark:text-white/40" />
+            </button>
+          )}
         </div>
 
-        {/* Search Button */}
-        <div 
-          onClick={handleSearch}
-          className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-b-2xl sm:rounded-r-full sm:rounded-bl-none transition-colors disabled:opacity-50"
-        >
-          {isLoading ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Search className="w-4 h-4" />
-          )}
-          <span className="font-medium text-sm">Search</span>
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+
+        {/* Website Selector and Search Button Container */}
+        <div className="flex border-t sm:border-t-0 sm:border-l border-gray-200 dark:border-[#222]">
+          {/* Website Selector */}
+          <div className="relative flex-1 sm:flex-none sm:min-w-[180px]">
+            <div className="h-full">
+              <select
+                value={selectedWebsite}
+                onChange={(e) => setSelectedWebsite(e.target.value)}
+                className="h-full w-full appearance-none bg-transparent px-3 sm:px-4 py-3 text-sm text-gray-700 dark:text-white/90 focus:outline-none focus:ring-0 border-0 cursor-pointer"
+              >
+                {websites.map(site => (
+                  <option key={site.id} value={site.id} className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white/90">
+                    {site.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400 dark:text-white/40" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Website Icons */}
+            <div className="hidden sm:flex absolute left-4 -bottom-3 -space-x-1.5">
+              {selectedWebsite === 'all' ? (
+                websites.slice(1).map((site) => (
+                  <div
+                    key={site.id}
+                    className="w-6 h-6 rounded-full border-2 border-white dark:border-[#141414] shadow-sm flex items-center justify-center"
+                    style={{ backgroundColor: site.bgColor }}
+                  >
+                    <span className="text-[10px] font-bold text-white">
+                      {site.shortName}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div
+                  className="w-6 h-6 rounded-full border-2 border-white dark:border-[#141414] shadow-sm flex items-center justify-center"
+                  style={{ 
+                    backgroundColor: websites.find(site => site.id === selectedWebsite)?.bgColor 
+                  }}
+                >
+                  <span className="text-[10px] font-bold text-white">
+                    {websites.find(site => site.id === selectedWebsite)?.shortName}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Search Button */}
+          <button
+            onClick={handleSearch}
+            disabled={isLoading || !query.trim()}
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white sm:rounded-r-2xl transition-colors disabled:opacity-50 disabled:hover:bg-emerald-500"
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Search className="w-5 h-5" />
+                <span className="hidden sm:inline font-medium">Search</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Dropdowns */}
-      {activeFilter && (
-        <div className="absolute left-0 right-0 mt-2 p-3 sm:p-4 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#222] rounded-2xl sm:rounded-3xl shadow-xl z-20">
-          {activeFilter === 'where' && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                <Camera className="w-4 h-4 text-gray-400" />
-                <span className="text-xs sm:text-sm text-gray-500">Search with an image</span>
-              </div>
-              <div className="text-xs sm:text-sm font-medium mb-2">Popular searches</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                <button className="text-left px-3 py-2 text-xs sm:text-sm text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors">
-                  Gaming Laptops
-                </button>
-                <button className="text-left px-3 py-2 text-xs sm:text-sm text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors">
-                  Wireless Earbuds
-                </button>
-                <button className="text-left px-3 py-2 text-xs sm:text-sm text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors">
-                  Smart Watches
-                </button>
-                <button className="text-left px-3 py-2 text-xs sm:text-sm text-gray-600 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors">
-                  4K Monitors
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeFilter === 'smart' && (
-            <div className="space-y-3 sm:space-y-4">
-              <input
-                type="text"
-                placeholder="Describe what you're looking for..."
-                value={''}
-                onChange={(e) => {}}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111] text-sm text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-              />
-              <div className="text-xs sm:text-sm text-gray-500 dark:text-white/50">
-                Example: &quot;Gaming laptop with good battery life under $1000&quot;
-              </div>
-            </div>
-          )}
+      {/* Image Preview */}
+      {showImagePreview && selectedImage && (
+        <div className="absolute top-full mt-2 left-4 right-4 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#222] rounded-lg p-3 shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700 dark:text-white/90">Selected Image</span>
+            <button
+              onClick={removeImage}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
+            >
+              <X className="w-4 h-4 text-gray-400 dark:text-white/40" />
+            </button>
+          </div>
+          <div className="relative w-20 h-20 rounded-lg overflow-hidden">
+            <Image
+              src={URL.createObjectURL(selectedImage)}
+              alt="Selected image"
+              fill
+              className="object-cover"
+            />
+          </div>
         </div>
       )}
 
       {error && (
-        <div className="absolute top-full mt-2 w-full px-4 py-2 bg-red-100 text-red-600 rounded-lg">
+        <div className="absolute top-full mt-2 left-4 right-4 px-4 py-2 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-200 text-sm rounded-lg">
           {error}
         </div>
       )}

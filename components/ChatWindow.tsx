@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Document } from '@langchain/core/documents';
+// import { Document } from '@langchain/core/documents';
 import Navbar from './Navbar';
 import Chat from './Chat';
 import EmptyChat from './EmptyChat';
@@ -16,6 +16,12 @@ import SearchImages from './SearchImages';
 import SearchVideos from './SearchVideos';
 import { getWebSocketURL } from '@/lib/config';
 
+export interface Source {
+  url: string;
+  content: string;
+  title: string;
+}
+
 export type Message = {
   messageId: string;
   chatId: string;
@@ -24,13 +30,14 @@ export type Message = {
   focusMode?: string;
   role: 'user' | 'assistant';
   suggestions?: string[];
-  sources?: Document[];
+  sources?: Source[];
   type?: 'image' | 'product';
   alt?: string;
   images?: Image[] | null;
   imagesLoading?: boolean;
   products?: Product[];
 };
+
 
 export interface File {
   fileName: string;
@@ -261,11 +268,14 @@ const loadMessages = async (
   chatId: string,
   setMessages: (messages: Message[]) => void,
   setIsMessagesLoaded: (loaded: boolean) => void,
-  setChatHistory: (history: {
+  setChatHistory: React.Dispatch<React.SetStateAction<{
     speaker: "human" | "assistant";
     message: string;
     timestamp: Date;
-  }[]) => void,
+    images?: Image[];
+    products?: Product[];
+    sources?: Source[];
+  }[]>>,
   setFocusMode: (mode: string) => void,
   setNotFound: (notFound: boolean) => void,
   setFiles: (files: File[]) => void,
@@ -294,17 +304,19 @@ const loadMessages = async (
   const data = await res.json();
 
   const messages = data.messages.documents.length > 0 ? data.messages.documents.map((msg: {
-    content: string;
+    content?: string;
     message_id?: string;
     id?: string;
     role: string;
     created_at: string;
     metadata: string;
-    images?: any[];
+    sources?: Source[];
+    images?: ImageData[];
+    products?: Product[];
   }) => {
     
     // Remove surrounding quotes and parse metadata
-    const cleanContent = msg.content.replace(/^"|"$/g, '');
+    const cleanContent = msg.content ? msg.content.replace(/^"|"$/g, '') : undefined;
     
     let parsedMetadata = {};
     try {
@@ -322,8 +334,10 @@ const loadMessages = async (
       role: msg.role === 'human' ? 'user' : msg.role,
       createdAt: new Date(msg.created_at),
       metadata: parsedMetadata,
-      images: msg.images || [], // Add images property, default to empty array if not present
-    } as Message;
+      images: msg.images || [], 
+      sources: msg.sources || [],
+      products: msg.products || []
+    } as unknown as Message;
   }) : [];
 
   if (messages.length === 0) {
@@ -367,13 +381,21 @@ const loadMessages = async (
   setFiles(files);
   setFileIds(files.map((file: File) => file.fileId));
 
-  const history = messages.map((msg: { role: any; content: any; createdAt: any; }) => ({
-    speaker: msg.role,
-    message: msg.content,
-    timestamp: msg.createdAt,
-  }));
+  messages.forEach((message: { role: string; content: any; createdAt: any; images: any; products: any; sources: any[]; }) => {
+    setChatHistory(prevHistory => [...prevHistory, {
+      speaker: message.role === 'user' ? 'human' : 'assistant',
+      message: message.content,
+      timestamp: message.createdAt,
+      images: message.images || undefined,
+      products: message.products,
+      sources: message.sources?.map(source => ({
+        url: source.metadata?.source || '',
+        content: source.pageContent,
+        title: source.metadata?.title || ''
+      }))
+    }]);
+  });
 
-  setChatHistory(history);
   setFocusMode(data.chat.focus_mode);
 };
 
@@ -396,6 +418,9 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
     speaker: "human" | "assistant";
     message: string;
     timestamp: Date;
+    images?: Image[];
+    products?: Product[];
+    sources?: Source[];
   }[]>([]);
 
   const [files, setFiles] = useState<File[]>([]);
@@ -715,10 +740,14 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
     };
   
     setLocalMessages((prevMessages) => [...prevMessages, newMessage]);
-    setChatHistory((prevHistory) => [
-      ...prevHistory,
-      { speaker: 'human', message: message, timestamp: new Date() },
-    ]);
+    setChatHistory(prevHistory => [...prevHistory, { 
+      speaker: 'human', 
+      message: message, 
+      timestamp: new Date(), 
+      images: [], 
+      products: [], 
+      sources: [] 
+    }]);
     const payload = {
       type: 'message',
       data: {
@@ -732,7 +761,14 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
       file_ids: fileIds, 
       history: [
         ...chatHistory,
-        { speaker: 'human', message: newMessage.content, timestamp: new Date() },
+        { 
+          speaker: 'human', 
+          message: newMessage.content, 
+          timestamp: new Date(), 
+          images: [], 
+          products: [], 
+          sources: [] 
+        },
       ]
     };
   
@@ -877,7 +913,6 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
       </div>
     );
   };
-
 
 
 export default ChatWindow;

@@ -63,7 +63,7 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
       exit={{ opacity: 0, y: -20 }}
       className="h-full flex flex-col justify-center"
     >
-      <h2 className="text-xl font-semibold text-black/90 dark:text-white/90 mb-6 text-center">
+      <h2 className="text-xl font-semibold text-white/90 mb-6 text-center">
         Complete Your Profile
       </h2>
 
@@ -73,7 +73,7 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
           <div className="relative group">
             <div className={cn(
               'w-24 sm:w-32 h-24 sm:h-32 rounded-full overflow-hidden',
-              'bg-light-100 dark:bg-dark-100',
+              'bg-[#0a0a0a]',
               'flex items-center justify-center',
               'border-2 border-dashed border-primary/30',
               'hover:border-primary/50 transition-colors'
@@ -99,7 +99,7 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
               <Upload className="w-6 h-6 text-white" />
             </label>
           </div>
-          <p className="mt-2 text-sm text-black/50 dark:text-white/50">
+          <p className="mt-2 text-sm text-white/50">
             Click to upload profile picture
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
         {/* Profile Form */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
+            <label className="block text-sm font-medium text-white/70 mb-1">
               Gender
             </label>
             <select
@@ -116,22 +116,20 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
               onChange={handleInputChange}
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
-                'bg-light-100 dark:bg-dark-100',
-                'border border-light-200 dark:border-dark-200',
-                'text-black dark:text-white',
+                'bg-[#0a0a0a]',
+                'border border-dark-200',
+                'text-white',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
               )}
             >
               <option value="">Select gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
-              {/* <option value="other">Other</option>
-              <option value="prefer_not_to_say">Prefer not to say</option> */}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
+            <label className="block text-sm font-medium text-white/70 mb-1">
               Phone Number
             </label>
             <input
@@ -142,16 +140,17 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
               placeholder="+1 (555) 000-0000"
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
-                'bg-light-100 dark:bg-dark-100',
-                'border border-light-200 dark:border-dark-200',
-                'text-black dark:text-white',
+                'bg-[#0a0a0a]',
+                'border border-dark-200',
+                'text-white',
+                'placeholder-white/30',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
               )}
             />
           </div>
 
           <div className="col-span-1 sm:col-span-2">
-            <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
+            <label className="block text-sm font-medium text-white/70 mb-1">
               Address
             </label>
             <input
@@ -162,16 +161,17 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
               placeholder="Street address"
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
-                'bg-light-100 dark:bg-dark-100',
-                'border border-light-200 dark:border-dark-200',
-                'text-black dark:text-white',
+                'bg-[#0a0a0a]',
+                'border border-dark-200',
+                'text-white',
+                'placeholder-white/30',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
               )}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-black/70 dark:text-white/70 mb-1">
+            <label className="block text-sm font-medium text-white/70 mb-1">
               City
             </label>
             <input
@@ -182,19 +182,20 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
               placeholder="City"
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
-                'bg-light-100 dark:bg-dark-100',
-                'border border-light-200 dark:border-dark-200',
-                'text-black dark:text-white',
+                'bg-[#0a0a0a]',
+                'border border-dark-200',
+                'text-white',
+                'placeholder-white/30',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
               )}
             />
           </div>
           <div>
-              <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium text-white/70 mb-1">
                 Country
               </label>
               <div className="mt-1 relative">
-                <Globe2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Globe2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                 <input
                   type="text"
                   name="country"
@@ -203,13 +204,12 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
                   value={profileData.country}
                   onChange={handleInputChange}
                   className={cn(
-                    "block w-full pl-10 pr-3 py-2 rounded-lg",
-                    "border border-gray-300 dark:border-gray-600",
-                    "bg-white dark:bg-dark-secondary",
-                    "text-gray-900 dark:text-white",
-                    "placeholder-gray-400 dark:placeholder-gray-500",
-                    "focus:ring-2 focus:ring-emerald-500 focus:border-transparent",
-                    "transition duration-200"
+                    'w-full pl-10 pr-3 py-2 rounded-lg',
+                    'bg-[#0a0a0a]',
+                    'border border-dark-200',
+                    'text-white',
+                    'placeholder-white/30',
+                    'focus:outline-none focus:ring-2 focus:ring-primary/50'
                   )}
                   placeholder="Nigeria"
                 />

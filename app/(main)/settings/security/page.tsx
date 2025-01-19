@@ -1,128 +1,100 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Lock, 
-  Key, 
   Shield, 
+  Key, 
   Smartphone, 
+  Mail, 
   Clock, 
-  AlertCircle, 
-  CheckCircle2, 
+  AlertTriangle,
+  CheckCircle2,
+  AlertCircle,
   Loader2,
   Eye,
-  EyeOff,
-  LogOut
+  EyeOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface SecurityFormData {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
+interface SecurityData {
   twoFactorEnabled: boolean;
+  twoFactorMethod: 'authenticator' | 'sms' | 'email';
   sessionTimeout: number;
-  notifyOnNewLogin: boolean;
+  lastPasswordChange: string;
+  securityQuestions: {
+    question: string;
+    answer: string;
+  }[];
+  loginNotifications: boolean;
+  suspiciousActivityAlerts: boolean;
 }
 
-interface SecurityError {
-  currentPassword?: string;
-  newPassword?: string;
-  confirmPassword?: string;
-}
+const SECURITY_QUESTIONS = [
+  "What was your first pet's name?",
+  "In what city were you born?",
+  "What is your mother's maiden name?",
+  "What high school did you attend?",
+  "What was your childhood nickname?",
+  "What is the name of your favorite childhood friend?",
+  "What street did you live on in third grade?",
+  "What is your oldest sibling's middle name?",
+  "What was the name of your first stuffed animal?",
+  "In what city did you meet your spouse/significant other?"
+];
 
 export default function SecuritySettings() {
-  const [formData, setFormData] = useState<SecurityFormData>({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+  const [formData, setFormData] = useState<SecurityData>({
     twoFactorEnabled: false,
+    twoFactorMethod: 'authenticator',
     sessionTimeout: 30,
-    notifyOnNewLogin: true,
-  });
-
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
+    lastPasswordChange: '2024-12-25',
+    securityQuestions: [
+      { question: SECURITY_QUESTIONS[0], answer: '' },
+      { question: SECURITY_QUESTIONS[1], answer: '' }
+    ],
+    loginNotifications: true,
+    suspiciousActivityAlerts: true
   });
 
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [errors, setErrors] = useState<SecurityError>({});
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
-  // Handle unsaved changes warning
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
-
-  const validateForm = (): boolean => {
-    const newErrors: SecurityError = {};
-    
-    if (formData.currentPassword && formData.newPassword) {
-      if (formData.currentPassword === formData.newPassword) {
-        newErrors.newPassword = 'New password must be different from current password';
-      }
-    }
-
-    if (formData.newPassword) {
-      if (formData.newPassword.length < 8) {
-        newErrors.newPassword = 'Password must be at least 8 characters long';
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.newPassword)) {
-        newErrors.newPassword = 'Password must contain uppercase, lowercase, and numbers';
-      }
-    }
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (field: keyof SecurityFormData, value: string | boolean | number) => {
-    setIsDirty(true);
+  const handleInputChange = (field: keyof SecurityData, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: value
     }));
+    setIsDirty(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
-
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters long');
+      return;
+    }
+    setPasswordError('');
     setIsSaving(true);
     
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
       setShowSuccess(true);
-      setIsDirty(false);
       setTimeout(() => setShowSuccess(false), 3000);
-
-      // Reset password fields
-      if (formData.newPassword) {
-        setFormData(prev => ({
-          ...prev,
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        }));
-      }
     } catch (error) {
       // Handle error
     } finally {
@@ -130,345 +102,387 @@ export default function SecuritySettings() {
     }
   };
 
-  const sessionTimeoutOptions = [
-    { value: 15, label: '15 minutes' },
-    { value: 30, label: '30 minutes' },
-    { value: 60, label: '1 hour' },
-    { value: 120, label: '2 hours' },
-    { value: 240, label: '4 hours' },
-    { value: 480, label: '8 hours' },
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setShowSuccess(true);
+      setIsDirty(false);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      // Handle error
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
-    <div className="space-y-8">
-      <AnimatePresence>
-        {isDirty && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 bg-emerald-50 dark:bg-emerald-900/50 text-emerald-900 dark:text-emerald-100 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
-          >
-            <AlertCircle className="w-4 h-4" />
-            You have unsaved changes
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white/90">Security Settings</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-white/60">
+            Manage your account security and authentication preferences
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Password Change Section */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Change Password</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Ensure your account is using a strong, secure password
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Current Password
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type={showPasswords.current ? 'text' : 'password'}
-                  id="currentPassword"
-                  value={formData.currentPassword}
-                  onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                  className={cn(
-                    "block w-full px-4 py-2 pr-10 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors",
-                    errors.currentPassword
-                      ? "border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600 focus:ring-emerald-500 focus:border-emerald-500"
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.currentPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.currentPassword}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                New Password
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type={showPasswords.new ? 'text' : 'password'}
-                  id="newPassword"
-                  value={formData.newPassword}
-                  onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                  className={cn(
-                    "block w-full px-4 py-2 pr-10 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors",
-                    errors.newPassword
-                      ? "border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600 focus:ring-emerald-500 focus:border-emerald-500"
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.newPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.newPassword}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Confirm New Password
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type={showPasswords.confirm ? 'text' : 'password'}
-                  id="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className={cn(
-                    "block w-full px-4 py-2 pr-10 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors",
-                    errors.confirmPassword
-                      ? "border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600 focus:ring-emerald-500 focus:border-emerald-500"
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Two-Factor Authentication Section */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Two-Factor Authentication</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Add an extra layer of security to your account
-              </p>
-            </div>
-            <div className="relative inline-block w-14 h-8 mr-2">
-              <input
-                type="checkbox"
-                id="twoFactor"
-                checked={formData.twoFactorEnabled}
-                onChange={(e) => handleInputChange('twoFactorEnabled', e.target.checked)}
-                className="peer sr-only"
-              />
-              <label
-                htmlFor="twoFactor"
-                className="absolute cursor-pointer inset-0 rounded-full bg-gray-200 peer-checked:bg-emerald-500 transition-colors duration-300"
-              >
-                <span className="absolute left-1 top-1 w-6 h-6 rounded-full bg-white transition-transform duration-300 peer-checked:translate-x-6" />
-              </label>
-            </div>
-          </div>
-
-          {formData.twoFactorEnabled && (
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                  <Smartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">Authenticator App</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Use an authenticator app to get 2FA codes
-                  </p>
-                </div>
-                <motion.button
-                  type="button"
-                  className="ml-auto px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Set up
-                </motion.button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Session Settings Section */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Session Settings</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Manage your session timeout and login notifications
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="sessionTimeout" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Session Timeout
-              </label>
-              <select
-                id="sessionTimeout"
-                value={formData.sessionTimeout}
-                onChange={(e) => handleInputChange('sessionTimeout', parseInt(e.target.value))}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                {sessionTimeoutOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+          {/* Password Section */}
+          <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-6">Change Password</h3>
+            
+            <form onSubmit={handlePasswordChange} className="space-y-4">
               <div>
-                <label htmlFor="notifyOnNewLogin" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Login Notifications
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-1">
+                  Current Password
                 </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Get notified when someone logs into your account
-                </p>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className={cn(
+                      'w-full px-3 py-2 rounded-lg',
+                      'bg-[#0a0a0a]',
+                      'border border-[#222]',
+                      'text-white',
+                      'pr-10',
+                      'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-              <div className="relative inline-block w-14 h-8">
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-1">
+                  New Password
+                </label>
                 <input
-                  type="checkbox"
-                  id="notifyOnNewLogin"
-                  checked={formData.notifyOnNewLogin}
-                  onChange={(e) => handleInputChange('notifyOnNewLogin', e.target.checked)}
-                  className="peer sr-only"
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={cn(
+                    'w-full px-3 py-2 rounded-lg',
+                    'bg-[#0a0a0a]',
+                    'border border-[#222]',
+                    'text-white',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                  )}
                 />
-                <label
-                  htmlFor="notifyOnNewLogin"
-                  className="absolute cursor-pointer inset-0 rounded-full bg-gray-200 peer-checked:bg-emerald-500 transition-colors duration-300"
-                >
-                  <span className="absolute left-1 top-1 w-6 h-6 rounded-full bg-white transition-transform duration-300 peer-checked:translate-x-6" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-1">
+                  Confirm New Password
                 </label>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={cn(
+                    'w-full px-3 py-2 rounded-lg',
+                    'bg-[#0a0a0a]',
+                    'border border-[#222]',
+                    'text-white',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                  )}
+                />
               </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Active Sessions Section */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Active Sessions</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Manage your active sessions across different devices
-            </p>
+              {passwordError && (
+                <p className="text-sm text-red-500">{passwordError}</p>
+              )}
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={!currentPassword || !newPassword || !confirmPassword || isSaving}
+                  className={cn(
+                    'px-4 py-2 rounded-lg',
+                    'bg-emerald-500 hover:bg-emerald-600',
+                    'text-white font-medium',
+                    'flex items-center gap-2',
+                    'transition-colors',
+                    'disabled:opacity-50 disabled:hover:bg-emerald-500'
+                  )}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Password'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                  <Shield className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
+          {/* Two-Factor Authentication */}
+          <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-6">Two-Factor Authentication</h3>
+            
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">Current Session</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Windows • Chrome • New York, USA
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white/90">Enable 2FA</h4>
+                  <p className="text-sm text-gray-500 dark:text-white/60">
+                    Add an extra layer of security to your account
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('twoFactorEnabled', !formData.twoFactorEnabled)}
+                  className={cn(
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
+                    formData.twoFactorEnabled ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-[#222]'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      formData.twoFactorEnabled ? 'translate-x-5' : 'translate-x-0'
+                    )}
+                  />
+                </button>
               </div>
-              <span className="px-2 py-1 text-xs font-medium text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900 rounded-full">
-                Active Now
-              </span>
-            </div>
 
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-600">
-                  <Smartphone className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              {formData.twoFactorEnabled && (
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-white/70">
+                    Authentication Method
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { value: 'authenticator', label: 'Authenticator App', icon: Key },
+                      { value: 'sms', label: 'SMS', icon: Smartphone },
+                      { value: 'email', label: 'Email', icon: Mail }
+                    ].map(({ value, label, icon: Icon }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => handleInputChange('twoFactorMethod', value)}
+                        className={cn(
+                          'px-3 py-2 rounded-lg text-sm',
+                          'border transition-colors',
+                          'flex items-center gap-2',
+                          formData.twoFactorMethod === value
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
+                            : 'bg-[#0a0a0a] border-[#222] text-white/70 hover:border-emerald-500/30'
+                        )}
+                      >
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <span>{label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white">Mobile App</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    iOS • Last active 2 hours ago
-                  </p>
-                </div>
-              </div>
-              <motion.button
-                type="button"
-                className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <LogOut className="w-4 h-4" />
-              </motion.button>
+              )}
             </div>
           </div>
-        </section>
 
-        {/* Save Button */}
-        <div className="flex justify-end gap-4">
-          <motion.button
-            type="button"
-            onClick={() => {
-              setFormData({
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: '',
-                twoFactorEnabled: false,
-                sessionTimeout: 30,
-                notifyOnNewLogin: true,
-              });
-              setIsDirty(false);
-            }}
-            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={isSaving}
-          >
-            Reset
-          </motion.button>
-          
-          <motion.button
-            type="submit"
-            className={cn(
-              "px-4 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500",
-              isSaving
-                ? "bg-emerald-500 cursor-not-allowed"
-                : "bg-emerald-600 hover:bg-emerald-700"
-            )}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={isSaving}
-          >
-            <span className="flex items-center gap-2">
+          {/* Security Questions */}
+          <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-6">Security Questions</h3>
+            
+            <div className="space-y-4">
+              {formData.securityQuestions.map((q, index) => (
+                <div key={index} className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-white/70">
+                    Question {index + 1}
+                  </label>
+                  <select
+                    value={q.question}
+                    onChange={(e) => {
+                      const newQuestions = [...formData.securityQuestions];
+                      newQuestions[index].question = e.target.value;
+                      handleInputChange('securityQuestions', newQuestions);
+                    }}
+                    className={cn(
+                      'w-full px-3 py-2 rounded-lg',
+                      'bg-[#0a0a0a]',
+                      'border border-[#222]',
+                      'text-white',
+                      'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                    )}
+                  >
+                    {SECURITY_QUESTIONS.map((question) => (
+                      <option key={question} value={question}>
+                        {question}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="password"
+                    placeholder="Your answer"
+                    value={q.answer}
+                    onChange={(e) => {
+                      const newQuestions = [...formData.securityQuestions];
+                      newQuestions[index].answer = e.target.value;
+                      handleInputChange('securityQuestions', newQuestions);
+                    }}
+                    className={cn(
+                      'w-full px-3 py-2 rounded-lg',
+                      'bg-[#0a0a0a]',
+                      'border border-[#222]',
+                      'text-white',
+                      'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Session Settings */}
+          <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-6">Session Settings</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
+                  Session Timeout (minutes)
+                </label>
+                <select
+                  value={formData.sessionTimeout}
+                  onChange={(e) => handleInputChange('sessionTimeout', parseInt(e.target.value))}
+                  className={cn(
+                    'w-full px-3 py-2 rounded-lg',
+                    'bg-[#0a0a0a]',
+                    'border border-[#222]',
+                    'text-white',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                  )}
+                >
+                  <option value={15}>15 minutes</option>
+                  <option value={30}>30 minutes</option>
+                  <option value={60}>1 hour</option>
+                  <option value={120}>2 hours</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white/90">Login Notifications</h4>
+                  <p className="text-sm text-gray-500 dark:text-white/60">
+                    Get notified of new sign-ins to your account
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('loginNotifications', !formData.loginNotifications)}
+                  className={cn(
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
+                    formData.loginNotifications ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-[#222]'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      formData.loginNotifications ? 'translate-x-5' : 'translate-x-0'
+                    )}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-white/90">Suspicious Activity Alerts</h4>
+                  <p className="text-sm text-gray-500 dark:text-white/60">
+                    Get alerts about unusual activity on your account
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('suspiciousActivityAlerts', !formData.suspiciousActivityAlerts)}
+                  className={cn(
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
+                    formData.suspiciousActivityAlerts ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-[#222]'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      formData.suspiciousActivityAlerts ? 'translate-x-5' : 'translate-x-0'
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!isDirty || isSaving}
+              className={cn(
+                'px-6 py-2 rounded-lg',
+                'bg-emerald-500 hover:bg-emerald-600',
+                'text-white font-medium',
+                'flex items-center gap-2',
+                'transition-colors',
+                'disabled:opacity-50 disabled:hover:bg-emerald-500'
+              )}
+            >
               {isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Saving...
                 </>
-              ) : showSuccess ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Saved!
-                </>
               ) : (
                 'Save Changes'
               )}
-            </span>
-          </motion.button>
+            </button>
+          </div>
         </div>
-      </form>
+
+        {/* Success Message */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-4 right-4 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Changes saved successfully
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Unsaved Changes Warning */}
+        <AnimatePresence>
+          {isDirty && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-4 right-4 bg-emerald-50 dark:bg-emerald-900/50 text-emerald-900 dark:text-emerald-100 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+            >
+              <AlertCircle className="w-4 h-4" />
+              You have unsaved changes
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

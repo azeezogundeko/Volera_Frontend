@@ -46,6 +46,8 @@ export default function Chat({
   const handleVisibilityChange = (messageId: string, isVisible: boolean) => {
     if (isVisible) {
       setVisibleMessageId(messageId);
+    } else if (visibleMessageId === messageId) {
+      setVisibleMessageId(null);
     }
   };
 
@@ -68,7 +70,7 @@ export default function Chat({
   useEffect(() => {
     messageEnd.current?.scrollIntoView({ behavior: 'smooth' });
 
-    if (messages.length === 1) {
+    if (messages && messages.length > 0 && messages[0] && messages[0].content) {
       document.title = `${messages[0].content.substring(0, 30)} - Volera`;
     }
   }, [messages]);

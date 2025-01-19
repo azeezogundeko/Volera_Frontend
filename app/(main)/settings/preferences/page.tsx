@@ -2,95 +2,68 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Settings,
-  Moon,
-  Sun,
-  Monitor,
-  Globe,
-  Clock,
-  DollarSign,
-  Bell,
-  Shield,
-  Eye,
-  EyeOff,
-  Loader2,
-  CheckCircle2,
-  AlertCircle
-} from 'lucide-react';
+import { Check, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PreferencesData {
-  theme: 'light' | 'dark' | 'system';
-  language: string;
-  timezone: string;
-  currency: string;
-  notifications: {
-    email: boolean;
-    push: boolean;
-    inApp: boolean;
-    marketing: boolean;
-    digest: 'daily' | 'weekly' | 'monthly' | 'never';
-    quietHours: {
-      enabled: boolean;
-      start: string;
-      end: string;
-    };
-  };
-  privacy: {
-    profileVisibility: 'public' | 'private' | 'contacts';
-    showEmail: boolean;
-    showPhone: boolean;
-    showLocation: boolean;
-  };
+  interests: string[];
+  price_range: string;
+  shopping_frequency: string;
+  preferred_categories: string[];
+  notification_preferences: string[];
 }
+
+const CATEGORIES = [
+  'Fashion & Apparel', 'Electronics', 'Home & Living',
+  'Beauty & Health', 'Sports & Fitness', 'Books & Media',
+  'Toys & Games', 'Jewelry & Accessories', 'Food & Grocery'
+];
+
+const NOTIFICATION_TYPES = [
+  'Price Drops', 'New Arrivals', 'Flash Sales',
+  'Similar Items', 'Back in Stock', 'Daily Deals'
+];
 
 export default function PreferencesSettings() {
   const [formData, setFormData] = useState<PreferencesData>({
-    theme: 'system',
-    language: 'en',
-    timezone: 'UTC',
-    currency: 'USD',
-    notifications: {
-      email: true,
-      push: true,
-      inApp: true,
-      marketing: false,
-      digest: 'weekly',
-      quietHours: {
-        enabled: false,
-        start: '22:00',
-        end: '07:00',
-      },
-    },
-    privacy: {
-      profileVisibility: 'public',
-      showEmail: true,
-      showPhone: false,
-      showLocation: true,
-    },
+    interests: [],
+    price_range: 'mid',
+    shopping_frequency: 'monthly',
+    preferred_categories: ['Electronics', 'Books & Media'],
+    notification_preferences: ['Price Drops', 'Flash Sales']
   });
 
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleInputChange = (
-    field: string,
-    value: string | boolean | object
-  ) => {
+  const toggleCategory = (category: string) => {
+    setFormData(prev => ({
+      ...prev,
+      preferred_categories: prev.preferred_categories.includes(category)
+        ? prev.preferred_categories.filter(c => c !== category)
+        : [...prev.preferred_categories, category],
+    }));
     setIsDirty(true);
-    setFormData(prev => {
-      const newData = { ...prev };
-      const fields = field.split('.');
-      let current: any = newData;
-      
-      for (let i = 0; i < fields.length - 1; i++) {
-        current = current[fields[i]];
-      }
-      
-      current[fields[fields.length - 1]] = value;
-      return newData;
-    });
+  };
+
+  const toggleNotification = (type: string) => {
+    setFormData(prev => ({
+      ...prev,
+      notification_preferences: prev.notification_preferences.includes(type)
+        ? prev.notification_preferences.filter(t => t !== type)
+        : [...prev.notification_preferences, type],
+    }));
+    setIsDirty(true);
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    setIsDirty(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,310 +85,184 @@ export default function PreferencesSettings() {
   };
 
   return (
-    <div className="space-y-8">
-      <AnimatePresence>
-        {isDirty && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 bg-emerald-50 dark:bg-emerald-900/50 text-emerald-900 dark:text-emerald-100 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
-          >
-            <AlertCircle className="w-4 h-4" />
-            You have unsaved changes
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white/90">Shopping Preferences</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-white/60">
+            Customize your shopping experience and notification settings
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Appearance Section */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Appearance</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  Theme
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { value: 'light', label: 'Light', icon: Sun },
-                    { value: 'dark', label: 'Dark', icon: Moon },
-                    { value: 'system', label: 'System', icon: Monitor },
-                  ].map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => handleInputChange('theme', value)}
-                      className={`
-                        flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-colors
-                        ${formData.theme === value
-                          ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-emerald-200 dark:hover:border-emerald-800'
-                        }
-                      `}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span>{label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Localization Section */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Localization</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Language
-                </label>
-                <select
-                  id="language"
-                  value={formData.language}
-                  onChange={(e) => handleInputChange('language', e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="en">English</option>
-                  <option value="es">Spanish</option>
-                  <option value="fr">French</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Timezone
-                </label>
-                <select
-                  id="timezone"
-                  value={formData.timezone}
-                  onChange={(e) => handleInputChange('timezone', e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="UTC">UTC</option>
-                  <option value="EST">Eastern Time</option>
-                  <option value="PST">Pacific Time</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="currency" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Currency
-                </label>
-                <select
-                  id="currency"
-                  value={formData.currency}
-                  onChange={(e) => handleInputChange('currency', e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Notification Preferences */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Notifications</h3>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Shopping Preferences */}
+          <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-6">Shopping Preferences</h3>
             
-            <div className="space-y-4">
-              {/* Notification Channels */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-gray-800 dark:text-gray-200">Notification Channels</h4>
-                {[
-                  { key: 'email', label: 'Email Notifications' },
-                  { key: 'push', label: 'Push Notifications' },
-                  { key: 'inApp', label: 'In-App Notifications' },
-                ].map(({ key, label }) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700 dark:text-gray-200">{label}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleInputChange(`notifications.${key}`, !formData.notifications[key as keyof typeof formData.notifications])}
-                      className={`
-                        relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer 
-                        transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500
-                        ${formData.notifications[key as keyof typeof formData.notifications] ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700'}
-                      `}
-                    >
-                      <span
-                        className={`
-                          pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200
-                          ${formData.notifications[key as keyof typeof formData.notifications] ? 'translate-x-5' : 'translate-x-0'}
-                        `}
-                      />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Email Digest */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="digest" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Email Digest Frequency
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
+                  Shopping Frequency
                 </label>
                 <select
-                  id="digest"
-                  value={formData.notifications.digest}
-                  onChange={(e) => handleInputChange('notifications.digest', e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:text-white"
+                  name="shopping_frequency"
+                  value={formData.shopping_frequency}
+                  onChange={handleSelectChange}
+                  className={cn(
+                    'w-full px-3 py-2 rounded-lg',
+                    'bg-[#0a0a0a]',
+                    'border border-[#222]',
+                    'text-white',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                  )}
                 >
-                  <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
-                  <option value="never">Never</option>
+                  <option value="quarterly">Every few months</option>
+                  <option value="occasionally">Occasionally</option>
                 </select>
               </div>
 
-              {/* Quiet Hours */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Quiet Hours</span>
-                  <button
-                    type="button"
-                    onClick={() => handleInputChange('notifications.quietHours.enabled', !formData.notifications.quietHours.enabled)}
-                    className={`
-                      relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer 
-                      transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500
-                      ${formData.notifications.quietHours.enabled ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700'}
-                    `}
-                  >
-                    <span
-                      className={`
-                        pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200
-                        ${formData.notifications.quietHours.enabled ? 'translate-x-5' : 'translate-x-0'}
-                      `}
-                    />
-                  </button>
-                </div>
-
-                {formData.notifications.quietHours.enabled && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="quietHoursStart" className="block text-sm text-gray-700 dark:text-gray-200">
-                        Start Time
-                      </label>
-                      <input
-                        type="time"
-                        id="quietHoursStart"
-                        value={formData.notifications.quietHours.start}
-                        onChange={(e) => handleInputChange('notifications.quietHours.start', e.target.value)}
-                        className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="quietHoursEnd" className="block text-sm text-gray-700 dark:text-gray-200">
-                        End Time
-                      </label>
-                      <input
-                        type="time"
-                        id="quietHoursEnd"
-                        value={formData.notifications.quietHours.end}
-                        onChange={(e) => handleInputChange('notifications.quietHours.end', e.target.value)}
-                        className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Privacy Settings */}
-        <section className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm space-y-6">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Privacy</h3>
-            
-            <div className="space-y-4">
               <div>
-                <label htmlFor="profileVisibility" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Profile Visibility
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/70 mb-2">
+                  Preferred Price Range
                 </label>
                 <select
-                  id="profileVisibility"
-                  value={formData.privacy.profileVisibility}
-                  onChange={(e) => handleInputChange('privacy.profileVisibility', e.target.value)}
-                  className="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-700 dark:text-white"
+                  name="price_range"
+                  value={formData.price_range}
+                  onChange={handleSelectChange}
+                  className={cn(
+                    'w-full px-3 py-2 rounded-lg',
+                    'bg-[#0a0a0a]',
+                    'border border-[#222]',
+                    'text-white',
+                    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                  )}
                 >
-                  <option value="public">Public</option>
-                  <option value="private">Private</option>
-                  <option value="contacts">Contacts Only</option>
+                  <option value="budget">Budget-friendly</option>
+                  <option value="mid">Mid-range</option>
+                  <option value="premium">Premium</option>
+                  <option value="luxury">Luxury</option>
                 </select>
-              </div>
-
-              {/* Privacy Toggles */}
-              <div className="space-y-3">
-                {[
-                  { key: 'showEmail', label: 'Show Email Address' },
-                  { key: 'showPhone', label: 'Show Phone Number' },
-                  { key: 'showLocation', label: 'Show Location' },
-                ].map(({ key, label }) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700 dark:text-gray-200">{label}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleInputChange(`privacy.${key}`, !formData.privacy[key as keyof typeof formData.privacy])}
-                      className={`
-                        relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer 
-                        transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500
-                        ${formData.privacy[key as keyof typeof formData.privacy] ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-700'}
-                      `}
-                    >
-                      <span
-                        className={`
-                          pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200
-                          ${formData.privacy[key as keyof typeof formData.privacy] ? 'translate-x-5' : 'translate-x-0'}
-                        `}
-                      />
-                    </button>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Submit Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
-            )}
-          </button>
-        </div>
-      </form>
+          {/* Shopping Categories */}
+          <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-6">Shopping Categories</h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {CATEGORIES.map(category => (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => toggleCategory(category)}
+                  className={cn(
+                    'px-3 py-2 rounded-lg text-sm w-full',
+                    'border transition-colors',
+                    'flex items-center gap-2',
+                    'min-h-[2.5rem]',
+                    formData.preferred_categories.includes(category)
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
+                      : 'bg-[#0a0a0a] border-[#222] text-white/70 hover:border-emerald-500/30'
+                  )}
+                >
+                  {formData.preferred_categories.includes(category) && (
+                    <Check className="w-4 h-4 flex-shrink-0" />
+                  )}
+                  <span className="text-left flex-1 line-clamp-1">{category}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-4 right-4 bg-emerald-50 dark:bg-emerald-900/50 text-emerald-900 dark:text-emerald-100 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            Changes saved successfully
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* Notification Preferences */}
+          <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-6">Notification Preferences</h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {NOTIFICATION_TYPES.map(type => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => toggleNotification(type)}
+                  className={cn(
+                    'px-3 py-2 rounded-lg text-sm w-full',
+                    'border transition-colors',
+                    'flex items-center gap-2',
+                    'min-h-[2.5rem]',
+                    formData.notification_preferences.includes(type)
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
+                      : 'bg-[#0a0a0a] border-[#222] text-white/70 hover:border-emerald-500/30'
+                  )}
+                >
+                  {formData.notification_preferences.includes(type) && (
+                    <Check className="w-4 h-4 flex-shrink-0" />
+                  )}
+                  <span className="text-left flex-1 line-clamp-1">{type}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={!isDirty || isSaving}
+              className={cn(
+                'px-6 py-2 rounded-lg',
+                'bg-emerald-500 hover:bg-emerald-600',
+                'text-white font-medium',
+                'flex items-center gap-2',
+                'transition-colors',
+                'disabled:opacity-50 disabled:hover:bg-emerald-500'
+              )}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Success Message */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-4 right-4 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Changes saved successfully
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Unsaved Changes Warning */}
+        <AnimatePresence>
+          {isDirty && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-4 right-4 bg-emerald-50 dark:bg-emerald-900/50 text-emerald-900 dark:text-emerald-100 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+            >
+              <AlertCircle className="w-4 h-4" />
+              You have unsaved changes
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -41,44 +41,50 @@ const settingsSections = [
         href: '/settings/security',
         icon: Shield
       },
+      // { 
+      //   label: 'Notifications',
+      //   description: 'Configure how you receive notifications',
+      //   href: '/settings/notifications',
+      //   icon: Bell
+      // },
       { 
-        label: 'Notifications',
-        description: 'Configure how you receive notifications',
-        href: '/settings/notifications',
-        icon: Bell
-      },
-    ]
-  },
-  {
-    title: 'Preferences',
-    icon: Palette,
-    description: 'Customize your experience',
-    items: [
-      { 
-        label: 'Appearance',
-        description: 'Customize the look and feel of the application',
-        href: '/settings/appearance',
-        icon: Palette
-      },
-      { 
-        label: 'Language',
-        description: 'Choose your preferred language',
-        href: '/settings/language',
+        label: 'Preferences',
+        description: 'Manage your shopping preferences',
+        href: '/settings/preferences',
         icon: Globe
-      }
+      },
     ]
   },
+  // {
+  //   title: 'Preferences',
+  //   icon: Palette,
+  //   description: 'Customize your experience',
+  //   items: [
+  //     { 
+  //       label: 'Appearance',
+  //       description: 'Customize the look and feel of the application',
+  //       href: '/settings/appearance',
+  //       icon: Palette
+  //     },
+  //     { 
+  //       label: 'Language',
+  //       description: 'Choose your preferred language',
+  //       href: '/settings/language',
+  //       icon: Globe
+  //     }
+  //   ]
+  // },
   {
     title: 'Billing',
     icon: CreditCard,
     description: 'Manage your billing information and subscription',
     items: [
-      { 
-        label: 'Payment Methods',
-        description: 'Add or remove payment methods',
-        href: '/settings/payment',
-        icon: CreditCard
-      },
+      // { 
+      //   label: 'Payment Methods',
+      //   description: 'Add or remove payment methods',
+      //   href: '/settings/payment',
+      //   icon: CreditCard
+      // },
       { 
         label: 'Subscription',
         description: 'View and manage your subscription',
@@ -112,19 +118,19 @@ export default function SettingsPage() {
   const [language, setLanguage] = useState('en');
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Settings</h1>
-          <p className="mt-2 text-base text-gray-600 dark:text-gray-400">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white/90">Settings</h1>
+          <p className="mt-2 text-base text-gray-600 dark:text-white/60">
             Manage your account settings and preferences
           </p>
         </div>
 
         {/* Theme Selector */}
-        <div className="mb-12 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Theme Preference</h2>
+        <div className="mb-12 bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">Theme Preference</h2>
           <div className="grid grid-cols-3 gap-4">
             {themes.map(({ value, label, icon: Icon }) => (
               <motion.button
@@ -138,16 +144,16 @@ export default function SettingsPage() {
                   'border-2 transition-all duration-200',
                   theme === value
                     ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-emerald-500/50'
+                    : 'border-gray-200 dark:border-[#222] hover:border-emerald-500/50'
                 )}
               >
                 <Icon className={cn(
                   'w-5 h-5',
-                  theme === value ? 'text-emerald-500' : 'text-gray-500 dark:text-gray-400'
+                  theme === value ? 'text-emerald-500' : 'text-gray-500 dark:text-white/60'
                 )} />
                 <span className={cn(
                   'font-medium',
-                  theme === value ? 'text-emerald-500' : 'text-gray-700 dark:text-gray-300'
+                  theme === value ? 'text-emerald-500' : 'text-gray-700 dark:text-white/90'
                 )}>
                   {label}
                 </span>
@@ -166,14 +172,14 @@ export default function SettingsPage() {
         </div>
 
         {/* Settings Sections */}
-        <div className="space-y-12">
+        <div className="space-y-6">
           {settingsSections.map((section) => (
             <SettingsSection key={section.title} {...section} />
           ))}
         </div>
 
         {/* Logout Button */}
-        <div className="mt-12 border-t border-gray-200 dark:border-gray-800 pt-8">
+        <div className="mt-12 border-t border-gray-200 dark:border-[#222] pt-8">
           <button
             onClick={() => {}}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
@@ -189,43 +195,39 @@ export default function SettingsPage() {
 
 function SettingsSection({ title, icon: Icon, description, items }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+    <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg">
           <Icon className="w-5 h-5 text-emerald-500" />
         </div>
         <div>
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white/90">{title}</h2>
+          <p className="text-sm text-gray-500 dark:text-white/60">{description}</p>
         </div>
       </div>
-      <div className="space-y-2">
+
+      <div className="space-y-4">
         {items.map((item) => (
-          <motion.a
+          <a
             key={item.label}
             href={item.href}
-            whileHover={{ x: 4 }}
-            className={cn(
-              'flex items-center justify-between p-4 rounded-lg',
-              'border border-gray-100 dark:border-gray-700',
-              'hover:border-emerald-500/50 dark:hover:border-emerald-500/50',
-              'hover:bg-gray-50 dark:hover:bg-gray-700/50',
-              'group transition-all duration-200'
-            )}
+            className="group flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-[#222] hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <item.icon className="w-5 h-5 text-gray-400 group-hover:text-emerald-500" />
+              <div className="p-2 bg-gray-50 dark:bg-white/5 rounded-lg group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-colors">
+                <item.icon className="w-5 h-5 text-gray-500 dark:text-white/60 group-hover:text-emerald-500" />
+              </div>
               <div>
-                <div className="font-medium text-gray-700 dark:text-gray-200 group-hover:text-emerald-500">
+                <div className="font-medium text-gray-900 dark:text-white/90 group-hover:text-emerald-500">
                   {item.label}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-sm text-gray-500 dark:text-white/60">
                   {item.description}
                 </div>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-500" />
-          </motion.a>
+            <ChevronRight className="w-5 h-5 text-gray-400 dark:text-white/40 group-hover:text-emerald-500" />
+          </a>
         ))}
       </div>
     </div>

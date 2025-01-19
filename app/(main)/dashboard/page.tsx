@@ -1,6 +1,16 @@
 'use client';
 
-import { MessageSquare, TrendingUp, Bell, Package, ArrowUp, ArrowDown } from 'lucide-react';
+import { 
+  MessageSquare, 
+  TrendingUp, 
+  Bell, 
+  Package, 
+  ArrowUp, 
+  ArrowDown, 
+  Upload, 
+  Sparkles, 
+  Search 
+} from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
@@ -29,6 +39,7 @@ export default function Home() {
   const [trackedItems, setTrackedItems] = useState<TrackedItem[]>([]);
   const [trendingProducts, setTrendingProducts] = useState<TrendingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userName, setUserName] = useState('User');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -78,17 +89,66 @@ export default function Home() {
     fetchRecentChats();
   }, []);
 
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const response = await fetch('/api/user');
+        const data = await response.json();
+        setUserName(data.name || 'User');
+      } catch (error) {
+        console.error('Error fetching user name:', error);
+      }
+    };
+
+    fetchUserName();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-medium bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-white/70 text-transparent bg-clip-text">
-            Dashboard
+            Welcome back, {userName}! 👋
           </h1>
           <p className="text-sm text-gray-500 dark:text-white/50 mt-1">
             Overview of your tracking and chat activities
           </p>
+        </div>
+
+        {/* Pro Upgrade Banner */}
+        <div className="mb-6 sm:mb-8 bg-[#E5F7E5] dark:bg-[#1a1a1a] rounded-xl p-4 border border-[#4CAF50]/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-[#4CAF50]/10 rounded-lg">
+                <Sparkles className="w-5 h-5 text-[#4CAF50]" />
+              </div>
+              <div>
+                <h2 className="text-base font-medium text-gray-900 dark:text-white/90">Try Pro</h2>
+                <p className="text-sm text-gray-600 dark:text-white/70">
+                  Unlock premium features
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 text-sm text-[#4CAF50] dark:text-[#4CAF50]">
+                <Upload className="w-4 h-4" />
+                <span>Image Upload</span>
+                <span className="mx-1">•</span>
+                <Search className="w-4 h-4" />
+                <span>Pro Search</span>
+              </div>
+              <Link 
+                href="/upgrade"
+                className="group relative px-4 py-1.5 bg-[#4CAF50] hover:bg-[#45a049] text-white rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-lg hover:shadow-[#4CAF50]/20"
+              >
+                Upgrade
+                <span className="absolute -top-8 right-0 w-max opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded pointer-events-none">
+                  Get smarter AI & more!
+                </span>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Stats Grid */}

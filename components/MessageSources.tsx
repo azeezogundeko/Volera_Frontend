@@ -11,7 +11,13 @@ import { File } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import Image from 'next/image';
 
-const MessageSources = ({ sources }: { sources: Document[] }) => {
+interface Source {
+  url: string;
+  title: string;
+  content: string;
+}
+
+const MessageSources = ({ sources }: { sources: Source[] }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const closeModal = () => {
@@ -30,29 +36,29 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
         <a
           className="bg-light-100 hover:bg-light-200 dark:bg-dark-100 dark:hover:bg-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
           key={i}
-          href={source.metadata.url}
+          href={source.url}
           target="_blank"
         >
           <p className="dark:text-white text-xs overflow-hidden whitespace-nowrap text-ellipsis">
-            {source.metadata.title}
+            {source.title}
           </p>
           <div className="flex flex-row items-center justify-between">
             <div className="flex flex-row items-center space-x-1">
-              {source.metadata.url === 'File' ? (
+              {source.url === 'File' ? (
                 <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
                   <File size={12} className="text-white/70" />
                 </div>
               ) : (
                 <Image
-                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.url}`}
                   alt="favicon"
                   width={16}
                   height={16}
                 />
               )}
               <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
-              {source.metadata.url ? (
-                  new URL(source.metadata.url).hostname.replace(/^www\./, '')
+                {source.url ? (
+                  new URL(source.url).hostname.replace(/^www\./, '')
                 ) : (
                   "Invalid URL"
                 )}
@@ -72,13 +78,13 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
         >
           <div className="flex flex-row items-center space-x-1">
             {sources.slice(3, 6).map((source, i) => {
-              return source.metadata.url === 'File' ? (
+              return source.url === 'File' ? (
                 <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
                   <File size={12} className="text-white/70" />
                 </div>
               ) : (
                 <Image
-                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                  src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.url}`}
                   alt="favicon"
                   width={16}
                   height={16}
@@ -113,28 +119,28 @@ const MessageSources = ({ sources }: { sources: Document[] }) => {
                       <a
                         className="bg-light-secondary hover:bg-light-200 dark:bg-dark-secondary dark:hover:bg-dark-200 border border-light-200 dark:border-dark-200 transition duration-200 rounded-lg p-3 flex flex-col space-y-2 font-medium"
                         key={i}
-                        href={source.metadata.url}
+                        href={source.url}
                         target="_blank"
                       >
                         <p className="dark:text-white text-xs overflow-hidden whitespace-nowrap text-ellipsis">
-                          {source.metadata.title}
+                          {source.title}
                         </p>
                         <div className="flex flex-row items-center justify-between">
                           <div className="flex flex-row items-center space-x-1">
-                            {source.metadata.url === 'File' ? (
+                            {source.url === 'File' ? (
                               <div className="bg-dark-200 hover:bg-dark-100 transition duration-200 flex items-center justify-center w-6 h-6 rounded-full">
                                 <File size={12} className="text-white/70" />
                               </div>
                             ) : (
                               <Image
-                                src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.metadata.url}`}
+                                src={`https://s2.googleusercontent.com/s2/favicons?domain_url=${source.url}`}
                                 alt="favicon"
                                 width={16}
                                 height={16}
                               />
                             )}
                             <p className="text-xs text-black/50 dark:text-white/50 overflow-hidden whitespace-nowrap text-ellipsis">
-                              {new URL(source.metadata.url).hostname.replace(/^www\./, '')}
+                              {new URL(source.url).hostname.replace(/^www\./, '')}
                             </p>
                           </div>
                           <div className="flex flex-row items-center space-x-1 text-black/50 dark:text-white/50 text-xs">
