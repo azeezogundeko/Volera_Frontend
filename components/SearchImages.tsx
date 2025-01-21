@@ -214,6 +214,10 @@ const SearchImages = ({
           </div>
         </div>
 
+        <button onClick={toggleMobileView} className="mt-2 text-sm text-blue-500 block sm:hidden">
+          {showImagesOnMobile[messageId] ? "Hide Images" : "Show Images"}
+        </button>
+
         <div className={clsx(
           "transition-all duration-300 ease-in-out",
           "hidden sm:block",

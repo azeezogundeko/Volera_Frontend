@@ -109,9 +109,9 @@ export default function Home() {
                 AI-Powered Shopping Assistant
               </div>
               <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
-                Shop Smarter with
+                Shop Smarter with Artificial
                 <br />
-                AI Intelligence
+                 Intelligence
               </h1>
               <p className="text-lg text-gray-400 mb-8 max-w-2xl">
                 Experience the future of e-commerce with Volera. Our AI agents analyze products across multiple platforms to help you make informed purchase decisions.

@@ -10,19 +10,22 @@ import {
 } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { toast } from 'sonner';
-import { Chat } from '@/app/library/page';
 import LoadingSpinner from './LoadingSpinner';
+import { Chat } from '@/app/(main)/library/page';
+// import { Chat } from '@app/(main)/library/page';
 
 const DeleteChat = ({
   chatId,
   chats,
   setChats,
   redirect = false,
+  onClick,
 }: {
   chatId: string;
   chats: Chat[];
   setChats: (chats: Chat[]) => void;
   redirect?: boolean;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }) => {
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,16 +39,16 @@ const DeleteChat = ({
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`,
           },
         },
       );
 
-      if (res.status != 200) {
+      if (res.status !== 200) {
         throw new Error('Failed to delete chat');
       }
 
       const newChats = chats.filter((chat) => chat.id !== chatId);
-
       setChats(newChats);
 
       if (redirect) {
@@ -62,7 +65,8 @@ const DeleteChat = ({
   return (
     <>
       <button
-        onClick={() => {
+        onClick={(event) => {
+          onClick?.(event); // Trigger custom onClick handler if provided
           setConfirmationDialogOpen(true);
         }}
         className="bg-transparent text-red-400 hover:scale-105 transition duration-200"

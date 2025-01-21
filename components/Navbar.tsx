@@ -4,38 +4,30 @@ import { useEffect, useState } from 'react';
 import { formatTimeDifference } from '@/lib/utils';
 import DeleteChat from './DeleteChat';
 import { useRouter } from 'next/navigation';
+import { ShareDialog } from './ShareDialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
+import  cn  from 'classnames';
 
-import process from 'process';
 
-const Navbar = ({
-  chatId,
-  messages,
-  userEmail = 'user@example.com',
-}: {
+interface NavbarProps {
   messages: Message[];
   chatId: string;
   userEmail?: string;
-}) => {
+}
+
+const Navbar = ({ chatId, messages, userEmail = 'user@example.com' }: NavbarProps) => {
   const router = useRouter();
   const [title, setTitle] = useState<string>('');
   const [timeAgo, setTimeAgo] = useState<string>('');
   const [isMobile, setIsMobile] = useState(false);
-  
-  // const BookmarkButton = () => {
-    const handleClick = async () => {
-      try {
-        const params = new URLSearchParams();
-        params.set('chat_id', chatId);
-        const token = localStorage.getItem('auth_token'); 
-        const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/star_chat?${params.toString()}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`, 
-          },
-        });
-      } catch (error) {
-        console.error("Error adding bookmark:", error);
-      }
-    };
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+    toast.success(isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks');
+  };
 
   useEffect(() => {
     // Check if window is available (client-side)
@@ -102,22 +94,53 @@ const Navbar = ({
           {/* Right side - Actions */}
           <div className="flex items-center min-w-[80px] sm:w-[200px] justify-end">
             <div className="flex space-x-0.5 sm:-space-x-1">
-              <button className="hidden sm:flex p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
+              <button 
+                className="hidden sm:flex p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors"
+                onClick={() => setShareDialogOpen(true)}
+              >
                 <Share2 size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
-              <button className="hidden sm:flex p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors"
-                onClick={handleClick}
+              <button 
+                className={cn(
+                  "hidden sm:flex p-1.5 sm:p-2 rounded-full transition-colors",
+                  isBookmarked 
+                    ? "text-emerald-400 hover:bg-emerald-400/10" 
+                    : "text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200"
+                )}
+                onClick={handleBookmark}
               >
                 <Bookmark size={16} className="sm:w-[18px] sm:h-[18px]" />
               </button>
-              <button className="p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
-                <MoreHorizontal size={14} className="sm:w-[18px] sm:h-[18px]" />
-              </button>
-              <DeleteChat redirect chatId={chatId} chats={[]} setChats={() => {}} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1.5 sm:p-2 text-black/70 dark:text-white/70 hover:bg-light-200 dark:hover:bg-dark-200 rounded-full transition-colors">
+                    <MoreHorizontal size={14} className="sm:w-[18px] sm:h-[18px]" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleBookmark}>
+                    <Bookmark className="mr-2 h-4 w-4" />
+                    {isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    Delete chat
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
       </div>
+      <ShareDialog 
+        open={shareDialogOpen} 
+        onOpenChange={setShareDialogOpen}
+        chatId={chatId}
+      />
     </div>
   );
 };

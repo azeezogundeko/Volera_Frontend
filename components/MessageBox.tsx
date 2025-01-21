@@ -80,7 +80,7 @@ useEffect(() => {
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          console.log(`Message ID visible: ${message.messageId}`); // Debug log
+          // console.log(`Message ID visible: ${message.messageId}`); // Debug log
           onVisibilityChange(message.messageId, true);
         }
       });
@@ -244,7 +244,7 @@ return (
 
       {/* Right Sidebar */}
       {images && images.length > 0 && (
-        <div className="hidden lg:block w-[320px] flex-shrink-0 fixed right-0 top-0 h-screen overflow-y-auto bg-light-50 dark:bg-dark-50 border-l border-light-200 dark:border-dark-200">
+        <div className="hidden lg:block w-[320px] flex-shrink-0 fixed right-0 top-0 h-screen overflow-y-auto bg-light-50 dark:bg-dark-50 border-l border-light-200 dark:border-dark-200 pt-16">
           <div className="p-4">
             <SearchImages
               images={images}

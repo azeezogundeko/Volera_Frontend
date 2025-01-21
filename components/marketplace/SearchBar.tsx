@@ -29,7 +29,7 @@ interface SearchBarProps {
   initialQuery?: string;
 }
 
-const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, initialQuery = '' }: SearchBarProps) => {
+const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }: SearchBarProps) => {
   const [query, setQuery] = useState(initialQuery);
   const [isActive, setIsActive] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -39,6 +39,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
   const [isListening, setIsListening] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const websites = [
@@ -74,6 +75,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
       if (file.type.startsWith('image/')) {
         setSelectedImage(file);
         setShowImagePreview(true);
+        setUploadedImages([...uploadedImages, file]);
         onImageSearch(file);
       } else {
         setError('Please select an image file');
@@ -86,6 +88,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
   };
 
   const removeImage = () => {
+    setUploadedImages(prevImages => prevImages.filter(image => image !== selectedImage)); // Remove the selected image from the uploadedImages array
     setSelectedImage(null);
     setShowImagePreview(false);
     if (fileInputRef.current) {
@@ -97,7 +100,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
     if ('webkitSpeechRecognition' in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true; // Enable interim results
 
       recognition.onstart = () => {
         setIsListening(true);
@@ -105,7 +108,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        setQuery(transcript);
+        setQuery(transcript); // Update query with interim results
       };
 
       recognition.onerror = (event: any) => {
@@ -154,15 +157,21 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
     }
 
     try {
-      const params = new URLSearchParams({
-        query: query,
-        site: selectedWebsite,
-        max_results: '5',
-        page: '1',
-        limit: '50'
+      const formData = new FormData();
+      formData.append('query', query);
+      formData.append('site', selectedWebsite);
+      formData.append('max_results', '5');
+      formData.append('page', '1');
+      formData.append('limit', '50');
+      console.log('Uploaded Images:', uploadedImages);
+      uploadedImages.forEach(image => {
+        formData.append('images', image);
       });
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/search?${params.toString()}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/search`, {
+        method: 'POST',
+        body: formData,
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch search results');
@@ -174,7 +183,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, onFilterChange, ini
       setError(err instanceof Error ? err.message : 'An error occurred while searching');
       console.error('Search error:', err);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 

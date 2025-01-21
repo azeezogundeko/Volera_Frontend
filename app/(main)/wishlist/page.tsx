@@ -6,6 +6,7 @@ import { Heart, MessageSquare, Trash2, Calendar, ExternalLink } from 'lucide-rea
 import ProductCard from '@/components/marketplace/ProductCard';
 import Link from 'next/link';
 import process from 'process';
+import LoadingPage from '@/components/LoadingPage';
 
 interface SavedProduct {
   product_id: string;
@@ -34,11 +35,14 @@ interface SavedChat {
 export default function WishlistPage() {
   const [savedProducts, setSavedProducts] = useState<SavedProduct[]>([]);
   const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const params = new URLSearchParams();
         params.set('limit', '10');
         let token;
@@ -63,12 +67,16 @@ export default function WishlistPage() {
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
-        setIsLoaded(true);
+        setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
+
+  if (!mounted || isLoading) {
+    return <LoadingPage />;
+  }
 
   const removeProduct = async (productId: string) => {
     let token;
@@ -121,14 +129,6 @@ export default function WishlistPage() {
       console.error('Error removing chat:', error);
     }
   };
-
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">

@@ -18,6 +18,7 @@ interface MessageInputProps {
   setFileIds: (fileIds: string[]) => void;
   files: File[];
   setFiles: (files: File[]) => void;
+  isError?: boolean;
 }
 
 const MessageInput = ({
@@ -27,6 +28,7 @@ const MessageInput = ({
   setFileIds,
   files,
   setFiles,
+  isError = false,
 }: MessageInputProps) => {
   const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
@@ -88,12 +90,12 @@ const MessageInput = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey && !loading) {
+            if (e.key === 'Enter' && !e.shiftKey && !loading && !isError) {
               e.preventDefault();
               handleSubmit();
             }
           }}
-          placeholder="Type your message..."
+          placeholder={isError ? "Please try again..." : "Type your message..."}
           rows={1}
           className={cn(
             "w-full resize-none bg-white dark:bg-[#1a1a1a]",
@@ -104,12 +106,12 @@ const MessageInput = ({
             "disabled:opacity-50 disabled:cursor-not-allowed",
             "transition-all duration-200"
           )}
-          disabled={loading}
+          disabled={loading || isError}
         />
         <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1 sm:space-x-2">
           <button
             onClick={handleSubmit}
-            disabled={!message.trim() || loading}
+            disabled={!message.trim() || loading || isError}
             className={cn(
               "p-1.5 sm:p-2 rounded-lg",
               "bg-emerald-500 hover:bg-emerald-600",

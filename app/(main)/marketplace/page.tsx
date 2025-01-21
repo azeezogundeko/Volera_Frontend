@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import SearchBar from '@/components/marketplace/SearchBar';
 import ProductCard from '@/components/marketplace/ProductCard';
-import { Store, Zap, Tag, TrendingUp, Star, Clock, Flame } from 'lucide-react';
+import { Store, Zap, Tag, TrendingUp, Star, Clock, Flame, MessageCircle, XCircle } from 'lucide-react';
 
 interface ProductResponse {
   name: string;
@@ -22,14 +22,8 @@ interface ProductResponse {
 }
 
 const MarketplacePage = () => {
-  const [products, setProducts] = useState<ProductResponse[]>(() => {
-    // Try to get cached results on initial load
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem('searchResults');
-      return cached ? JSON.parse(cached) : [];
-    }
-    return [];
-  });
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState<string>(() => {
@@ -39,13 +33,19 @@ const MarketplacePage = () => {
     return '';
   });
   const [clearToggle, setClearToggle] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useState({});
+  const [notificationVisible, setNotificationVisible] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem('searchResults');
-      if (cached) {
-        setProducts(JSON.parse(cached));
-      }
+    setMounted(true);
+    // Try to get cached results after mount
+    const cached = localStorage.getItem('searchResults');
+    if (cached) {
+      setProducts(JSON.parse(cached));
     }
   }, []);
 
@@ -61,8 +61,28 @@ const MarketplacePage = () => {
     console.log('Products updated:', products); // Log products state whenever it changes
   }, [products]);
 
+  useEffect(() => {
+    console.log('Products updated:', products); // Log products state whenever it changes
+  }, [products]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNotificationVisible(false);
+    }, 5000); // Notification will disappear after 5 seconds
+
+    return () => clearTimeout(timer); // Cleanup the timer on component unmount
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(prefersDarkMode);
+    }
+  }, []);
+
   const handleSearchStart = (query: string) => {
     setIsSearching(true);
+    setSearchError(null);
     setProducts([]);
     if (typeof window !== 'undefined') {
       setLastSearchQuery(query);
@@ -70,55 +90,82 @@ const MarketplacePage = () => {
     }
   };
 
-  const handleSearchComplete = (searchResults: ProductResponse[]) => {
-    setProducts(searchResults);
-    setIsSearching(false);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('searchResults', JSON.stringify(searchResults));
+  const handleSearchComplete = (products: ProductResponse[] | null, error?: string): void => {
+    if (error) {
+      setSearchError(error);
+      setProducts([]);
+    } else if (products) {
+      localStorage.setItem('searchResults', JSON.stringify(products));
+      setProducts(products);
     }
+    setIsSearching(false);
   };
 
+  // const handleSearch = async () => {
+  //   const params = searchParams;
+  //   try {
+  //     const response = await fetch('/api/products', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(params),
+  //     });
+  //     const data = await response.json();
+  //     setProducts(data);
+  //     setIsSearching(false);
+  //     if (typeof window !== 'undefined') {
+  //       localStorage.setItem('searchResults', JSON.stringify(data));
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error);
+  //   }
+  // };
+
   const clearSearchResults = () => {
-  console.log('Before clearing:', products); 
-  console.log('Local Storage before clearing:', localStorage.getItem('searchResults')); 
+    console.log('Before clearing:', products); 
+    console.log('Local Storage before clearing:', localStorage.getItem('searchResults')); 
   
-  setProducts([]); // Clear products
-  if (typeof window !== 'undefined') {
-    setLastSearchQuery('');
-    localStorage.removeItem('searchResults');
-    localStorage.removeItem('lastSearchQuery');
-    localStorage.removeItem('savedProducts');
-  }
-  
-  setClearToggle(prev => !prev); // Trigger re-render
+    setProducts([]); // Clear products
+    if (typeof window !== 'undefined') {
+      setLastSearchQuery('');
+      localStorage.removeItem('searchResults');
+      localStorage.removeItem('lastSearchQuery');
+      localStorage.removeItem('savedProducts');
+    }
+    
+    setClearToggle(prev => !prev); // Trigger re-render
 
-  console.log('After clearing:', products); 
-  console.log('Local Storage after clearing:', localStorage.getItem('searchResults')); 
-};
+    console.log('After clearing:', products); 
+    console.log('Local Storage after clearing:', localStorage.getItem('searchResults')); 
+  };
 
-// Debug state updates with useEffect
-useEffect(() => {
-    console.log('Products updated:', products);
-}, [products]);
 
-useEffect(() => {
-    console.log('Clear toggle updated:', clearToggle);
-}, [clearToggle]);
+  const handleScroll = () => {
+    if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loading) {
+      return;
+    }
+    setPage(prev => prev + 1);
+  };
 
-useEffect(() => {
-  console.log('Rendering products:', products);
-}, [products]);
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [loading]);
 
   const handleImageSearch = (file: File) => {
     console.log('Image search with:', file);
   };
 
-  const handleFilterChange = (filters: any) => {
-    console.log('Filters changed:', filters);
-  };
+  // const handleFilterChange = (filters: any) => {
+  //   console.log('Filters changed:', filters);
+  //   setSearchParams(filters);
+  //   handleSearch();
+  // };
 
-  // Function to render a section of products
-  const renderProductSection = (title: string, icon: React.ReactNode, products: any[], subtitle?: string) => (
+  const renderProductSection = (title: string, icon: React.ReactNode, products: any[], subtitle?: string) => mounted && (
     <section className="mb-12">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -143,6 +190,10 @@ useEffect(() => {
     </section>
   );
 
+  if (!mounted) {
+    return null; // or a loading skeleton
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111]">
       <div className="max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -157,7 +208,7 @@ useEffect(() => {
                 </h1>
                 <div className="px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                   <span className="text-xs sm:text-sm text-emerald-500">
-                    {products.length.toLocaleString()} products
+                    {mounted ? `${products.length.toLocaleString()} products` : ''}
                   </span>
                 </div>
               </div>
@@ -167,49 +218,51 @@ useEffect(() => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 sm:flex items-center gap-3 sm:gap-6 mt-4 sm:mt-0">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-                </div>
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white/90">
-                    5+ Stores
+            {mounted && (
+              <div className="grid grid-cols-3 sm:flex items-center gap-3 sm:gap-6 mt-4 sm:mt-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-500 dark:text-white/50">
-                    Best prices
+                  <div>
+                    <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white/90">
+                      5+ Stores
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-white/50">
+                      Best prices
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500" />
-                </div>
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white/90">
-                    AI-Powered
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500" />
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-500 dark:text-white/50">
-                    Smart search
+                  <div>
+                    <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white/90">
+                      AI-Powered
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-white/50">
+                      Smart search
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                  <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500" />
-                </div>
-                <div>
-                  <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white/90">
-                    Best Deals
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                    <Tag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500" />
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-500 dark:text-white/50">
-                    Daily updates
+                  <div>
+                    <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white/90">
+                      Best Deals
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-white/50">
+                      Daily updates
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Search Section */}
@@ -217,15 +270,27 @@ useEffect(() => {
             {/* Content */}
             <div className="relative py-3">
               <div className="flex flex-col flex-1 gap-6">
+                {notificationVisible && (
+                  <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 shadow-sm transition-all">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-shrink-0">
+                        <MessageCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
+                        For state-of-the-art product search, try the Product Hunt Agent on chat assistant.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 <SearchBar 
                   onSearch={handleSearchComplete}
                   onSearchStart={handleSearchStart}
                   onImageSearch={handleImageSearch}
-                  onFilterChange={handleFilterChange}
                   initialQuery={lastSearchQuery}
                 />
                 
-                {lastSearchQuery && products.length > 0 && (
+                {mounted && lastSearchQuery && products.length > 0 && (
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-sm text-gray-600">
                       Showing results for "{lastSearchQuery}"
@@ -241,10 +306,26 @@ useEffect(() => {
 
                 {isSearching ? (
                   <div className="flex flex-col justify-center items-center h-64 space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 dark:border-emerald-400"></div>
                     <div className="text-center space-y-2">
-                      <p className="text-lg font-medium text-gray-900">Searching across multiple stores...</p>
-                      <p className="text-sm text-gray-500">This might take a moment as we gather results from various sources</p>
+                      <p className="text-lg font-medium text-gray-900 dark:text-white/90">Searching across multiple stores...</p>
+                      <p className="text-sm text-gray-500 dark:text-white/50">This might take a moment as we gather results from various sources</p>
+                    </div>
+                  </div>
+                ) : searchError ? (
+                  <div className="flex flex-col justify-center items-center h-64 space-y-4">
+                    <div className="rounded-full h-12 w-12 bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                      <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-medium text-gray-900 dark:text-white/90">Search Error</p>
+                      <p className="text-sm text-gray-500 dark:text-white/50">{searchError}</p>
+                      <button
+                        onClick={() => setSearchError(null)}
+                        className="mt-4 text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
+                      >
+                        Try Again
+                      </button>
                     </div>
                   </div>
                 ) : isLoading ? (
@@ -256,7 +337,7 @@ useEffect(() => {
                     {products
                       .filter(product => product.current_price > 0)
                       .map((product, index) => (
-                      <ProductCard key={`${product.product_id}-${index}`} product={product} />
+                      <ProductCard key={`${product.product_id}`} product={product} />
                     ))}
                   </div>
                 ) : (
@@ -265,45 +346,13 @@ useEffect(() => {
                     <p className="text-sm">Try adjusting your search or filters</p>
                   </div>
                 )}
+                {/* {loading && <div>Loading...</div>} */}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        {/* <div className="space-y-12"> */}
-          {/* Trending Now */}
-          {/* {renderProductSection( */}
-            {/* 'Trending Now', */}
-            {/* <TrendingUp className="w-6 h-6 text-orange-500" />, */}
-            {/* products, */}
-            {/* 'Most popular products this week' */}
-          {/* )} */}
-
-          {/* Recommended for You */}
-          {/* {renderProductSection( */}
-            {/* 'Recommended for You', */}
-            {/* <Star className="w-6 h-6 text-purple-500" />,
-            products,
-            'Based on your preferences'
-          )} */}
-
-          {/* New Arrivals */}
-          {/* {renderProductSection( */}
-            {/* 'New Arrivals',
-            <Clock className="w-6 h-6 text-blue-500" />,
-            products,
-            'Latest products added to our marketplace'
-          )} */}
-
-          {/* Best Deals */}
-          {/* {renderProductSection(
-            'Best Deals',
-            <Flame className="w-6 h-6 text-red-500" />,
-            products,
-            'Greatest savings across all stores'
-          )} */}
-        {/* </div> */}
+        {/* Main Content*/}
       </div>
     </div>
   );

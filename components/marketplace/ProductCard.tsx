@@ -119,7 +119,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <div className="flex items-center gap-2">
               {product.relevance_score !== undefined && (
                 <span className="text-xs text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 dark:text-indigo-400 px-2 py-1 rounded">
-                  Relevance: {product.relevance_score.toFixed(4)}
+                  Relevance: {((product.relevance_score * 100).toFixed(2)) + "%"}
                 </span>
               )}
               {product.discount > 0 && (

@@ -21,6 +21,7 @@ export default function Chat({
   setFileIds,
   files,
   setFiles,
+  isError,
 }: {
   messages: Message[];
   sendMessage: (message: string) => void;
@@ -29,7 +30,7 @@ export default function Chat({
   searchProgress: {
     websitesSearched: number;
     websitesScraped: number;
-    status: 'searching' | 'scraping' | 'compiling' | null;
+    status: 'searching' | 'scraping' | 'compiling' | 'error' | null;
   };
   searchStatusMessage: string;
   rewrite: (messageId: string) => void;
@@ -37,9 +38,11 @@ export default function Chat({
   setFileIds: (fileIds: string[]) => void;
   files: File[];
   setFiles: (files: File[]) => void;
+  isError?: boolean;
 }) {
   const [dividerWidth, setDividerWidth] = useState(0);
   const [visibleMessageId, setVisibleMessageId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const messageEnd = useRef<HTMLDivElement | null>(null);
 
@@ -74,6 +77,10 @@ export default function Chat({
       document.title = `${messages[0].content.substring(0, 30)} - Volera`;
     }
   }, [messages]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
@@ -116,40 +123,54 @@ export default function Chat({
           );
         })}
         {loading && !messageAppeared && (
-          <div className="flex flex-col space-y-4 mb-4 sm:mb-6 max-w-3xl mx-auto">
+          <div className="flex flex-col space-y-2 mb-4 sm:mb-6 max-w-3xl mx-auto">
             <div className="flex items-start space-x-3 sm:space-x-4">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 animate-pulse flex items-center justify-center">
                 <Bot size={16} className="text-white" />
               </div>
               <div className="flex-1">
                 <div className="flex flex-col">
-                  <h3 className="text-white font-medium text-lg sm:text-xl mb-1">
-                    Response
-                  </h3>
-                  <p className="text-xs sm:text-sm text-white/60 mb-3">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-white/60 mb-2">
                     {searchStatusMessage}
                   </p>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2 -ml-11 pt-4">
                   {searchProgress.status === 'searching' && (
-                    <div className="w-full bg-[#222222] rounded-full h-1.5">
+                    <div className="max-w-md w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
                       <div 
-                        className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" 
+                        className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
                         style={{ width: `${Math.min((searchProgress.websitesSearched / 10) * 100, 100)}%` }}
                       />
                     </div>
                   )}
                   {searchProgress.status === 'scraping' && (
-                    <div className="w-full bg-[#222222] rounded-full h-1.5">
+                    <div className="max-w-md w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
                       <div 
-                        className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" 
+                        className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
                         style={{ width: `${Math.min((searchProgress.websitesScraped / 5) * 100, 100)}%` }}
                       />
                     </div>
                   )}
                   {searchProgress.status === 'compiling' && (
                     <div className="flex items-center justify-center py-2">
-                      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-8 h-8 border-4 border-emerald-400 dark:border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  {searchProgress.status === 'error' && (
+                    <div className="flex flex-col items-start space-y-2 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-lg p-3">
+                      <p className="text-sm text-red-600 dark:text-red-400">There was an error generating a response</p>
+                      <p className="text-xs text-red-500 dark:text-red-400/80">
+                        If this issue persists please contact us through our help center at{' '}
+                        <a href="mailto:help@volera.com" className="underline hover:text-red-700 dark:hover:text-red-300">
+                          help@volera.com
+                        </a>
+                      </p>
+                      <button 
+                        onClick={() => window.location.reload()}
+                        className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center space-x-1 bg-red-100 dark:bg-red-900/30 px-3 py-1.5 rounded-md"
+                      >
+                        Regenerate response
+                      </button>
                     </div>
                   )}
                 </div>
@@ -170,6 +191,7 @@ export default function Chat({
             setFileIds={setFileIds}
             files={files}
             setFiles={setFiles}
+            isError={isError}
           />
         </div>
       </div>

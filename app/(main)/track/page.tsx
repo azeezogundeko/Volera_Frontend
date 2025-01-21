@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import AddItemModal from '@/components/AddItemModal';
 import { getAllTrackedItems } from '@/lib/api';
+import LoadingPage from '@/components/LoadingPage';
 
 interface TrackedItem {
   id: string;
@@ -97,10 +98,12 @@ const MobileItemCard = ({ item, onToggleNotifications, onRemove }: {
 const Page = () => {
   const [trackedItems, setTrackedItems] = useState<TrackedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleSidebarChange = (e: CustomEvent) => {
       setIsSidebarExpanded(e.detail.expanded);
     };
@@ -111,7 +114,7 @@ const Page = () => {
     };
   }, []);
 
-  // Simulate fetching tracked items
+  // Fetch tracked items
   useEffect(() => {
     const fetchTrackedItems = async () => {
       try {
@@ -128,6 +131,10 @@ const Page = () => {
 
     fetchTrackedItems();
   }, []);
+
+  if (!mounted || loading) {
+    return <LoadingPage />;
+  }
 
   const removeItem = async (id: string) => {
     try {
@@ -155,14 +162,6 @@ const Page = () => {
       toast.error('Failed to update notification settings');
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111]">
