@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { BarChart3, ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, BarChart4, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -324,6 +325,106 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {/* Testimonials Section */}
+      <div className="relative bg-[#0a0a0a] py-16 md:py-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              Community Love
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              What People Are Saying
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Join thousands of satisfied users who transformed their shopping experience
+            </p>
+          </div>
+
+          {/* Auto-scrolling Cards Container */}
+          <div className="relative overflow-hidden">
+            <motion.div 
+              className="flex gap-6 md:gap-8"
+              animate={{
+                x: ["0%", "-50%"],
+              }}
+              transition={{
+                x: {
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear",
+                },
+              }}
+            >
+              {/* First set of cards */}
+              {[1, 2, 3, 4, 5].map((item) => (
+                <div 
+                  key={item}
+                  className="flex-shrink-0 w-[320px] md:w-[400px] bg-[#111111] border border-white/5 rounded-2xl p-6 group hover:border-emerald-500/20 transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                        <span className="text-emerald-400 font-bold">
+                          {['A', 'B', 'C', 'D', 'E'][item-1]}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium">User {item}</h4>
+                        <p className="text-sm text-gray-400">Verified Buyer</p>
+                      </div>
+                    </div>
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <p className="text-gray-300 mb-4">
+                    "Volera completely transformed how I shop online. The AI recommendations
+                    are scarily accurate and saved me hours of research!"
+                  </p>
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-sm">Saved $420 last month</span>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Duplicate set for seamless loop */}
+              {[1, 2, 3, 4, 5].map((item) => (
+                <div 
+                  key={`duplicate-${item}`}
+                  className="flex-shrink-0 w-[320px] md:w-[400px] bg-[#111111] border border-white/5 rounded-2xl p-6 group hover:border-emerald-500/20 transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                        <span className="text-emerald-400 font-bold">
+                          {['A', 'B', 'C', 'D', 'E'][item-1]}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium">User {item}</h4>
+                        <p className="text-sm text-gray-400">Verified Buyer</p>
+                      </div>
+                    </div>
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <p className="text-gray-300 mb-4">
+                    "Volera completely transformed how I shop online. The AI recommendations
+                    are scarily accurate and saved me hours of research!"
+                  </p>
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-sm">Saved $420 last month</span>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Gradient Overlays */}
+          <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent z-20 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent z-20 pointer-events-none" />
+        </div>
+      </div>
 
       {/* CTA Section */}
       <div className="relative bg-[#0c0c0c] py-16 md:py-24 border-t border-white/5">
@@ -333,7 +434,7 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
                 Ready to Transform Your Shopping Experience?
               </h2>
-              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              <p className="text-xl text-gray-300 mb-8 max-w-2xl">
                 Join thousands of smart shoppers making better decisions with Volera's AI-powered platform
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -365,57 +466,48 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-[#0a0a0a] border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-4">Product</h3>
-              <ul className="space-y-3">
-                <li><Link href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">Features</Link></li>
-                <li><Link href="#pricing" className="text-sm text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="#integrations" className="text-sm text-gray-400 hover:text-white transition-colors">Integrations</Link></li>
-                <li><Link href="#changelog" className="text-sm text-gray-400 hover:text-white transition-colors">Changelog</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-4">Company</h3>
-              <ul className="space-y-3">
-                <li><Link href="/about" className="text-sm text-gray-400 hover:text-white transition-colors">About</Link></li>
-                <li><Link href="/blog" className="text-sm text-gray-400 hover:text-white transition-colors">Blog</Link></li>
-                <li><Link href="/careers" className="text-sm text-gray-400 hover:text-white transition-colors">Careers</Link></li>
-                <li><Link href="/contact" className="text-sm text-gray-400 hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-4">Resources</h3>
-              <ul className="space-y-3">
-                <li><Link href="/docs" className="text-sm text-gray-400 hover:text-white transition-colors">Documentation</Link></li>
-                <li><Link href="/api" className="text-sm text-gray-400 hover:text-white transition-colors">API Reference</Link></li>
-                <li><Link href="/guides" className="text-sm text-gray-400 hover:text-white transition-colors">Guides</Link></li>
-                <li><Link href="/support" className="text-sm text-gray-400 hover:text-white transition-colors">Support</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-4">Legal</h3>
-              <ul className="space-y-3">
-                <li><Link href="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-sm text-gray-400 hover:text-white transition-colors">Terms of Service</Link></li>
-                <li><Link href="/cookies" className="text-sm text-gray-400 hover:text-white transition-colors">Cookie Policy</Link></li>
-                <li><Link href="/security" className="text-sm text-gray-400 hover:text-white transition-colors">Security</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/5">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+          {/* Branding Section */}
+          <div className="space-y-4 max-w-sm">
+              <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
                 <span className="text-white font-bold">V</span>
               </div>
               <span className="text-xl font-bold">Volera</span>
             </div>
             <p className="text-sm text-gray-400">
-              &copy; {new Date().getFullYear()} Volera. All rights reserved.
+              AI-powered shopping assistant helping you make smarter purchase decisions.
             </p>
           </div>
+
+          {/* Horizontal Links */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-white mb-2">Resources</h3>
+            <div className="flex flex-row gap-6 flex-wrap">
+              <Link href="/terms" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Terms
+                </Link>
+              <Link href="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Privacy
+              </Link>
+              <Link href="/contact" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Support
+              </Link>
+              <Link href="/docs" className="text-sm text-gray-400 hover:text-white transition-colors">
+                Docs
+              </Link>
+            </div>
+          </div>
         </div>
+
+        {/* Copyright */}
+        <div className="mt-12 pt-8 border-t border-white/5">
+          <p className="text-sm text-gray-400 text-center">
+            &copy; {new Date().getFullYear()} Volera. All rights reserved.
+          </p>
+        </div>
+      </div>
       </footer>
     </div>
   );
