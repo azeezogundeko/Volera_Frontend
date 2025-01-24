@@ -238,7 +238,14 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
 };
 
 const Sidebar = ({ children }: { children: React.ReactNode }) => {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      const savedState = localStorage.getItem('sidebar-expanded');
+      return savedState ? savedState === 'true' : true;
+    }
+    return true;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -249,49 +256,41 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   // Store current path to detect actual route changes
   const [currentPath, setCurrentPath] = useState('');
 
-  // Debug logging for state changes
+  // Persist sidebar state to localStorage
   useEffect(() => {
-    console.log('Mobile menu state changed:', isMobileMenuOpen);
-  }, [isMobileMenuOpen]);
+    localStorage.setItem('sidebar-expanded', expanded.toString());
+  }, [expanded]);
 
   // Close mobile menu only on actual route changes
   useEffect(() => {
     const pathname = window.location.pathname;
     if (currentPath && pathname !== currentPath) {
-      console.log('Actual route change detected:', pathname);
       setIsMobileMenuOpen(false);
     }
     setCurrentPath(pathname);
   }, [segments, currentPath]);
 
-  // Handle expanded state based on screen size and mobile menu
+  // Handle mobile menu on resize
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      console.log('Window resized:', width);
       if (width >= 1024) { // lg breakpoint
-        setExpanded(true);
-        if (isMobileMenuOpen) {
-          setIsMobileMenuOpen(false); // Close mobile menu on desktop
-          console.log('Desktop breakpoint reached, closing mobile menu');
-        }
+        setIsMobileMenuOpen(false); // Always close mobile menu on desktop
       }
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Initial check
-
     return () => window.removeEventListener('resize', handleResize);
-  }, [isMobileMenuOpen]);
+  }, []);
+
+  const toggleExpanded = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setExpanded(prev => !prev);
+  }, []);
 
   const toggleMobileMenu = useCallback((e: React.MouseEvent) => {
-    console.log('Toggle mobile menu clicked');
-    e.preventDefault();
     e.stopPropagation();
-    setIsMobileMenuOpen(prev => {
-      console.log('Setting mobile menu to:', !prev);
-      return !prev;
-    });
+    setIsMobileMenuOpen(prev => !prev);
   }, []);
 
   const isProUser = typeof window !== 'undefined' && localStorage.getItem('userStatus') === 'true';
@@ -396,7 +395,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           </span>
         )}
         <button
-          onClick={toggleMobileMenu}
+          onClick={toggleExpanded} // Changed to toggleExpanded
           className="absolute right-4 p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 lg:block hidden"
         >
           {expanded ? (

@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import SearchBar from '@/components/marketplace/SearchBar';
 import ProductCard from '@/components/marketplace/ProductCard';
-import { Store, Zap, Tag, TrendingUp, Star, Clock, Flame, MessageCircle, XCircle } from 'lucide-react';
+import { MarketplaceSidebar } from '@/components/marketplace/rightSidebar';
+import { Store, Zap, Tag, TrendingUp, Star, Clock, Flame, MessageCircle, XCircle, Filter } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface ProductResponse {
   name: string;
@@ -21,7 +23,7 @@ interface ProductResponse {
   source: string;
 }
 
-const MarketplacePage = () => {
+export default function MarketplacePage() {
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +34,7 @@ const MarketplacePage = () => {
     }
     return '';
   });
+  const [filters, setFilters] = useState<Record<string, any>>({});
   const [clearToggle, setClearToggle] = useState(false);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -39,6 +42,7 @@ const MarketplacePage = () => {
   const [notificationVisible, setNotificationVisible] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -101,26 +105,23 @@ const MarketplacePage = () => {
     setIsSearching(false);
   };
 
-  // const handleSearch = async () => {
-  //   const params = searchParams;
-  //   try {
-  //     const response = await fetch('/api/products', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify(params),
-  //     });
-  //     const data = await response.json();
-  //     setProducts(data);
-  //     setIsSearching(false);
-  //     if (typeof window !== 'undefined') {
-  //       localStorage.setItem('searchResults', JSON.stringify(data));
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error);
-  //   }
-  // };
+  const handleFiltersUpdate = (newFilters: Record<string, any>) => {
+    setFilters(newFilters);
+    setIsMobileFiltersOpen(false);
+    // Apply filters to current products
+    let filteredProducts = [...products];
+    
+    if (newFilters.maxPrice) {
+      filteredProducts = filteredProducts.filter(p => p.current_price <= newFilters.maxPrice);
+    }
+    
+    if (newFilters.minRating) {
+      filteredProducts = filteredProducts.filter(p => p.rating >= newFilters.minRating);
+    }
+    
+    // Update products with filtered results
+    setProducts(filteredProducts);
+  };
 
   const clearSearchResults = () => {
     console.log('Before clearing:', products); 
@@ -140,7 +141,6 @@ const MarketplacePage = () => {
     console.log('Local Storage after clearing:', localStorage.getItem('searchResults')); 
   };
 
-
   const handleScroll = () => {
     if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loading) {
       return;
@@ -158,12 +158,6 @@ const MarketplacePage = () => {
   const handleImageSearch = (file: File) => {
     console.log('Image search with:', file);
   };
-
-  // const handleFilterChange = (filters: any) => {
-  //   console.log('Filters changed:', filters);
-  //   setSearchParams(filters);
-  //   handleSearch();
-  // };
 
   const renderProductSection = (title: string, icon: React.ReactNode, products: any[], subtitle?: string) => mounted && (
     <section className="mb-12">
@@ -195,8 +189,8 @@ const MarketplacePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#111111]">
-      <div className="max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <div className="min-h-screen bg-white dark:bg-[#111111] relative">
+      <div className="max-w-full w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:pr-[350px] transition-all duration-300">
         {/* Header */}
         <div className="flex flex-col gap-6 sm:gap-8 mb-8 sm:mb-12">
           {/* Title Section */}
@@ -354,8 +348,57 @@ const MarketplacePage = () => {
 
         {/* Main Content*/}
       </div>
+      
+      {/* Right Sidebar - Only visible on lg screens and above */}
+      <div className="hidden lg:block">
+        <MarketplaceSidebar 
+          onFiltersUpdate={handleFiltersUpdate}
+          currentFilters={filters}
+        />
+      </div>
+
+      {/* Mobile Filter Button - Only visible below lg screens */}
+      {mounted && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 flex justify-end bg-gradient-to-t from-black/10 to-transparent pointer-events-none">
+          <button
+            onClick={() => setIsMobileFiltersOpen(true)}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full p-3 shadow-lg transition-transform hover:scale-105 active:scale-95 pointer-events-auto"
+            aria-label="Open filters"
+          >
+            <Filter className="w-6 h-6" />
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Filters Dialog - Only visible below lg screens */}
+      <AnimatePresence>
+        {mounted && isMobileFiltersOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+              onClick={() => setIsMobileFiltersOpen(false)}
+            />
+            
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 20 }}
+              className="fixed inset-y-0 right-0 w-[350px] z-50 lg:hidden"
+            >
+              <MarketplaceSidebar 
+                onFiltersUpdate={handleFiltersUpdate}
+                currentFilters={filters}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
-
-export default MarketplacePage;
