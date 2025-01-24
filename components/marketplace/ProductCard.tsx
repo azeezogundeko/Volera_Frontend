@@ -103,11 +103,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {product.currency} {product.current_price.toFixed(2)}
+              {product.currency} {new Intl.NumberFormat().format(product.current_price)}
             </span>
             {product.discount > 0 && (
               <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
-                {product.currency} {product.original_price.toFixed(2)}
+                {product.currency} {new Intl.NumberFormat().format(product.original_price)}
               </span>
             )}
           </div>

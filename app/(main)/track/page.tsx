@@ -9,13 +9,27 @@ import AddItemModal from '@/components/AddItemModal';
 import { getAllTrackedItems } from '@/lib/api';
 import LoadingPage from '@/components/LoadingPage';
 
+interface ProductResponse {
+  name: string;
+  current_price: number;
+  original_price: number;
+  brand: string;
+  discount: number;
+  rating: number;
+  reviews_count: number;
+  product_id: string;
+  image: string;
+  relevance_score: number;
+  url: string;
+  currency: string;
+  source: string;
+}
+
 interface TrackedItem {
   id: string;
-  title: string;
-  currentPrice: number;
   targetPrice: number;
-  image: string;
-  url: string;
+  currentPrice: number;
+  product: ProductResponse;
   dateAdded: string;
   notificationsEnabled: boolean;
 }
@@ -31,7 +45,7 @@ const MobileItemCard = ({ item, onToggleNotifications, onRemove }: {
       <div className="flex items-start justify-between gap-4 mb-3">
         <Link href={`/track/${item.id}`} className="flex-1 min-w-0">
           <h3 className="text-sm font-medium text-gray-900 dark:text-white/90 truncate">
-            {item.title}
+            {item.product.name}
           </h3>
         </Link>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -63,11 +77,11 @@ const MobileItemCard = ({ item, onToggleNotifications, onRemove }: {
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-gray-50 dark:bg-white/5 rounded-lg p-2">
           <div className="text-xs text-gray-500 dark:text-white/50 mb-1">Current Price</div>
-          <div className="text-sm font-medium text-gray-900 dark:text-white/90">${item.currentPrice}</div>
+          <div className="text-sm font-medium text-gray-900 dark:text-white/90">{item.product.currency}{item.currentPrice}</div>
         </div>
         <div className="bg-gray-50 dark:bg-white/5 rounded-lg p-2">
           <div className="text-xs text-gray-500 dark:text-white/50 mb-1">Target Price</div>
-          <div className="text-sm font-medium text-emerald-500">${item.targetPrice}</div>
+          <div className="text-sm font-medium text-emerald-500">{item.product.currency}{item.targetPrice}</div>
         </div>
       </div>
 
@@ -75,19 +89,19 @@ const MobileItemCard = ({ item, onToggleNotifications, onRemove }: {
       <div className={cn(
         "flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg",
         "bg-gray-50 dark:bg-white/5",
-        item.currentPrice > item.targetPrice
+        item.product.current_price > item.targetPrice
           ? "text-red-500"
           : "text-emerald-500"
       )}>
-        {item.currentPrice > item.targetPrice ? (
+        {item.product.current_price > item.targetPrice ? (
           <>
             <ArrowUp className="w-4 h-4 flex-shrink-0" />
-            <span className="text-xs">${(item.currentPrice - item.targetPrice).toFixed(2)} above target</span>
+            <span className="text-xs">{item.product.currency}{(item.currentPrice - item.targetPrice).toFixed(2)} above target</span>
           </>
         ) : (
           <>
             <ArrowDown className="w-4 h-4 flex-shrink-0" />
-            <span className="text-xs">${(item.targetPrice - item.currentPrice).toFixed(2)} below target</span>
+            <span className="text-xs">{item.product.currency}{item.product.currency}{(item.targetPrice - item.currentPrice).toFixed(2)} below target</span>
           </>
         )}
       </div>
@@ -272,18 +286,18 @@ const Page = () => {
                     <td className="px-4 py-4">
                       <Link href={`/track/${item.id}`} className="hover:opacity-80 transition-opacity">
                         <div className="text-sm font-medium text-gray-900 dark:text-white/90 truncate">
-                          {item.title}
+                          {item.product.name}
                         </div>
                       </Link>
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-sm text-gray-900 dark:text-white/90">
-                        ${item.currentPrice}
+                        {item.product.currency}{item.currentPrice}
                       </div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-sm text-emerald-500 font-medium">
-                        ${item.targetPrice}
+                      {item.product.currency}{item.targetPrice}
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -296,12 +310,12 @@ const Page = () => {
                         {item.currentPrice > item.targetPrice ? (
                           <>
                             <ArrowUp className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">${(item.currentPrice - item.targetPrice).toFixed(2)} above target</span>
+                            <span className="truncate">{item.product.currency}{(item.currentPrice - item.targetPrice).toFixed(2)} above target</span>
                           </>
                         ) : (
                           <>
                             <ArrowDown className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">${(item.targetPrice - item.currentPrice).toFixed(2)} below target</span>
+                            <span className="truncate">{item.product.currency}{(item.targetPrice - item.currentPrice).toFixed(2)} below target</span>
                           </>
                         )}
                       </div>

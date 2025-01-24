@@ -12,16 +12,29 @@ export interface Chat {
   timestamp: string;
 }
 
+interface ProductResponse {
+  name: string;
+  current_price: number;
+  original_price: number;
+  brand: string;
+  discount: number;
+  rating: number;
+  reviews_count: number;
+  product_id: string;
+  image: string;
+  relevance_score: number;
+  url: string;
+  currency: string;
+  source: string;
+}
+
 export interface TrackedItem {
   id: string;
-  title: string;
   currentPrice: number;
   targetPrice: number;
-  image: string;
-  url: string;
+  product: ProductResponse;
   dateAdded: string;
   notificationsEnabled: boolean;
-  priceChange?: number;
 }
 
 export interface TrendingProduct {

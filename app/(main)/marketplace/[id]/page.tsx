@@ -158,14 +158,22 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/track`, {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('auth_token');
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/track`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           productId: String(params.id),
           targetPrice: Number(targetPrice),
+          product: product
         }),
       });
 
@@ -209,6 +217,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       console.error('Error saving products:', error);
     }
   };
+
 
   if (!mounted || loading) {
     return <LoadingPage />;
@@ -321,12 +330,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               <div className="space-y-2">
                 <div className="flex flex-wrap items-baseline gap-2">
                   <span className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-                    ₦{product.current_price.toFixed(2)}
+                    ₦{new Intl.NumberFormat().format(product.current_price)}
                   </span>
                   {product.discount && product.discount > 0 && (
                     <>
                       <span className="text-base sm:text-lg text-gray-500 dark:text-gray-400 line-through">
-                        ₦{product.original_price?.toFixed(2)}
+                        ₦{product.original_price ? new Intl.NumberFormat().format(product.original_price) : 'N/A'}
                       </span>
                       <span className="text-sm font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900 px-2 py-1 rounded">
                         {product.discount}% OFF
@@ -367,16 +376,18 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                       <Heart className={isSaved ? 'fill-emerald-600 dark:fill-emerald-400' : ''} />
                       {isSaved ? 'Saved' : 'Save to Wishlist'}
                     </button>
-                    <button
-                      onClick={() => setShowTrackingModal(true)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-md transition-colors"
-                    >
-                      <Bell className="w-4 h-4" />
-                      Track Price
-                    </button>
+                      <button
+                        onClick={() => {
+                          setShowTrackingModal(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-md transition-colors"
+                      >
+                        <Bell className="w-4 h-4" />
+                        Track Price
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
               {/* Stock Information */}
               <div className="space-y-2">
@@ -502,8 +513,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                         id="targetPrice"
                         value={targetPrice}
                         onChange={(e) => {
-                          setTargetPrice(e.target.value);
-                          setTrackingError('');
+                          const value = e.target.value;
+                          // Allow user to decrease or clear the input
+                          if (value === '' || Number(value) <= product.current_price) {
+                            setTargetPrice(value);
+                          }
                         }}
                         className="block w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-emerald-500 dark:focus:border-emerald-400 bg-white dark:bg-dark-100 text-gray-900 dark:text-gray-100"
                         placeholder="Enter your target price"
