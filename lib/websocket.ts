@@ -1,8 +1,14 @@
 import { toast } from 'sonner';
 
 export interface WebSocketMessage {
+  message: any;
   type: 'FILTER_REQUEST' | 'FILTER_RESPONSE' | 'ERROR';
   data: any;
+}
+
+interface FilterResponse {
+  filters: Array<any>;
+  aiResponse: string;
 }
 
 class WebSocketService {
@@ -47,6 +53,7 @@ class WebSocketService {
 
     try {
       const wsUrl = this.getWebSocketURL();
+      console.log('Connecting to WebSocket:', wsUrl);
       this.ws = new WebSocket(wsUrl);
       
       return new Promise((resolve) => {
@@ -72,16 +79,47 @@ class WebSocketService {
 
         this.ws.onmessage = (event) => {
           try {
-            const message: WebSocketMessage = JSON.parse(event.data);
+            console.log('Raw WebSocket message received:', event.data);
+            let parsedData: any;
+            
+            try {
+              parsedData = JSON.parse(event.data);
+            } catch (parseError) {
+              console.error('Failed to parse WebSocket message:', parseError);
+              return;
+            }
+
+            // Ensure consistent message structure
+            const message: WebSocketMessage = {
+              type: parsedData.type || 'ERROR',
+              data: parsedData.data as FilterResponse,
+              message: undefined
+            };
+
+            // Validate response structure
+            if (message.type === 'FILTER_RESPONSE') {
+              const response = message.data;
+              if (!response.filters || !Array.isArray(response.filters)) {
+                console.error('Invalid filter response structure:', response);
+                message.type = 'ERROR';
+                message.data = { message: 'Invalid response format from server' };
+              }
+            }
+
+            console.log('Processed WebSocket message:', message);
             this.messageCallbacks.forEach(callback => callback(message));
           } catch (error) {
-            console.error('Failed to parse WebSocket message:', error);
+            console.error('Error processing WebSocket message:', error);
           }
         };
 
         this.ws.onclose = (event) => {
           this.connecting = false;
-          console.log('WebSocket Disconnected');
+          console.log('WebSocket Disconnected:', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          });
           
           if (event.code === 1000 || event.code === 1001 || event.code === 4401) {
             if (event.code === 4401) {
@@ -102,6 +140,7 @@ class WebSocketService {
           resolve(false);
         };
       });
+
     } catch (error) {
       this.connecting = false;
       console.error('Failed to establish WebSocket connection:', error);
@@ -114,6 +153,7 @@ class WebSocketService {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       const timeout = this.reconnectTimeout * Math.pow(2, this.reconnectAttempts - 1);
+      console.log(`Attempting reconnect in ${timeout}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
       setTimeout(() => this.connect(), timeout);
     } else {
       toast.error('Failed to connect to server. Please refresh the page.');
@@ -121,13 +161,23 @@ class WebSocketService {
   }
 
   public async sendMessage(message: WebSocketMessage): Promise<boolean> {
+    console.log('Sending WebSocket message:', message);
+    
     // If not connected, try to connect first
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.log('WebSocket not connected, attempting to connect...');
       if (await this.connect()) {
-        this.ws?.send(JSON.stringify(message));
-        return true;
+        try {
+          this.ws?.send(JSON.stringify(message));
+          console.log('Message sent successfully after connecting');
+          return true;
+        } catch (error) {
+          console.error('Failed to send message after connecting:', error);
+          this.messageQueue.push(message);
+          return false;
+        }
       } else {
-        // Queue the message if connection failed
+        console.log('Failed to connect, queueing message');
         this.messageQueue.push(message);
         return false;
       }
@@ -135,6 +185,7 @@ class WebSocketService {
 
     try {
       this.ws.send(JSON.stringify(message));
+      console.log('Message sent successfully');
       return true;
     } catch (error) {
       console.error('Failed to send message:', error);

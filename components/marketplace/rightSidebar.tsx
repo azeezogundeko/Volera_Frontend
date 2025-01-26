@@ -56,17 +56,47 @@ export function MarketplaceSidebar({
 
     // Subscribe to WebSocket messages
     const unsubscribe = websocketService.subscribe((message: WebSocketMessage) => {
+      console.log('Received WebSocket message:', message);
+      
       if (message.type === 'FILTER_RESPONSE') {
-        const { filters, aiResponse } = message.data;
-        onFiltersUpdate(filters);
-        setMessages(prev => [...prev, { content: aiResponse, isAI: true, filters }]);
-        toast.success('Filters updated successfully', {
-          className: theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
-        });
-        setIsProcessing(false);
+        try {
+          const responseData = message.data;
+          
+          // Create a filter object based on the received products
+          const filters: Record<string, any> = {
+            products: responseData.filters
+          };
+          
+          onFiltersUpdate(filters);
+          
+          // Format the filters for display in chat
+          const formattedFilters = responseData.filters ? 
+            Object.entries(responseData.filters)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join('\n') : '';
+          
+          // Add the AI response message with formatted filters
+          setMessages(prev => [...prev, { 
+            content: `${responseData.aiResponse || 'Filtering complete'}\n\n${formattedFilters}`, 
+            isAI: true, 
+            filters 
+          }]);
+          
+          toast.success('Filters updated successfully', {
+            className: theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
+          });
+        } catch (error) {
+          console.error('Error processing filter response:', error);
+          toast.error('Error processing filter response');
+        }
+        setIsProcessing(false); // Clear processing state after handling response
       } else if (message.type === 'ERROR') {
-        toast.error(message.data.message || 'An error occurred');
-        setIsProcessing(false);
+        const errorMessage = message.data?.message || message.message || 'An error occurred';
+        toast.error(errorMessage);
+        setIsProcessing(false); // Clear processing state after error
+      } else {
+        console.log('Unhandled message type:', message.type);
+        setIsProcessing(false); // Clear processing state for unhandled types
       }
     });
 
@@ -102,11 +132,24 @@ export function MarketplaceSidebar({
     setIsProcessing(true);
 
     try {
-      const aiResponse = await processMessage(userMessage);
-      setMessages(prev => [...prev, aiResponse]);
+      const success = await websocketService.sendMessage({
+        type: 'FILTER_REQUEST',
+        data: {
+          message: userMessage,
+          currentProducts: currentProducts,
+          currentFilters: currentFilters || {}
+        },
+        message: undefined
+      });
+
+      if (!success) {
+        toast.error('Failed to send message');
+        setIsProcessing(false); // Clear processing state if sending fails
+      }
     } catch (error) {
+      console.error('Error sending message:', error);
       toast.error('Failed to process request');
-      setIsProcessing(false);
+      setIsProcessing(false); // Clear processing state on error
     }
   };
 
@@ -126,7 +169,8 @@ export function MarketplaceSidebar({
         message,
         currentProducts: currentProducts,
         currentFilters: currentFilters || {}
-      }
+      },
+      message: undefined
     });
 
     if (!success) {
@@ -195,7 +239,9 @@ export function MarketplaceSidebar({
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-emerald-600 dark:text-emerald-400">
-                      {value.toString()}
+                      {key === 'products' 
+                        ? `${Array.isArray(value) ? value.length : 0} products`
+                        : value.toString()}
                     </span>
                     <Button
                       variant="ghost"

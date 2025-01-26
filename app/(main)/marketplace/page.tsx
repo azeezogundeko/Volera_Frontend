@@ -135,19 +135,27 @@ export default function MarketplacePage() {
   const handleFiltersUpdate = (newFilters: Record<string, any>) => {
     setFilters(newFilters);
     setIsMobileFiltersOpen(false);
-    // Apply filters to current products
-    let filteredProducts = [...products];
     
-    if (newFilters.maxPrice) {
-      filteredProducts = filteredProducts.filter(p => p.current_price <= newFilters.maxPrice);
+    // If we received new products from the WebSocket response, use those
+    if (newFilters.products && Array.isArray(newFilters.products)) {
+      console.log('Updating products from WebSocket response:', newFilters.products);
+      setProducts(newFilters.products);
+    } else {
+      // Otherwise, apply filters to current products
+      console.log('Applying filters to existing products:', newFilters);
+      let filteredProducts = [...products];
+      
+      if (newFilters.maxPrice) {
+        filteredProducts = filteredProducts.filter(p => p.current_price <= newFilters.maxPrice);
+      }
+      
+      if (newFilters.minRating) {
+        filteredProducts = filteredProducts.filter(p => p.rating >= newFilters.minRating);
+      }
+      
+      // Update products with filtered results
+      setProducts(filteredProducts);
     }
-    
-    if (newFilters.minRating) {
-      filteredProducts = filteredProducts.filter(p => p.rating >= newFilters.minRating);
-    }
-    
-    // Update products with filtered results
-    setProducts(filteredProducts);
   };
 
   const clearSearchResults = () => {
