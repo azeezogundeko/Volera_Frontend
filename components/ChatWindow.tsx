@@ -112,7 +112,6 @@ const useSocket = (
 
       connectionTimeout = setTimeout(() => {
         if (websocket.readyState !== WebSocket.OPEN) {
-          console.error('[WS Lifecycle] Connection timeout after 15s');
           toast.error('Failed to connect to the server. Please try again later.');
           setErrorRef.current(true);
           websocket.close();
@@ -123,31 +122,17 @@ const useSocket = (
         clearTimeout(connectionTimeout);
         setIsWSReadyRef.current(true);
         setReconnectAttempt(0);
-        // console.log('[WS Lifecycle] Connection opened successfully', {
-        //   readyState: websocket.readyState,
-        //   url: websocket.url
-        // });
         wsRef.current = websocket;
       };
 
       websocket.onerror = (error) => {
         clearTimeout(connectionTimeout);
-        console.error('[WS Lifecycle] WebSocket error:', error, {
-          readyState: websocket.readyState,
-          url: websocket.url
-        });
         toast.error('Connection error. Please try again later.');
         setErrorRef.current(true);
       };
 
       websocket.onclose = (event) => {
         clearTimeout(connectionTimeout);
-        // console.log('[WS Lifecycle] Connection closed:', {
-        //   code: event.code,
-        //   reason: event.reason,
-        //   wasClean: event.wasClean,
-        //   readyState: websocket.readyState
-        // });
         setIsWSReadyRef.current(false);
         setWs(null);
         wsRef.current = null;
@@ -160,39 +145,25 @@ const useSocket = (
         }
 
         if (event.code === 1000 || event.code === 1001) {
-          // console.log('[WS Lifecycle] Normal closure');
           return;
         }
 
         if (reconnectAttempt < maxReconnectAttempts) {
           const timeout = Math.min(1000 * Math.pow(2, reconnectAttempt), 10000);
-          // console.log(`[WS Lifecycle] Scheduling reconnect:`, {
-          //   attempt: reconnectAttempt + 1,
-          //   maxAttempts: maxReconnectAttempts,
-          //   timeout: timeout
-          // });
+
           
           reconnectTimeoutRef.current = setTimeout(() => {
             setReconnectAttempt(prev => prev + 1);
-            console.log('[WS Lifecycle] Attempting reconnect', {
-              attempt: reconnectAttempt + 1
-            });
             const newWs = connectWebSocket();
             setWs(newWs);
           }, timeout);
         } else {
-          // console.log('[WS Lifecycle] Max reconnection attempts reached');
           setErrorRef.current(true);
           toast.error('Connection lost. Please refresh the page to reconnect.');
         }
       };
 
       websocket.onmessage = (event) => {
-        // console.log('[WS Message] Received:', {
-        //   type: typeof event.data,
-        //   size: event.data.length,
-        //   readyState: websocket.readyState
-        // });
         if (onMessageCallbackRef.current) {
           onMessageCallbackRef.current(event);
         }
@@ -209,16 +180,10 @@ const useSocket = (
 
   // Single effect to manage WebSocket lifecycle
   useEffect(() => {
-    // console.log('[Component Lifecycle] Setting up WebSocket connection');
     const websocket = connectWebSocket();
     const currentReconnectTimeout = reconnectTimeoutRef.current;
 
     return () => {
-      // console.log('[Component Lifecycle] Cleanup triggered', {
-      //   isCurrentWS: websocket === wsRef.current,
-      //   readyState: websocket?.readyState,
-      //   hasReconnectTimeout: !!currentReconnectTimeout
-      // });
       
       if (currentReconnectTimeout) {
         clearTimeout(currentReconnectTimeout);
@@ -231,33 +196,6 @@ const useSocket = (
       }
     };
   }, [url]); // Only recreate connection when URL changes
-
-  // Keep connection alive with ping
-  // useEffect(() => {
-  //   if (!ws) return;
-
-  //   console.log('[Ping] Setting up ping interval');
-  //   const pingInterval = setInterval(() => {
-  //     if (ws.readyState === WebSocket.OPEN) {
-  //       try {
-  //         ws.send(JSON.stringify({ type: 'ping' }));
-  //         console.log('[Ping] Sent');
-  //       } catch (error) {
-  //         console.error('[Ping] Error sending:', error);
-  //         clearInterval(pingInterval);
-  //       }
-  //     } else {
-  //       console.log('[Ping] Skipped - WebSocket not open:', {
-  //         readyState: ws.readyState
-  //       });
-  //     }
-  //   }, 30000);
-
-  //   return () => {
-  //     console.log('[Ping] Clearing interval');
-  //     clearInterval(pingInterval);
-  //   };
-  // }, [ws]);
 
   return ws;
 };

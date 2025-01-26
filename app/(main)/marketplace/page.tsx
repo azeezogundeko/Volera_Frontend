@@ -43,6 +43,8 @@ export default function MarketplacePage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [comparisonProducts, setComparisonProducts] = useState<ProductResponse[]>([]);
+  const [remainingProducts, setRemainingProducts] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -83,6 +85,31 @@ export default function MarketplacePage() {
       setIsDarkMode(prefersDarkMode);
     }
   }, []);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      const sources = new Set<string>();
+      const comparisons: ProductResponse[] = [];
+      const remaining: ProductResponse[] = [];
+
+      products
+        .filter(product => product.current_price > 0)
+        .forEach(product => {
+          if (!sources.has(product.source) && comparisons.length < 4) {
+            comparisons.push(product);
+            sources.add(product.source);
+          } else {
+            remaining.push(product);
+          }
+        });
+
+      setComparisonProducts(comparisons);
+      setRemainingProducts(remaining);
+    } else {
+      setComparisonProducts([]);
+      setRemainingProducts([]);
+    }
+  }, [products]);
 
   const handleSearchStart = (query: string) => {
     setIsSearching(true);
@@ -190,7 +217,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111] relative">
-      <div className="max-w-full w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:pr-[350px] transition-all duration-300">
+      <div className="max-w-full w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:pr-[400px] transition-all duration-300">
         {/* Header */}
         <div className="flex flex-col gap-6 sm:gap-8 mb-8 sm:mb-12">
           {/* Title Section */}
@@ -327,12 +354,45 @@ export default function MarketplacePage() {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
                   </div>
                 ) : products.filter(product => product.current_price > 0).length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {products
-                      .filter(product => product.current_price > 0)
-                      .map((product, index) => (
-                      <ProductCard key={`${product.product_id}`} product={product} />
-                    ))}
+                  <div className="space-y-8">
+                    {/* Comparison Row */}
+                    {comparisonProducts.length > 1 && (
+                      <div className="bg-white dark:bg-[#1a1a1a] rounded-xl p-6 shadow-sm border border-gray-100 dark:border-white/10">
+                        <div className="flex items-center gap-2 mb-4">
+                          <TrendingUp className="w-5 h-5 text-emerald-500" />
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
+                            Price Comparison Across Stores
+                          </h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                          {comparisonProducts.map((product) => (
+                            <ProductCard 
+                              key={`comparison-${product.product_id}`} 
+                              product={product}
+                              // className="border-2 border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-900/10"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Remaining Products */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Tag className="w-5 h-5 text-gray-500" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90">
+                          All Products
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {remainingProducts.map((product) => (
+                          <ProductCard 
+                            key={`regular-${product.product_id}`} 
+                            product={product} 
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 text-gray-500">
@@ -353,7 +413,8 @@ export default function MarketplacePage() {
       <div className="hidden lg:block">
         <MarketplaceSidebar 
           onFiltersUpdate={handleFiltersUpdate}
-          currentFilters={filters}
+          currentFilters={filters} 
+          currentProducts={products}
         />
       </div>
 
@@ -393,7 +454,8 @@ export default function MarketplacePage() {
             >
               <MarketplaceSidebar 
                 onFiltersUpdate={handleFiltersUpdate}
-                currentFilters={filters}
+                currentFilters={filters} 
+                currentProducts={products}
               />
             </motion.div>
           </>

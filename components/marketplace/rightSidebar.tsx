@@ -9,15 +9,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTheme } from 'next-themes';
+import { websocketService, WebSocketMessage } from '@/lib/websocket';
 
 interface MarketplaceSidebarProps {
   onFiltersUpdate: (filters: Record<string, any>) => void;
   currentFilters: Record<string, any>;
+  currentProducts: Array<any>;
 }
 
 export function MarketplaceSidebar({ 
   onFiltersUpdate,
-  currentFilters
+  currentFilters,
+  currentProducts
 }: MarketplaceSidebarProps) {
   const [mounted, setMounted] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
@@ -50,6 +53,26 @@ export function MarketplaceSidebar({
     // Check if user has previously interacted
     const hasUserInteracted = localStorage.getItem('marketplaceSidebarInteracted') === 'true';
     setHasInteracted(hasUserInteracted);
+
+    // Subscribe to WebSocket messages
+    const unsubscribe = websocketService.subscribe((message: WebSocketMessage) => {
+      if (message.type === 'FILTER_RESPONSE') {
+        const { filters, aiResponse } = message.data;
+        onFiltersUpdate(filters);
+        setMessages(prev => [...prev, { content: aiResponse, isAI: true, filters }]);
+        toast.success('Filters updated successfully', {
+          className: theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
+        });
+        setIsProcessing(false);
+      } else if (message.type === 'ERROR') {
+        toast.error(message.data.message || 'An error occurred');
+        setIsProcessing(false);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -81,16 +104,8 @@ export function MarketplaceSidebar({
     try {
       const aiResponse = await processMessage(userMessage);
       setMessages(prev => [...prev, aiResponse]);
-      
-      if (aiResponse.filters) {
-        onFiltersUpdate(aiResponse.filters);
-        toast.success('Filters updated successfully', {
-          className: theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
-        });
-      }
     } catch (error) {
       toast.error('Failed to process request');
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -100,42 +115,27 @@ export function MarketplaceSidebar({
     isAI: boolean;
     filters?: Record<string, any>;
   }> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const lowerMessage = message.toLowerCase();
-    const filters: Record<string, any> = {};
-
-    if (lowerMessage.includes('under $')) {
-      const amount = parseInt(message.match(/\$(\d+)/)?.[1] || '0');
-      filters.maxPrice = amount;
+    if (!currentProducts || !Array.isArray(currentProducts)) {
+      toast.error('No products available for filtering');
+      throw new Error('No products available');
     }
 
-    if (lowerMessage.includes('top rated') || lowerMessage.includes('high rating')) {
-      filters.minRating = 4;
-    }
+    const success = await websocketService.sendMessage({
+      type: 'FILTER_REQUEST',
+      data: {
+        message,
+        currentProducts: currentProducts,
+        currentFilters: currentFilters || {}
+      }
+    });
 
-    if (lowerMessage.includes('best sellers')) {
-      filters.sortBy = 'popularity';
-    }
-
-    if (lowerMessage.includes('new arrivals')) {
-      filters.sortBy = 'newest';
-    }
-
-    if (lowerMessage.includes('on sale')) {
-      filters.onSale = true;
-    }
-
-    if (lowerMessage.includes('premium')) {
-      filters.premium = true;
+    if (!success) {
+      throw new Error('Failed to send message');
     }
 
     return {
-      content: `I've applied the following filters:\n${Object.entries(filters)
-        .map(([key, value]) => `• ${key}: ${value}`)
-        .join('\n')}`,
-      isAI: true,
-      filters
+      content: 'Processing your request...',
+      isAI: true
     };
   };
 

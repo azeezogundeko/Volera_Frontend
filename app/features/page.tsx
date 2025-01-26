@@ -15,6 +15,8 @@ import {
   Bell,
   Check
 } from 'lucide-react';
+import Footer from '@/components/footer';
+import Header from '@/components/header';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -109,24 +111,25 @@ export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
       {/* Header */}
-      <div className="relative py-24">
-        <div className="text-center space-y-4 max-w-3xl mx-auto px-6">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Star className="w-4 h-4" />
+      <Header />
+      <div className="relative min-h-screen flex flex-col justify-center items-center py-12 sm:py-24">
+        <div className="text-center space-y-4 max-w-3xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-4 sm:mb-6">
+            <Star className="w-3 h-3 sm:w-4 sm:h-4" />
             Powerful Features
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent leading-tight">
             Everything You Need for Smart Shopping
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto px-4 sm:px-0">
             Discover how Volera helps you find the best deals, track prices, and make smarter shopping decisions.
           </p>
         </div>
         
         {/* Background Effects */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-5 animate-blob animation-delay-2000" />
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-48 sm:w-96 h-48 sm:h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[64px] sm:blur-[128px] opacity-10 animate-blob" />
+          <div className="absolute bottom-0 right-1/4 w-48 sm:w-96 h-48 sm:h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-[64px] sm:blur-[128px] opacity-5 animate-blob animation-delay-2000" />
         </div>
       </div>
 
@@ -134,54 +137,53 @@ export default function FeaturesPage() {
       {features.map((feature, index) => (
         <div 
           key={feature.title}
-          className={`relative py-24 ${index % 2 === 0 ? 'bg-[#0c0c0c]' : 'bg-[#0a0a0a]'} border-t border-white/5`}
+          className={`relative py-12 sm:py-24 ${index % 2 === 0 ? 'bg-[#0c0c0c]' : 'bg-[#0a0a0a]'} border-t border-white/5`}
         >
-          <div className="max-w-7xl mx-auto px-6">
-            <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${index % 2 === 0 ? '' : 'lg:flex-row-reverse'}`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
               {/* Content */}
-              <div className="space-y-8">
-                <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium">
-                  <feature.icon className="w-4 h-4" />
+              <div className="space-y-6 sm:space-y-8">
+                <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium">
+                  <feature.icon className="w-3 h-3 sm:w-4 sm:h-4" />
                   {feature.title}
                 </div>
-                <div className="space-y-4">
-                  <h2 className="text-3xl font-bold">{feature.description}</h2>
-                  <p className="text-gray-400 text-lg">{feature.details}</p>
+                <div className="space-y-3 sm:space-y-4">
+                  <h2 className="text-2xl sm:text-3xl font-bold">{feature.description}</h2>
+                  <p className="text-gray-400 text-sm sm:text-lg">{feature.details}</p>
                 </div>
-                <ul className="space-y-4">
+                <ul className="space-y-3 sm:space-y-4">
                   {feature.benefits.map((benefit) => (
-                    <li key={benefit} className="flex items-start gap-3">
+                    <li key={benefit} className="flex items-start gap-2 sm:gap-3">
                       <div className="mt-1">
-                        <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                          <Check className="w-3 h-3 text-emerald-400" />
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                          <Check className="w-2 h-2 sm:w-3 sm:h-3 text-emerald-400" />
                         </div>
                       </div>
-                      <span className="text-gray-300">{benefit}</span>
+                      <span className="text-xs sm:text-base text-gray-300">{benefit}</span>
                     </li>
                   ))}
                 </ul>
                 <Link
                   href="/auth/signup"
-                  className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors"
+                  className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors text-sm sm:text-base"
                 >
                   Try it now
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Link>
               </div>
 
               {/* Image */}
-              <div className={`relative ${index % 2 === 0 ? 'lg:order-last' : 'lg:order-first'}`}>
-                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
+              <div className="relative order-first lg:order-last">
+                <div className="relative aspect-video sm:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
                   <Image
                     src={feature.image}
                     alt={feature.title}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent opacity-60" />
                 </div>
-                {/* Decorative Elements */}
-                <div className="absolute -inset-x-20 -inset-y-20 bg-gradient-to-br from-emerald-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity blur-3xl -z-10" />
               </div>
             </div>
           </div>
@@ -189,30 +191,31 @@ export default function FeaturesPage() {
       ))}
 
       {/* CTA Section */}
-      <div className="relative bg-[#0c0c0c] py-24 border-t border-white/5">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent mb-6">
+      <div className="relative bg-[#0c0c0c] py-12 sm:py-24 border-t border-white/5">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent mb-4 sm:mb-6">
             Ready to Start Shopping Smarter?
           </h2>
-          <p className="text-gray-400 mb-8">
+          <p className="text-gray-400 text-sm sm:text-base mb-6 sm:mb-8 px-4 sm:px-0">
             Join thousands of smart shoppers who are already saving time and money with Volera.
           </p>
           <Link
             href="/auth/signup"
-            className="relative inline-flex px-8 py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
+            className="relative inline-flex px-6 py-3 sm:px-8 sm:py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
           >
-            <span className="relative z-10 flex items-center gap-2 font-medium">
+            <span className="relative z-10 flex items-center gap-2 font-medium text-sm sm:text-base">
               Get Started Free
-              <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Link>
-          <div className="mt-4 text-gray-400 text-sm flex items-center justify-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+          <div className="mt-3 sm:mt-4 text-gray-400 text-xs sm:text-sm flex items-center justify-center gap-2">
+            <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-emerald-500"></div>
             No credit card required
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
