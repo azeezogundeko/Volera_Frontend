@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import React, { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, ArrowRight, ChevronUp, X, Wand2, Filter, Tag, Star, CircleDollarSign, ShoppingBag, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -22,7 +23,7 @@ export function MarketplaceSidebar({
   currentFilters,
   currentProducts
 }: MarketplaceSidebarProps) {
-  const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   const [message, setMessage] = useState('');
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -33,7 +34,7 @@ export function MarketplaceSidebar({
   }>>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   const QUICK_FILTERS = [
     { label: 'Under $100', icon: CircleDollarSign },
@@ -44,76 +45,55 @@ export function MarketplaceSidebar({
     { label: 'Premium', icon: Sparkles }
   ];
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    setMounted(true);
-    // Check if user has previously interacted
-    const hasUserInteracted = localStorage.getItem('marketplaceSidebarInteracted') === 'true';
-    setHasInteracted(hasUserInteracted);
+    setIsClient(true);
+    
+    // Safely check localStorage only on client
+    if (typeof window !== 'undefined') {
+      const hasUserInteracted = localStorage.getItem('marketplaceSidebarInteracted') === 'true';
+      setHasInteracted(hasUserInteracted);
+    }
 
-    // Subscribe to WebSocket messages
     const unsubscribe = websocketService.subscribe((message: WebSocketMessage) => {
-      console.log('Received WebSocket message:', message);
-      
       if (message.type === 'FILTER_RESPONSE') {
         try {
           const responseData = message.data;
-          
-          // Create a filter object based on the received products
-          const filters: Record<string, any> = {
-            products: responseData.filters
-          };
-          
+          const filters: Record<string, any> = { filteredProducts: responseData.filters };
           onFiltersUpdate(filters);
           
-          // Format the filters for display in chat
-          const formattedFilters = responseData.filters ? 
-            Object.entries(responseData.filters)
-              .map(([key, value]) => `${key}: ${value}`)
-              .join('\n') : '';
-          
-          // Add the AI response message with formatted filters
           setMessages(prev => [...prev, { 
-            content: `${responseData.aiResponse || 'Filtering complete'}\n\n${formattedFilters}`, 
-            isAI: true, 
-            filters 
+            content: responseData.aiResponse || 'Filtering complete', 
+            isAI: true
           }]);
           
           toast.success('Filters updated successfully', {
-            className: theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
+            className: resolvedTheme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
           });
         } catch (error) {
           console.error('Error processing filter response:', error);
           toast.error('Error processing filter response');
         }
-        setIsProcessing(false); // Clear processing state after handling response
-      } else if (message.type === 'ERROR') {
-        const errorMessage = message.data?.message || message.message || 'An error occurred';
-        toast.error(errorMessage);
-        setIsProcessing(false); // Clear processing state after error
-      } else {
-        console.log('Unhandled message type:', message.type);
-        setIsProcessing(false); // Clear processing state for unhandled types
+        setIsProcessing(false);
       }
     });
 
-    return () => {
-      unsubscribe();
-    };
-  }, []);
+    return () => unsubscribe();
+  }, [onFiltersUpdate, resolvedTheme]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Only render client-side content
+  if (!isClient) {
+    return null;
+  }
 
   const markAsInteracted = () => {
-    if (!hasInteracted) {
+    if (!hasInteracted && typeof window !== 'undefined') {
       setHasInteracted(true);
       localStorage.setItem('marketplaceSidebarInteracted', 'true');
     }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleQuickFilter = async (filter: string) => {
@@ -183,10 +163,6 @@ export function MarketplaceSidebar({
     };
   };
 
-  if (!mounted) {
-    return null; 
-  }
-
   return (
     <div className="w-full h-screen bg-white dark:bg-[#0a0a0a] border-l border-gray-200 dark:border-white/10 flex flex-col lg:w-[350px] lg:fixed lg:right-0 lg:top-0">
       {/* Close button - Only shown on mobile */}
@@ -241,7 +217,7 @@ export function MarketplaceSidebar({
                     <span className="text-sm text-emerald-600 dark:text-emerald-400">
                       {key === 'products' 
                         ? `${Array.isArray(value) ? value.length : 0} products`
-                        : value.toString()}
+                        : (value !== undefined ? value.toString() : 'N/A')}
                     </span>
                     <Button
                       variant="ghost"

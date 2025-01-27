@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import SearchBar from '@/components/marketplace/SearchBar';
 import ProductCard from '@/components/marketplace/ProductCard';
 import { MarketplaceSidebar } from '@/components/marketplace/rightSidebar';
@@ -24,16 +25,12 @@ interface ProductResponse {
 }
 
 export default function MarketplacePage() {
+  const [isClient, setIsClient] = useState(false);
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [lastSearchQuery, setLastSearchQuery] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('lastSearchQuery') || '';
-    }
-    return '';
-  });
+  const [lastSearchQuery, setLastSearchQuery] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [clearToggle, setClearToggle] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,47 +44,59 @@ export default function MarketplacePage() {
   const [remainingProducts, setRemainingProducts] = useState<ProductResponse[]>([]);
 
   useEffect(() => {
-    setMounted(true);
-    // Try to get cached results after mount
-    const cached = localStorage.getItem('searchResults');
-    if (cached) {
-      setProducts(JSON.parse(cached));
-    }
-  }, []);
-
-  useEffect(() => {
+    // Ensure this only runs on the client
     if (typeof window !== 'undefined') {
-      if (products.length > 0) {
-        localStorage.setItem('searchResults', JSON.stringify(products));
+      setIsClient(true);
+      setMounted(true);
+
+      // Initialize lastSearchQuery from localStorage
+      const savedQuery = localStorage.getItem('lastSearchQuery') || '';
+      setLastSearchQuery(savedQuery);
+      
+      // Try to get cached results
+      const cached = localStorage.getItem('searchResults');
+      if (cached) {
+        try {
+          const parsedProducts = JSON.parse(cached);
+          setProducts(parsedProducts);
+        } catch (e) {
+          console.error('Error parsing cached search results:', e);
+        }
       }
-    }
-  }, [products]);
 
-  useEffect(() => {
-    console.log('Products updated:', products); // Log products state whenever it changes
-  }, [products]);
-
-  useEffect(() => {
-    console.log('Products updated:', products); // Log products state whenever it changes
-  }, [products]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setNotificationVisible(false);
-    }, 5000); // Notification will disappear after 5 seconds
-
-    return () => clearTimeout(timer); // Cleanup the timer on component unmount
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
+      // Check dark mode preference
       const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setIsDarkMode(prefersDarkMode);
+
+      // Handle notification timeout
+      const timer = setTimeout(() => {
+        setNotificationVisible(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
     }
   }, []);
 
+  // Persist products to localStorage
   useEffect(() => {
-    if (products.length > 0) {
+    if (isClient && products.length > 0) {
+      localStorage.setItem('searchResults', JSON.stringify(products));
+    }
+  }, [products, isClient]);
+
+  // Handle notification timeout
+  useEffect(() => {
+    if (mounted) {
+      const timer = setTimeout(() => {
+        setNotificationVisible(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted]);
+
+  // Handle product categorization
+  useEffect(() => {
+    if (isClient && products.length > 0) {
       const sources = new Set<string>();
       const comparisons: ProductResponse[] = [];
       const remaining: ProductResponse[] = [];
@@ -105,11 +114,34 @@ export default function MarketplacePage() {
 
       setComparisonProducts(comparisons);
       setRemainingProducts(remaining);
-    } else {
-      setComparisonProducts([]);
-      setRemainingProducts([]);
     }
-  }, [products]);
+  }, [products, isClient]);
+
+  useEffect(() => {
+    if (filters.filteredProducts && Array.isArray(filters.filteredProducts)) {
+      console.log('Processing filtered products from filters:', filters.filteredProducts);
+      
+      // Update products based on filtered products
+      setProducts(prevProducts => {
+        // Check if products are actually different
+        const areProductsEqual = prevProducts.length === filters.filteredProducts.length && 
+          prevProducts.every((product, index) => 
+            product.product_id === filters.filteredProducts[index].product_id
+          );
+        
+        if (areProductsEqual) {
+          console.log('Products are the same, skipping update');
+          return prevProducts;
+        }
+        
+        // Remove filteredProducts from filters to keep state clean
+        const { filteredProducts, ...restFilters } = filters;
+        setFilters(restFilters);
+        
+        return filters.filteredProducts;
+      });
+    }
+  }, [filters]);
 
   const handleSearchStart = (query: string) => {
     setIsSearching(true);
@@ -133,13 +165,19 @@ export default function MarketplacePage() {
   };
 
   const handleFiltersUpdate = (newFilters: Record<string, any>) => {
-    setFilters(newFilters);
+    console.log('Received filters update:', newFilters);
+    
+    // Safely update filters without causing re-render issues
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      ...newFilters
+    }));
+    
     setIsMobileFiltersOpen(false);
     
-    // If we received new products from the WebSocket response, use those
-    if (newFilters.products && Array.isArray(newFilters.products)) {
-      console.log('Updating products from WebSocket response:', newFilters.products);
-      setProducts(newFilters.products);
+    // If we received filtered products from the WebSocket response, they will be processed in the useEffect
+    if (newFilters.filteredProducts && Array.isArray(newFilters.filteredProducts)) {
+      console.log('Filtered products received, will be processed in useEffect');
     } else {
       // Otherwise, apply filters to current products
       console.log('Applying filters to existing products:', newFilters);
@@ -219,8 +257,9 @@ export default function MarketplacePage() {
     </section>
   );
 
-  if (!mounted) {
-    return null; // or a loading skeleton
+  // Only render client-side content
+  if (!isClient) {
+    return null;
   }
 
   return (
