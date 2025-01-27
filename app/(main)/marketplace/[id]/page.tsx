@@ -10,81 +10,8 @@ import LoadingPage from '@/components/LoadingPage';
 import {Button} from '@/components/ui/button';
 import {ProductDetailSidebar} from '@/components/marketplace/ProductDetailSidebar';
 
-interface ProductImage {
-  url: string;
-  zoom_url?: string;
-  alt?: string;
-}
+import { ProductDetail } from '../../../utils/types'; 
 
-interface Seller {
-  name?: string;
-  rating?: number;
-}
-
-interface Specification {
-  label?: string;
-  value?: string;
-}
-
-interface Review {
-  rating?: number;
-  title?: string;
-  comment?: string;
-  date?: string;
-  author?: string;
-  verified?: boolean;
-}
-
-interface Stock {
-  in_stock?: boolean;
-  quantity?: number;
-  quantity_sold?: number;
-  min_sale_qty?: number;
-  max_sale_qty?: number;
-}
-
-interface ProductDetail {
-  name: string;
-  brand?: string;
-  category?: string;
-  currency: string;
-  description?: string;
-  current_price: number;
-  original_price?: number;
-  discount?: number;
-  url: string;
-  image: string;
-  images?: ProductImage[];
-  source?: string;
-  rating?: number;
-  rating_count?: number;
-  seller?: Seller;
-  specifications?: Specification[];
-  features?: string[];
-  reviews?: Review[];
-  stock?: Stock;
-  is_free_shipping?: boolean;
-  is_pay_on_delivery?: boolean;
-  express_delivery?: boolean;
-  is_official_store?: boolean;
-  product_id: string;
-}
-
-interface ProductResponse {
-  name: string;
-  current_price: number;
-  original_price: number;
-  brand: string;
-  discount: number;
-  rating: number;
-  reviews_count: string;
-  product_id: string;
-  image: string;
-  relevance_score: number;
-  url: string;
-  currency: string;
-  source: string;
-}
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -601,14 +528,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           {/* Product Detail Sidebar */}
           <div className="hidden lg:block w-[350px] shrink-0">
             <ProductDetailSidebar
-              product={{
-                id: params.id,
-                name: product.name,
-                price: product.current_price,
-                rating: product.rating || 0,
-                category: product.category || '',
-                description: product.description || ''
-              }}
+              product= { product }
               isOpen={true}
               onClose={() => setIsSidebarOpen(false)}
             />
@@ -617,14 +537,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           {/* Mobile Sidebar */}
           <div className="lg:hidden">
             <ProductDetailSidebar
-              product={{
-                id: params.id,
-                name: product.name,
-                price: product.current_price,
-                rating: product.rating || 0,
-                category: product.category || '',
-                description: product.description || ''
-              }}
+              product= {product}
               isOpen={isSidebarOpen}
               onClose={() => setIsSidebarOpen(false)}
             />

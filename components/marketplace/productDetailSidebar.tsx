@@ -9,22 +9,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTheme } from 'next-themes';
+import { websocketService, ProductDetailsResponse, WebSocketMessage } from '@/lib/websocket';
+
+import { ProductDetail } from '@/types/productDetail'
 
 interface ProductDetailSidebarProps {
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    rating: number;
-    category: string;
-    description: string;
-  };
+  product: ProductDetail;
   isOpen?: boolean;
   onClose?: () => void;
 }
 
 export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetailSidebarProps) {
-  const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   const [message, setMessage] = useState('');
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -34,31 +30,108 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
   }>>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+
+  // useEffect(() => {
+  //   console.log('Product in useEffect:', product);
+  //   const fetchInitialDetails = async () => {
+  //     try {
+  //       const defaultQuery = `Tell me more about the ${product.name} from ${product.brand || 'the seller'}. What are its key features and benefits?`;
+  //       console.log('Sending WebSocket message with product:', {
+  //         productId: product.product_id,
+  //         name: product.name,
+  //         brand: product.brand
+  //       });
+  //       await websocketService.sendMessage({
+  //         type: 'PRODUCT_DETAILS_REQUEST',
+  //         data: {
+  //           product: product,
+  //           query: defaultQuery
+  //         },
+  //         message: undefined
+  //       });
+  //     } catch (error) {
+  //       console.error('Failed to fetch initial product details:', error);
+  //     }
+  //   };
+
+  //   fetchInitialDetails();
+  // }, [product]);
 
   useEffect(() => {
-    setMounted(true);
-    const hasUserInteracted = localStorage.getItem(`productChat_${product.id}`) === 'true';
-    setHasInteracted(hasUserInteracted);
-  }, [product.id]);
+    if (typeof window !== 'undefined') {
+      setIsClient(true);
+      const hasUserInteracted = localStorage.getItem(`productChat_${product.product_id}`) === 'true';
+      setHasInteracted(hasUserInteracted);
+
+      // Subscribe to WebSocket messages
+      const unsubscribe = websocketService.subscribe((message: WebSocketMessage) => {
+        console.log('Received WebSocket message in ProductDetailSidebar:', message);
+        
+        if (message.type === 'PRODUCT_DETAILS_RESPONSE') {
+          const productMessage = message.data as { productId?: string, aiResponse?: string };
+          // console.log('Product Message Details:', {
+          //   productId: productMessage.productId,
+          //   currentProductId: product.product_id,
+          //   aiResponse: productMessage.aiResponse
+          // });
+
+          if (productMessage.productId === product.product_id) {
+            try {
+              // Add AI response to messages
+              setMessages(prev => {
+                console.log('Previous Messages:', prev);
+                // Only add the message if aiResponse is not empty or undefined
+                if (productMessage.aiResponse && productMessage.aiResponse.trim() !== '') {
+                  const newMessages = [...prev, {
+                    content: productMessage.aiResponse,
+                    isAI: true
+                  }];
+                  // console.log('New Messages:', newMessages);
+                  return newMessages;
+                }
+                return prev;
+              });
+              // toast.success('Product details retrieved', {
+              //   className: resolvedTheme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
+              // });
+            } catch (error) {
+              // console.error('Error processing product details:', error);
+              toast.error('Error retrieving product details');
+            }
+            setIsProcessing(false);
+          } else {
+            console.log('Product ID mismatch', {
+              messageProductId: productMessage.productId,
+              currentProductId: product.product_id
+            });
+          }
+        }
+      });
+
+      return () => unsubscribe();
+    }
+  }, [product.product_id, resolvedTheme]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isClient) {
+      scrollToBottom();
+    }
+  }, [messages, isClient]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const markAsInteracted = () => {
-    if (!hasInteracted) {
+    if (!hasInteracted && typeof window !== 'undefined') {
       setHasInteracted(true);
-      localStorage.setItem(`productChat_${product.id}`, 'true');
+      localStorage.setItem(`productChat_${product.product_id}`, 'true');
     }
   };
 
-  const handleSendMessage = async (input?: string) => {
-    const userMessage = input || message;
+  const handleSendMessage = async () => {
+    const userMessage = message;
     if (!userMessage.trim()) return;
 
     markAsInteracted();
@@ -67,56 +140,29 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
     setIsProcessing(true);
 
     try {
-      const aiResponse = await processMessage(userMessage);
-      setMessages(prev => [...prev, aiResponse]);
-      
-      toast.success('Response received', {
-        className: theme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
+      // Send message via WebSocket
+      websocketService.sendMessage({
+        type: 'PRODUCT_DETAILS_REQUEST',
+        data: {
+          product: product,
+          query: userMessage
+        },
+        message: undefined
       });
     } catch (error) {
-      toast.error('Failed to process request');
-    } finally {
+      toast.error('Failed to send message');
       setIsProcessing(false);
     }
   };
 
-  const processMessage = async (message: string): Promise<{
-    content: string;
-    isAI: boolean;
-  }> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const lowerMessage = message.toLowerCase();
-    let response = '';
-
-    // Simulate AI responses based on common product questions
-    if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
-      response = `The ${product.name} is priced at $${product.price}. This price includes standard shipping.`;
-    } else if (lowerMessage.includes('rating') || lowerMessage.includes('review')) {
-      response = `This product has a rating of ${product.rating} out of 5 stars based on customer reviews.`;
-    } else if (lowerMessage.includes('shipping') || lowerMessage.includes('delivery')) {
-      response = `We offer standard shipping (5-7 business days) and express shipping (2-3 business days) for this product. Would you like more details about shipping options?`;
-    } else if (lowerMessage.includes('warranty') || lowerMessage.includes('guarantee')) {
-      response = `This product comes with a standard 1-year manufacturer warranty. Extended warranty options are available at checkout.`;
-    } else if (lowerMessage.includes('specification') || lowerMessage.includes('specs')) {
-      response = `Here are the key specifications for ${product.name}:\n${product.description}\n\nWould you like more specific details about any feature?`;
-    } else {
-      response = `I'd be happy to help you with information about ${product.name}. You can ask about:\n• Price and availability\n• Specifications and features\n• Shipping options\n• Warranty coverage\n• Customer reviews`;
-    }
-
-    return {
-      content: response,
-      isAI: true
-    };
-  };
-
-  if (!mounted) {
+  // Only render client-side content
+  if (!isClient) {
     return null;
   }
 
   return (
     <AnimatePresence>
-      {(isOpen && mounted) && (
+      {(isOpen && isClient) && (
         <motion.div
           initial={{ x: "100%" }}
           animate={{ x: "0%" }}
@@ -128,7 +174,7 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
           )}
         >
           {/* Close button - Only shown on mobile */}
-          <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/10 shrink-0 bg-white dark:bg-[#0a0a0a] sticky top-0 z-10">
+          <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] sticky top-0 z-10">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center">
                 <MessageCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
@@ -151,7 +197,7 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1 text-gray-700 dark:text-white/70">
                 <CircleDollarSign className="w-4 h-4" />
-                ${product.price}
+                {product.currency}{product.current_price}
               </div>
               <div className="flex items-center gap-1 text-gray-700 dark:text-white/70">
                 <Star className="w-4 h-4 text-yellow-400" />
@@ -261,6 +307,38 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
               </div>
             </div>
           </ScrollArea>
+
+          {/* Additional Details Section */}
+          {/* {extendedDetails && (
+            <div className="p-4 border-b border-gray-200 dark:border-white/10">
+              <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white/90">
+                Extended Product Information
+              </h4>
+              {extendedDetails.technicalSpecs && (
+                <div className="space-y-1">
+                  {Object.entries(extendedDetails.technicalSpecs).map(([key, value]) => (
+                    <div key={key} className="text-sm text-gray-700 dark:text-white/70">
+                      <span className="font-medium">{key}:</span> {String(value)}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {extendedDetails.availability && (
+                <div className="text-sm text-gray-700 dark:text-white/70 mt-2">
+                  <span className="font-medium">Availability:</span> {' '}
+                  {extendedDetails.availability.inStock ? 'In Stock' : 'Out of Stock'}
+                  {extendedDetails.availability.estimatedDelivery && (
+                    ` (Estimated Delivery: ${extendedDetails.availability.estimatedDelivery})`
+                  )}
+                </div>
+              )}
+              {extendedDetails.aiSummary && (
+                <div className="text-sm text-gray-700 dark:text-white/70 mt-2">
+                  <span className="font-medium">AI Summary:</span> {extendedDetails.aiSummary}
+                </div>
+              )}
+            </div>
+          )} */}
 
           {/* Input Area - Fixed at bottom */}
           {isChatExpanded && (

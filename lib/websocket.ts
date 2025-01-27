@@ -2,13 +2,19 @@ import { toast } from 'sonner';
 
 export interface WebSocketMessage {
   message: any;
-  type: 'FILTER_REQUEST' | 'FILTER_RESPONSE' | 'ERROR';
+  type: 'FILTER_REQUEST' | 'FILTER_RESPONSE' | 'ERROR' | 'PRODUCT_DETAILS_RESPONSE' | 'PRODUCT_DETAILS_REQUEST';
   data: any;
 }
 
 interface FilterResponse {
   filters: Array<any>;
   aiResponse: string;
+}
+
+export interface ProductDetailsResponse extends WebSocketMessage {
+  type: 'PRODUCT_DETAILS_RESPONSE';
+  productId: string;
+  aiResponse?: string;
 }
 
 class WebSocketService {
@@ -89,21 +95,44 @@ class WebSocketService {
               return;
             }
 
-            // Ensure consistent message structure
-            const message: WebSocketMessage = {
-              type: parsedData.type || 'ERROR',
-              data: parsedData.data as FilterResponse,
-              message: undefined
-            };
+            // Determine message structure based on type
+            let message: WebSocketMessage;
+            switch (parsedData.type) {
+              case 'PRODUCT_DETAILS_RESPONSE':
+                message = {
+                  type: 'PRODUCT_DETAILS_RESPONSE',
+                  data: {
+                    productId: parsedData.productId,
+                    aiResponse: parsedData.aiResponse
+                  },
+                  message: undefined
+                };
+                break;
+              
+              case 'FILTER_RESPONSE':
+                message = {
+                  type: 'FILTER_RESPONSE',
+                  data: parsedData.data || parsedData,
+                  message: undefined
+                };
 
-            // Validate response structure
-            if (message.type === 'FILTER_RESPONSE') {
-              const response = message.data;
-              if (!response.filters || !Array.isArray(response.filters)) {
-                console.error('Invalid filter response structure:', response);
-                message.type = 'ERROR';
-                message.data = { message: 'Invalid response format from server' };
-              }
+                // Validate FILTER_RESPONSE structure
+                if (!message.data.filters || !Array.isArray(message.data.filters)) {
+                  console.error('Invalid filter response structure:', message.data);
+                  message = {
+                    type: 'ERROR',
+                    data: { message: 'Invalid response format from server' },
+                    message: undefined
+                  };
+                }
+                break;
+              
+              default:
+                message = {
+                  type: parsedData.type || 'ERROR',
+                  data: parsedData.data || parsedData,
+                  message: undefined
+                };
             }
 
             console.log('Processed WebSocket message:', message);
