@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/footer';
 import Header from '@/components/header';
-import { BarChart3, ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, BarChart4, Menu, X } from 'lucide-react';
+import { ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
@@ -77,11 +77,12 @@ export default function Home() {
                   <div className="h-24 bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 rounded-xl" />
                   <div className="grid grid-cols-2 gap-4">
                     <div className="h-32 bg-emerald-500/10 rounded-xl p-4">
-                      <BarChart3 className="w-6 h-6 text-emerald-400 mb-2" />
-                      <div className="space-y-2">
-                        <div className="h-2 w-16 bg-emerald-500/20 rounded-full" />
-                        <div className="h-2 w-24 bg-emerald-500/10 rounded-full" />
-                      </div>
+                      <Image 
+                        src="/marketplace.PNG" 
+                        alt="Dashboard representation" 
+                        fill
+                        className="object-cover rounded-xl" 
+                      />
                     </div>
                     <div className="h-32 bg-emerald-500/5 rounded-xl p-4">
                       <div className="space-y-2">
@@ -125,38 +126,80 @@ export default function Home() {
               {
                 title: 'Smart Product Search',
                 description: 'Find exactly what you need with our AI-powered search across multiple platforms',
-                icon: Search,
-                gradient: 'from-emerald-500/20 to-emerald-500/0'
+                icon: Image,
+                gradient: 'from-emerald-500/20 to-emerald-500/0',
+                imageProps: {
+                  src: "/chat_pages.PNG",
+                  alt: "Chart representation",
+                  width: 24,
+                  height: 24,
+                  className: "w-6 h-6 text-emerald-400 mb-2"
+                }
               },
               {
                 title: 'Price Analysis',
                 description: 'Get real-time price comparisons and historical price trends',
-                icon: BarChart3,
-                gradient: 'from-emerald-400/20 to-emerald-400/0'
+                icon: Image,
+                gradient: 'from-emerald-400/20 to-emerald-400/0',
+                imageProps: {
+                  src: "/chat_pages.PNG",
+                  alt: "Chart representation",
+                  width: 24,
+                  height: 24,
+                  className: "w-6 h-6 text-emerald-400 mb-2"
+                }
               },
               {
                 title: 'Secure Transactions',
                 description: 'Shop with confidence with our secure transaction monitoring',
-                icon: ShieldCheck,
-                gradient: 'from-emerald-600/20 to-emerald-600/0'
+                icon: Image,
+                gradient: 'from-emerald-600/20 to-emerald-600/0',
+                imageProps: {
+                  src: "/chat_pages.PNG",
+                  alt: "Chart representation",
+                  width: 24,
+                  height: 24,
+                  className: "w-6 h-6 text-emerald-400 mb-2"
+                }
               },
               {
                 title: 'Instant Recommendations',
                 description: 'Receive personalized product recommendations based on your preferences',
-                icon: Zap,
-                gradient: 'from-emerald-500/20 to-emerald-500/0'
+                icon: Image,
+                gradient: 'from-emerald-500/20 to-emerald-500/0',
+                imageProps: {
+                  src: "/chat_pages.PNG",
+                  alt: "Chart representation",
+                  width: 24,
+                  height: 24,
+                  className: "w-6 h-6 text-emerald-400 mb-2"
+                }
               },
               {
                 title: 'Market Intelligence',
                 description: 'Access comprehensive market data and trends for informed decisions',
-                icon: BarChart4,
-                gradient: 'from-emerald-400/20 to-emerald-400/0'
+                icon: Image,
+                gradient: 'from-emerald-400/20 to-emerald-400/0',
+                imageProps: {
+                  src: "/chat_pages.PNG",
+                  alt: "Chart representation",
+                  width: 24,
+                  height: 24,
+                  className: "w-6 h-6 text-emerald-400 mb-2"
+                }
               },
               {
                 title: 'Smart Comparisons',
                 description: 'Compare products across multiple dimensions with AI assistance',
-                icon: ArrowRight,
-                gradient: 'from-emerald-600/20 to-emerald-600/0'
+                icon: Image,
+                gradient: 'from-emerald-600/20 to-emerald-600/0',
+                imageProps: {
+                  src: "/chat_pages.PNG",
+                  alt: "Chart representation",
+                  width: 24,
+                  height: 24,
+                  className: "w-6 h-6 text-emerald-400 mb-2"
+                }
               }
             ].map((feature, index) => (
               <div 
@@ -165,9 +208,13 @@ export default function Home() {
               >
                 <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
-                    <feature.icon className="w-6 h-6 text-emerald-400" />
-                  </div>
+                  <Image 
+                    src={feature.imageProps.src} 
+                    alt={feature.imageProps.alt} 
+                    width={feature.imageProps.width} 
+                    height={feature.imageProps.height} 
+                    className={feature.imageProps.className} 
+                  />
                   <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                   <p className="text-gray-400 text-sm">{feature.description}</p>
                 </div>

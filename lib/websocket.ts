@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 
 export interface WebSocketMessage {
   message: any;
-  type: 'FILTER_REQUEST' | 'FILTER_RESPONSE' | 'ERROR' | 'PRODUCT_DETAILS_RESPONSE' | 'PRODUCT_DETAILS_REQUEST';
+  type: 'FILTER_REQUEST' | 'FILTER_RESPONSE' | 'ERROR' | 'PRODUCT_DETAILS_RESPONSE' | 'PRODUCT_DETAILS_REQUEST' | 'COMPARE_REQUEST' | 'COMPARE_RESPONSE';
   data: any;
 }
 
@@ -15,6 +15,11 @@ export interface ProductDetailsResponse extends WebSocketMessage {
   type: 'PRODUCT_DETAILS_RESPONSE';
   productId: string;
   aiResponse?: string;
+}
+
+export interface CompareResponse extends WebSocketMessage {
+  type: 'COMPARE_RESPONSE';
+  response?: string;
 }
 
 class WebSocketService {
@@ -105,15 +110,23 @@ class WebSocketService {
                     productId: parsedData.productId,
                     aiResponse: parsedData.aiResponse
                   },
-                  message: undefined
+                  message: null
                 };
                 break;
-              
+              case 'COMPARE_RESPONSE':
+                message = {
+                  type: 'COMPARE_RESPONSE',
+                  data: {
+                    response: parsedData.response
+                  },
+                  message: null
+                };
+                break;
               case 'FILTER_RESPONSE':
                 message = {
                   type: 'FILTER_RESPONSE',
                   data: parsedData.data || parsedData,
-                  message: undefined
+                  message: null
                 };
 
                 // Validate FILTER_RESPONSE structure
@@ -122,7 +135,7 @@ class WebSocketService {
                   message = {
                     type: 'ERROR',
                     data: { message: 'Invalid response format from server' },
-                    message: undefined
+                    message: null
                   };
                 }
                 break;
@@ -131,7 +144,7 @@ class WebSocketService {
                 message = {
                   type: parsedData.type || 'ERROR',
                   data: parsedData.data || parsedData,
-                  message: undefined
+                  message: null
                 };
             }
 

@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Star, Heart } from 'lucide-react';
+import { Star, Heart, Scale } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Toast from '../toast';
 
 interface Product {
   name: string;
@@ -49,14 +50,44 @@ const ProductCard = ({ product }: ProductCardProps) => {
     if (isSaved) {
       savedProducts = savedProducts.filter((p: any) => p.product_id !== product.product_id);
     } else {
-      savedProducts.push({
-        ...product,
-        dateAdded: new Date().toISOString()
-      });
+      savedProducts.push(product);
     }
 
     localStorage.setItem('savedProducts', JSON.stringify(savedProducts));
     setIsSaved(!isSaved);
+  };
+
+  const addToCompare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const compareProducts = localStorage.getItem('compareProducts');
+    let products = compareProducts ? JSON.parse(compareProducts) : [];
+
+    // Check if product is already in compare list
+    const isInCompare = products.some((p: any) => p.product_id === product.product_id);
+    
+    if (!isInCompare && products.length < 4) {
+      products.push(product);
+      localStorage.setItem('compareProducts', JSON.stringify(products));
+      Toast({
+        title: "Added to compare",
+        description: "Product has been added to comparison list",
+        variant: "default",
+      });
+    } else if (isInCompare) {
+      Toast({
+        title: "Already in compare",
+        description: "This product is already in your comparison list",
+        variant: "default",
+      });
+    } else {
+      Toast({
+        title: "Compare list full",
+        description: "You can compare up to 4 products at a time",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -131,13 +162,29 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         </div>
 
-        <button
-          onClick={toggleSave}
-          className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-emerald-50"
-          title={isSaved ? "Remove from wishlist" : "Save to wishlist"}
-        >
-          <Heart className={`w-4 h-4 ${isSaved ? 'fill-emerald-600 text-emerald-600' : 'text-emerald-600 hover:fill-emerald-100'}`} />
-        </button>
+        <div className="absolute top-2 right-2 flex space-x-2">
+          <button
+            onClick={addToCompare}
+            className={`p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+              isHovered ? 'opacity-100' : 'opacity-0'
+            }`}
+            title="Add to compare"
+          >
+            <Scale className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          </button>
+          <button
+            onClick={toggleSave}
+            className={`p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+              isHovered ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {isSaved ? (
+              <Heart className="w-4 h-4 text-red-500 fill-current" />
+            ) : (
+              <Heart className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+        </div>
       </div>
     </Link>
   );

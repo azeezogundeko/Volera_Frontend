@@ -159,7 +159,7 @@ export default function Home() {
                 <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
               </div>
               <div>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Active Chats</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Credits Left</p>
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
                   {stats.activeChats}
                 </p>
@@ -280,15 +280,15 @@ export default function Home() {
                   >
                     <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
                       <Image
-                        src={item.image}
-                        alt={item.title}
+                        src={item.product.image}
+                        alt={item.product.name}
                         fill
                         className="object-cover rounded-lg"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base truncate">
-                        {item.title}
+                        {item.product.name}
                       </h3>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
                         <span className="text-xs sm:text-sm text-emerald-500 font-medium">

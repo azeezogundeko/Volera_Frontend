@@ -23,7 +23,8 @@ import {
   TrendingUp,
   Heart,
   User,
-  LogOut
+  LogOut,
+  Scale
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
@@ -238,23 +239,32 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
 };
 
 const Sidebar = ({ children }: { children: React.ReactNode }) => {
-  const [expanded, setExpanded] = useState(() => {
-    // Initialize from localStorage if available
-    if (typeof window !== 'undefined') {
-      const savedState = localStorage.getItem('sidebar-expanded');
-      return savedState ? savedState === 'true' : true;
-    }
-    return true;
-  });
+  // Initialize expanded state to true by default for SSR consistency
+  const [expanded, setExpanded] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProUser, setIsProUser] = useState(false);
   const router = useRouter();
   const segments = useSelectedLayoutSegments();
   const { theme } = useTheme();
 
   // Store current path to detect actual route changes
   const [currentPath, setCurrentPath] = useState('');
+
+  // Update expanded state from localStorage after mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebar-expanded');
+    if (savedState !== null) {
+      setExpanded(savedState === 'true');
+    }
+  }, []);
+
+  // Check Pro status after mount
+  useEffect(() => {
+    const userStatus = localStorage.getItem('userStatus');
+    setIsProUser(userStatus === 'true');
+  }, []);
 
   // Persist sidebar state to localStorage
   useEffect(() => {
@@ -293,8 +303,6 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
     setIsMobileMenuOpen(prev => !prev);
   }, []);
 
-  const isProUser = typeof window !== 'undefined' && localStorage.getItem('userStatus') === 'true';
-
   // Mobile sidebar content with always expanded state
   const mobileSidebarContent = (
     <div className="flex flex-col h-full w-[280px] bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-white/10">
@@ -314,7 +322,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
           <div className="space-y-1">
             <IconButton
-              href="/" 
+              href="/dashboard" 
               icon={Home}
               label="Dashboard"
               expanded={true}
@@ -354,6 +362,13 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               label="Marketplace"
               expanded={true}
               active={segments[0] === 'marketplace'}
+            />
+            <IconButton
+              href="/compare"
+              icon={Scale}
+              label="Compare"
+              expanded={true}
+              active={segments[0] === 'compare'}
             />
           </div>
         </nav>
@@ -395,7 +410,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           </span>
         )}
         <button
-          onClick={toggleExpanded} // Changed to toggleExpanded
+          onClick={toggleExpanded} 
           className="absolute right-4 p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 lg:block hidden"
         >
           {expanded ? (
@@ -415,7 +430,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
           <div className="space-y-1">
             <IconButton
-              href="/"
+              href="/dashboard"
               icon={Home}
               label="Dashboard"
               expanded={expanded}
@@ -455,6 +470,13 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               label="Marketplace"
               expanded={expanded}
               active={segments[0] === 'marketplace'}
+            />
+            <IconButton
+              href="/compare"
+              icon={Scale}
+              label="Compare"
+              expanded={expanded}
+              active={segments[0] === 'compare'}
             />
           </div>
 
@@ -501,7 +523,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Toaster position="top-center" />
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Always rendered, visibility controlled by CSS */}
       <button
         onClick={toggleMobileMenu}
         type="button"
