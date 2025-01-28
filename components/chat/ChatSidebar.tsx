@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { websocketService, WebSocketMessage } from '@/lib/websocket';
+import { ProductDetail } from '@/types/productDetail';
 import { motion } from 'framer-motion';
 
 interface Message {
@@ -15,7 +16,9 @@ interface Message {
   isAI: boolean;
 }
 
-export default function ChatSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+
+
+export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boolean; onClose: () => void; products: ProductDetail[] }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -42,7 +45,7 @@ export default function ChatSidebar({ isOpen, onClose }: { isOpen: boolean; onCl
         const aiMessage = message.data as { response?: string };
         if (aiMessage.response && aiMessage.response.trim() !== '') {
           setMessages(prev => [...prev, {
-            content: aiMessage.response,
+            content: aiMessage.response || "Default message content",
             isAI: true
           }]);
           setIsProcessing(false);
@@ -78,8 +81,10 @@ export default function ChatSidebar({ isOpen, onClose }: { isOpen: boolean; onCl
       await websocketService.sendMessage({
         type: 'COMPARE_REQUEST',
         data: {
-          query: userMessage.content
-        }
+          query: userMessage.content,
+          products: products
+        },
+        message: undefined
       });
     } catch (error) {
       console.error('Failed to send message:', error);

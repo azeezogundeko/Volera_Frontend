@@ -352,7 +352,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                       <div className="border-t pt-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Specifications</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {product.specifications.map((spec, index) => (
+                          {product.specifications.map((spec: { label: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; value: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; }, index: React.Key | null | undefined) => (
                             <div key={index} className="flex flex-col">
                               <span className="text-sm text-gray-500 dark:text-gray-400">{spec.label}</span>
                               <span className="text-gray-900 dark:text-gray-100">{spec.value}</span>

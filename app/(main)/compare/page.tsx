@@ -1,43 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Key } from 'react';
 import { Plus, X, ArrowLeft, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ProductImage, Seller, Stock, Specification, Review } from '../../utils/types'; 
+import { ProductDetail } from '../../utils/types'; 
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import process from 'process';
 
-export interface ProductDetail {
-  name: string;
-  brand?: string;
-  category?: string;
-  currency: string;
-  description?: string;
-  current_price: number;
-  original_price?: number;
-  discount?: number;
-  url: string;
-  image: string;
-  images?: ProductImage[];
-  source?: string;
-  rating?: number;
-  rating_count?: number;
-  seller?: Seller;
-  specifications?: Specification[];
-  features?: string[];
-  reviews?: Review[];
-  stock?: Stock;
-  is_free_shipping?: boolean;
-  is_pay_on_delivery?: boolean;
-  express_delivery?: boolean;
-  is_official_store?: boolean;
-  product_id: string;
+interface Specification {
+  label: string;
+  value: string | number;
 }
-
 
 export default function ComparePage() {
   const [products, setProducts] = useState<ProductDetail[]>([]);
@@ -76,6 +54,35 @@ export default function ComparePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const productDetailsPromises = products.map(product => 
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/detail/${product.product_id}`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+
+
+          ).then(res => res.json())
+        );
+        const fullProductDetails = await Promise.all(productDetailsPromises);
+        console.log(fullProductDetails)
+        setProducts(fullProductDetails);
+      } catch (error) {
+        console.error('Error fetching product details:', error);
+      }
+    };
+
+    if (products.length > 0) {
+      fetchProductDetails();
+    }
+  }, [products]);
+
   const removeProduct = (productId: string) => {
     const updatedProducts = products.filter(p => p.product_id !== productId);
     setProducts(updatedProducts);
@@ -87,10 +94,6 @@ export default function ComparePage() {
   };
 
   // Get all unique specification keys
-  const specKeys = Array.from(new Set(
-    products.flatMap(p => p.specifications ? Object.keys(p.specifications) : [])
-  )).sort();
-
   return (
     <div className="min-h-screen bg-white dark:bg-[#141414] overflow-x-hidden">
       {/* Header */}
@@ -153,9 +156,9 @@ export default function ComparePage() {
                       <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
                     </button>
                     <div className="relative h-48 sm:h-44 lg:h-48 w-full bg-gray-100 dark:bg-[#1a1a1a]">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
+                    <Image
+                        src={product.images && product.images.length > 0 ? product.images[0].url : '/placeholder-product.png'}
+                        alt={product.name || 'Product Image'}
                         fill
                         className="object-contain rounded-t-lg p-3 sm:p-4"
                         onError={(e) => {
@@ -194,6 +197,13 @@ export default function ComparePage() {
                     <p className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {product.currency}{product.current_price?.toLocaleString() || '-'}
                     </p>
+                    {/* <ul>
+                      {product.specifications?.map((spec: Specification, index: Key | null | undefined) => (
+                        <li key={index}>
+                          <strong>{spec.label}:</strong> {spec.value}
+                        </li>
+                      ))}
+                    </ul> */}
                   </div>
                 </motion.div>
               ))}
@@ -335,22 +345,23 @@ export default function ComparePage() {
                         </tr>
 
                         {/* Important Specifications */}
-                        {specKeys.length > 0 && (
-                          <>
-                            {specKeys.map((key) => (
-                              <tr key={key} className="border-b border-gray-200 dark:border-[#222]">
-                                <td className="py-2 sm:py-4 px-2 sm:px-4 text-[11px] sm:text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-[#1a1a1a] sticky left-0 min-w-[90px] sm:min-w-[120px]">
-                                  {key}
-                                </td>
-                                {products.map((product) => (
-                                  <td key={product.product_id} className="py-2 sm:py-4 px-2 sm:px-4 text-[11px] sm:text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-[#141414]">
-                                    {product.specifications?.[key] || '-'}
-                                  </td>
+                        <tr className="border-b border-gray-200 dark:border-[#222]">
+                          <td className="py-2 sm:py-4 px-2 sm:px-4 text-[11px] sm:text-sm font-medium text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-[#1a1a1a] sticky left-0 min-w-[90px] sm:min-w-[120px]">
+                            Specifications
+                          </td>
+                          {products.map((product) => (
+                            <td key={product.product_id} className="py-2 sm:py-4 px-2 sm:px-4 text-[11px] sm:text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-[#141414]">
+                              <ul>
+                                {product.specifications?.map((spec: Specification, index: Key | null | undefined) => (
+                                  <li key={index}>
+                                    <strong>{spec.label}:</strong> {spec.value}
+                                  </li>
                                 ))}
-                              </tr>
-                            ))}
-                          </>
-                        )}
+                              </ul>
+                            </td>
+                          ))}
+                        </tr>
+
                       </tbody>
                     </table>
                   </div>
@@ -389,7 +400,7 @@ export default function ComparePage() {
             !isChatOpen && "translate-x-full lg:translate-x-0",
             "transition-transform duration-300 ease-in-out"
           )}>
-            <ChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+            <ChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} products={products} />
           </div>
 
           {/* Mobile Chat Button */}

@@ -49,7 +49,7 @@ export interface ProductDetail {
     rating?: number;
     rating_count?: number;
     seller?: Seller;
-    specifications?: Specification[];
+    specifications?: Record<string, any>;
     features?: string[];
     reviews?: Review[];
     stock?: Stock;
