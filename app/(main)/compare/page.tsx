@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Key } from 'react';
+import { useState, useEffect, useRef, Key } from 'react';
 import { Plus, X, ArrowLeft, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -22,6 +22,7 @@ export default function ComparePage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
   const router = useRouter();
+  const prevProductsRef = useRef<ProductDetail[]>([]);
   
   useEffect(() => {
     try {
@@ -66,20 +67,22 @@ export default function ComparePage() {
                 Authorization: `Bearer ${token}`
               }
             }
-
-
           ).then(res => res.json())
         );
         const fullProductDetails = await Promise.all(productDetailsPromises);
-        console.log(fullProductDetails)
-        setProducts(fullProductDetails);
+        console.log(fullProductDetails);
+
+        if (JSON.stringify(fullProductDetails) !== JSON.stringify(products)) {
+          setProducts(fullProductDetails);
+        }
       } catch (error) {
         console.error('Error fetching product details:', error);
       }
     };
 
-    if (products.length > 0) {
+    if (products.length > 0 && JSON.stringify(prevProductsRef.current) !== JSON.stringify(products)) {
       fetchProductDetails();
+      prevProductsRef.current = products; // Update ref to current products
     }
   }, [products]);
 
