@@ -189,7 +189,7 @@ export default function WishlistPage() {
                               </div>
                               <div>
                                 <Link 
-                                  href={`/wishlist/${product.product_id}`}
+                                  href={`/marketplace/${product.product_id}`}
                                   className="text-sm font-medium text-gray-900 dark:text-white/90 hover:text-emerald-600 dark:hover:text-emerald-400"
                                 >
                                   {product.name}

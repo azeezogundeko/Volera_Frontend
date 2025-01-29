@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Bell, BellOff, ArrowUp, ArrowDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -18,6 +18,7 @@ import {
 } from 'chart.js';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import process from 'process'
 
 // Register ChartJS components
 ChartJS.register(
@@ -31,43 +32,59 @@ ChartJS.register(
   Filler
 );
 
-// Dummy data for price history
-const generatePriceHistory = (currentPrice: number, days: number) => {
-  const data = [];
-  let price = currentPrice;
-  
-  for (let i = days; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    
-    // Add some random variation to the price
-    price = price + (Math.random() - 0.5) * 20;
-    
-    data.push({
-      date: date.toISOString().split('T')[0],
-      price: Math.max(0, price),
-    });
+
+const fetchPriceHistory = async (productId: string) => {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/track/price-history/${productId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
+        }
+      }
+
+    );
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const priceHistoryData = await response.json();
+    return priceHistoryData;
+  } catch (error) {
+    console.error('Error fetching price history:', error);
+    return [];
   }
-  
-  return data;
 };
 
-interface Product {
-  id: string;
-  title: string;
-  description: string;
-  currentPrice: number;
-  targetPrice: number;
-  notificationsEnabled: boolean;
+interface ProductResponse {
+  name: string;
+  current_price: number;
+  original_price: number;
+  brand: string;
+  discount: number;
+  rating: number;
+  reviews_count: number;
+  product_id: string;
   image: string;
+  relevance_score: number;
   url: string;
-  specs?: { label: string; value: string }[];
-  features?: string[];
+  currency: string;
+  source: string;
+  features: string[];
+  specifications: Record<string, any>;
+}
+
+interface TrackedItem {
+  id: string;
+  targetPrice: number;
+  currentPrice: number;
+  product: ProductResponse;
+  dateAdded: string;
+  notificationsEnabled: boolean;
 }
 
 const ProductPage = ({ params }: { params: { id: string } }) => {
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<TrackedItem | null>(null);
   const [priceHistory, setPriceHistory] = useState<{ date: string; price: number }[]>([]);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
@@ -83,33 +100,27 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
   }, []);
 
   useEffect(() => {
-    // In a real app, fetch product data from an API
-    // For now, using dummy data
-    const dummyProduct: Product = {
-      id: params.id,
-      title: 'Apple MacBook Pro 14"',
-      description: "The most powerful MacBook Pro ever is here. With the blazing-fast M1 Pro or M1 Max chip — the first Apple silicon designed for pros — you get groundbreaking performance and amazing battery life.",
-      currentPrice: 1599,
-      targetPrice: 1499,
-      notificationsEnabled: true,
-      image: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp14-spacegray-select-202310?wid=904&hei=840&fmt=jpeg&qlt=90&.v=1697311054290",
-      url: "https://www.apple.com/shop/buy-mac/macbook-pro/14-inch",
-      specs: [
-        { label: "Processor", value: "Apple M1 Pro" },
-        { label: "Memory", value: "16GB unified memory" },
-        { label: "Storage", value: "512GB SSD" },
-        { label: "Display", value: "14-inch Liquid Retina XDR display" },
-      ],
-      features: [
-        "Up to 17 hours of battery life",
-        "16-core Neural Engine",
-        "14-inch Liquid Retina XDR display",
-        "Three Thunderbolt 4 ports",
-      ],
+    const fetchProductData = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/track/${params.id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const productData: TrackedItem = await response.json();
+        setProduct(productData);
+        const priceHistoryData = await fetchPriceHistory(productData.product.product_id);
+        setPriceHistory(priceHistoryData);
+      } catch (error) {
+        console.error('Error fetching product data:', error);
+      }
     };
 
-    setProduct(dummyProduct);
-    setPriceHistory(generatePriceHistory(dummyProduct.currentPrice, 30));
+    fetchProductData();
   }, [params.id]);
 
   if (!product) {
@@ -169,6 +180,8 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
     },
   };
 
+  const description = `${product.product.name} by ${product.product.brand} is currently priced at ${product.product.current_price} ${product.product.currency}, down from ${product.product.original_price} (${product.product.discount}% off). It has a rating of ${product.product.rating} based on ${product.product.reviews_count} reviews. Features include: ${product.product.features.join(', ')}.`;
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111]">
       <div className="max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-6">
@@ -198,33 +211,33 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
             <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
               <div className="flex flex-col sm:flex-row gap-6">
                 <img
-                  src={product.image}
-                  alt={product.title}
+                  src={product.product.image}
+                  alt={product.product.name}
                   className="w-full sm:w-40 h-40 rounded-xl object-cover"
                 />
                 <div className="flex-1">
                   <h2 className="text-xl font-medium text-gray-900 dark:text-white/90 mb-2">
-                    {product.title}
+                    {product.product.name}
                   </h2>
                   <p className="text-gray-500 dark:text-white/50 mb-4">
-                    {product.description}
+                    {description}
                   </p>
                   <div className="flex flex-wrap items-center gap-4">
                     <div>
                       <div className="text-sm text-gray-500 dark:text-white/50">Current Price</div>
                       <div className="text-2xl font-medium text-gray-900 dark:text-white/90">
-                        ${product.currentPrice}
+                        {product.product.currency}{product.product.current_price}
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500 dark:text-white/50">Target Price</div>
                       <div className="text-2xl font-medium text-emerald-500">
-                        ${product.targetPrice}
+                      {product.product.currency}{product.targetPrice}
                       </div>
                     </div>
                     <div className="w-full sm:w-auto sm:ml-auto mt-4 sm:mt-0">
                       <Link
-                        href={product.url}
+                        href={product.product.url}
                         target="_blank"
                         className="block w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
                       >
@@ -247,13 +260,13 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             {/* Specifications */}
-            {product.specs && (
+            {product.product.specifications && (
               <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
                   Specifications
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {product.specs.map((spec, index) => (
+                  {product.product.specifications.map((spec: { label: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; value: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; }, index: Key | null | undefined) => (
                     <div key={index} className="flex flex-col">
                       <div className="text-sm text-gray-500 dark:text-white/50">
                         {spec.label}
@@ -271,13 +284,13 @@ const ProductPage = ({ params }: { params: { id: string } }) => {
           {/* Features and Actions */}
           <div className="space-y-6">
             {/* Features */}
-            {product.features && (
+            {product.product.features && (
               <div className="p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-[#222] bg-white dark:bg-[#111111]">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
                   Key Features
                 </h3>
                 <ul className="space-y-3">
-                  {product.features.map((feature, index) => (
+                  {product.product.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       <span className="text-gray-500 dark:text-white/50">{feature}</span>
