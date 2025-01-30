@@ -147,7 +147,7 @@ const SearchImages = ({
       setSelectedIndices(prev => ({ ...prev, [messageId]: 0 }));
       setShowImagesOnMobile(prev => ({ ...prev, [messageId]: false }));
     }
-  }, [messageId]);
+  }, [messageId, openStates]);
 
   useEffect(() => {
     if (images) {

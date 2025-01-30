@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTheme } from 'next-themes';
+import ReactMarkdown from 'react-markdown';
 import { websocketService, ProductDetailsResponse, WebSocketMessage } from '@/lib/websocket';
 
 import { ProductDetail } from '@/types/productDetail'
@@ -70,11 +71,7 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
         
         if (message.type === 'PRODUCT_DETAILS_RESPONSE') {
           const productMessage = message.data as { productId?: string, aiResponse?: string };
-          // console.log('Product Message Details:', {
-          //   productId: productMessage.productId,
-          //   currentProductId: product.product_id,
-          //   aiResponse: productMessage.aiResponse
-          // });
+
 
           if (productMessage.productId === product.product_id) {
             try {
@@ -106,6 +103,21 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
               currentProductId: product.product_id
             });
           }
+        }
+
+        else if (message.type === 'ERROR') {
+          const errorMessage = message
+          setMessages(prev => {
+            if (errorMessage.message && errorMessage.message.trim() !== '') {
+              const newMessages = [...prev, {
+                content: errorMessage.message,
+                isAI: true
+              }];
+              return newMessages;
+            }
+            return prev;
+          });
+
         }
       });
 
@@ -275,9 +287,16 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
                                     : 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 ml-8'
                                 )}
                               >
-                                {msg.content.split('\n').map((line, i) => (
-                                  <p key={i} className="mb-1 last:mb-0">{line}</p>
-                                ))}
+                                <ReactMarkdown
+                                    className="prose prose-sm dark:prose-invert"
+                                    components={{
+                                      strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
+                                      p: ({ node, ...props }) => <p className="mb-2" {...props} />
+                                    }}
+                                    // breaks
+                                  >
+                                    {msg.content}
+                                  </ReactMarkdown>
                               </div>
                             ))}
             

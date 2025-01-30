@@ -14,7 +14,7 @@ interface AddItemModalProps {
 const dummySearchResults = [
   {
     id: '1',
-    title: 'Apple MacBook Pro 14" (2023)',
+    title: 'Apple MacBook Pro 14&quot; (2023)',
     price: 1599.99,
     image: 'https://source.unsplash.com/random/800x600?macbook',
     source: 'Amazon',
@@ -23,7 +23,7 @@ const dummySearchResults = [
       { label: 'Processor', value: 'M2 Pro' },
       { label: 'RAM', value: '16GB' },
       { label: 'Storage', value: '512GB SSD' },
-      { label: 'Display', value: '14.2" Liquid Retina XDR' }
+      { label: 'Display', value: '14.2&quot; Liquid Retina XDR' }
     ],
     features: [
       'ProMotion technology with adaptive refresh rates up to 120Hz',
@@ -34,7 +34,7 @@ const dummySearchResults = [
   },
   {
     id: '2',
-    title: 'Apple MacBook Pro 14" (2022)',
+    title: 'Apple MacBook Pro 14&quot; (2022)',
     price: 1399.99,
     image: 'https://source.unsplash.com/random/800x600?laptop',
     source: 'Best Buy',
@@ -43,7 +43,7 @@ const dummySearchResults = [
       { label: 'Processor', value: 'M1 Pro' },
       { label: 'RAM', value: '16GB' },
       { label: 'Storage', value: '512GB SSD' },
-      { label: 'Display', value: '14.2" Liquid Retina XDR' }
+      { label: 'Display', value: '14.2&quot; Liquid Retina XDR' }
     ],
     features: [
       'ProMotion technology with adaptive refresh rates up to 120Hz',
@@ -156,7 +156,7 @@ const AddItemModal = ({ isOpen, onClose }: AddItemModalProps) => {
                 <SearchResults results={searchResults} onClose={handleClose} />
               ) : (
                 <div className="text-center py-12 text-gray-500 dark:text-white/50">
-                  No results found for "{query}"
+                  No results found for &quot;{query}&quot;
                 </div>
               )
             ) : null}

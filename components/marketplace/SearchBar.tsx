@@ -224,7 +224,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
               </div>
             </div>
             <div className="mt-0.5 text-[10px] sm:text-xs text-gray-400 dark:text-white/30">
-              AI-powered search: Try "Gaming laptop with good battery life under $1000"
+              AI-powered search: Try &quot;Gaming laptop with good battery life under $1000&quot;
             </div>
           </div>
           {query && (

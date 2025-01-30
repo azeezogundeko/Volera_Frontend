@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, MessageSquare, Trash2, Calendar, ExternalLink } from 'lucide-react';
 import ProductCard from '@/components/marketplace/ProductCard';
 import Link from 'next/link';
+import Image from 'next/image';
 import process from 'process';
 import LoadingPage from '@/components/LoadingPage';
 
@@ -140,7 +141,7 @@ export default function WishlistPage() {
               <Heart className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white/90">My Wishlist</h1>
             </div>
-            <p className="text-gray-500 dark:text-gray-400 ml-10">Keep track of products and conversations you're interested in</p>
+            <p className="text-gray-500 dark:text-gray-400 ml-10">Keep track of products and conversations you&apos;re interested in</p>
           </div>
         </div>
       </div>
@@ -185,7 +186,7 @@ export default function WishlistPage() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-[#1a1a1a] overflow-hidden flex-shrink-0">
-                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                <Image src={product.image} alt={product.name} width={400} height={400} />
                               </div>
                               <div>
                                 <Link 
@@ -251,7 +252,7 @@ export default function WishlistPage() {
                     <Heart className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-2">No saved products yet</h3>
-                  <p className="text-gray-500 dark:text-gray-400 mb-6">Start saving products you're interested in to track them here</p>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">Start saving products you&apos;re interested in to track them here</p>
                   <Link
                     href="/marketplace"
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 transition-colors"

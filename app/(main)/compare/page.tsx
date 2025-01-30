@@ -145,70 +145,75 @@ export default function ComparePage() {
             {/* Product Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-8">
               {products.map((product) => (
-                <motion.div
+                <div
                   key={product.product_id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-[#141414] rounded-xl border border-gray-200 dark:border-[#222] shadow-sm overflow-hidden"
+                  onClick={() => router.push(`/marketplace/${product.product_id}`)}
+                  className="cursor-pointer"
                 >
-                  <div className="relative">
-                    <button
-                      onClick={() => removeProduct(product.product_id)}
-                      className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-1 sm:p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
-                    >
-                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
-                    </button>
-                    <div className="relative h-48 sm:h-44 lg:h-48 w-full bg-gray-100 dark:bg-[#1a1a1a]">
-                    <Image
-                        src={product.images && product.images.length > 0 ? product.images[0].url : '/placeholder-product.png'}
-                        alt={product.name || 'Product Image'}
-                        fill
-                        className="object-contain rounded-t-lg p-3 sm:p-4"
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          img.src = '/placeholder-product.png';
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="p-2.5 sm:p-4">
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <div className="relative h-5 w-5 sm:h-6 sm:w-6">
-                        {product.seller?.name && (
-                          <Image
-                            src="/placeholder-store-logo.png"
-                            alt={product.seller.name}
-                            fill
-                            className="object-contain rounded"
-                            onError={(e) => {
-                              const img = e.target as HTMLImageElement;
-                              img.src = '/placeholder-store-logo.png';
-                            }}
-                          />
-                        )}
-                      </div>
-                      <div className="flex items-center">
-                        <span className="text-yellow-400">★</span>
-                        <span className="ml-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                          {product.rating ? product.rating.toFixed(1) : '-'}
-                        </span>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white dark:bg-[#141414] rounded-xl border border-gray-200 dark:border-[#222] shadow-sm overflow-hidden"
+                  >
+                    <div className="relative">
+                      <button
+                        onClick={() => removeProduct(product.product_id)}
+                        className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-1 sm:p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
+                      >
+                        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                      </button>
+                      <div className="relative h-48 sm:h-44 lg:h-48 w-full bg-gray-100 dark:bg-[#1a1a1a]">
+                      <Image
+                          src={product.images && product.images.length > 0 ? product.images[0].url : '/placeholder-product.png'}
+                          alt={product.name || 'Product Image'}
+                          fill
+                          className="object-contain rounded-t-lg p-3 sm:p-4"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            img.src = '/placeholder-product.png';
+                          }}
+                        />
                       </div>
                     </div>
-                    <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5 sm:mb-2 line-clamp-2 min-h-[2.5em] sm:min-h-[2.75em]">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {product.currency}{product.current_price?.toLocaleString() || '-'}
-                    </p>
-                    {/* <ul>
-                      {product.specifications?.map((spec: Specification, index: Key | null | undefined) => (
-                        <li key={index}>
-                          <strong>{spec.label}:</strong> {spec.value}
-                        </li>
-                      ))}
-                    </ul> */}
-                  </div>
-                </motion.div>
+                    <div className="p-2.5 sm:p-4">
+                      <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                        <div className="relative h-5 w-5 sm:h-6 sm:w-6">
+                          {product.seller?.name && (
+                            <Image
+                              src="/placeholder-store-logo.png"
+                              alt={product.seller.name}
+                              fill
+                              className="object-contain rounded"
+                              onError={(e) => {
+                                const img = e.target as HTMLImageElement;
+                                img.src = '/placeholder-store-logo.png';
+                              }}
+                            />
+                          )}
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-yellow-400">★</span>
+                          <span className="ml-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                            {product.rating ? product.rating.toFixed(1) : '-'}
+                          </span>
+                        </div>
+                      </div>
+                      <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5 sm:mb-2 line-clamp-2 min-h-[2.5em] sm:min-h-[2.75em]">
+                        {product.name}
+                      </h3>
+                      <p className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {product.currency}{product.current_price?.toLocaleString() || '-'}
+                      </p>
+                      {/* <ul>
+                        {product.specifications?.map((spec: Specification, index: Key | null | undefined) => (
+                          <li key={index}>
+                            <strong>{spec.label}:</strong> {spec.value}
+                          </li>
+                        ))}
+                      </ul> */}
+                    </div>
+                  </motion.div>
+                </div>
               ))}
             </div>
 

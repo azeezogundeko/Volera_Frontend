@@ -9,7 +9,7 @@ export default function ContactPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Handle form submission logic here
   };
@@ -68,7 +68,6 @@ export default function ContactPage() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 required
-                rows="4"
                 className="mt-1 block w-full bg-[#111111] border border-white/10 rounded-md p-2 text-white focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>

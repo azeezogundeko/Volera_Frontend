@@ -75,6 +75,20 @@ export function MarketplaceSidebar({
         }
         setIsProcessing(false);
       }
+      else if (message.type === 'ERROR') {
+        const errorMessage = message
+        setMessages(prev => {
+          if (errorMessage.message && errorMessage.message.trim() !== '') {
+            const newMessages = [...prev, {
+              content: errorMessage.message,
+              isAI: true
+            }];
+            return newMessages;
+          }
+          return prev;
+        });
+        setIsProcessing(false);
+      }
     });
 
     return () => unsubscribe();
@@ -303,10 +317,10 @@ export function MarketplaceSidebar({
                               Welcome! Try asking for:
                             </p>
                             <p className="text-sm text-gray-700 dark:text-white/70">
-                              "Show me wireless headphones under $200"
+                              Show me wireless headphones under &quot;$200&quot;
                             </p>
                             <p className="text-sm text-gray-700 dark:text-white/70">
-                              "Find top-rated gaming monitors"
+                              Find top-rated gaming monitors
                             </p>
                           </div>
                         )}

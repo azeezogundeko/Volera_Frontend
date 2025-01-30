@@ -88,13 +88,16 @@ export default function ProfileSettings() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setIsDirty(true);
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData(prevData => ({ ...prevData, [name]: value }));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setIsDirty(true);
+    setFormData(prevData => ({ ...prevData, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -219,7 +222,7 @@ export default function ProfileSettings() {
                 <select
                   name="gender"
                   value={formData.gender}
-                  onChange={handleInputChange}
+                  onChange={handleSelectChange}
                   className={cn(
                     'w-full px-3 py-2 rounded-lg',
                     'bg-[#0a0a0a]',

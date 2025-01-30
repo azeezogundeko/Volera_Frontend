@@ -193,7 +193,19 @@ export default function SettingsPage() {
   );
 }
 
-function SettingsSection({ title, icon: Icon, description, items }) {
+interface SettingsSectionProps {
+  title: string;
+  icon: React.ElementType;
+  description: string;
+  items: {
+    label: string;
+    description: string;
+    href: string;
+    icon: React.ElementType;
+  }[];
+}
+
+function SettingsSection({ title, icon: Icon, description, items }: SettingsSectionProps) {
   return (
     <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm p-6">
       <div className="flex items-center gap-3 mb-6">

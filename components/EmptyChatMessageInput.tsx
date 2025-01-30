@@ -192,7 +192,9 @@ const EmptyChatMessageInput = ({
         )}>
           <div className="flex items-center space-x-2">
             <Focus focusMode={focusMode} setFocusMode={setFocusMode} />
-            <Attach fileIds={fileIds} setFileIds={setFileIds} files={files} setFiles={setFiles} />
+            <Attach fileIds={fileIds} setFileIds={setFileIds} files={files} setFiles={setFiles} params={{
+              id: ''
+            }} />
           </div>
           <div className="flex items-center space-x-2">
             <Optimization

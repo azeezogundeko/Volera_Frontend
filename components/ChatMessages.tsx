@@ -76,7 +76,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                 <h3 className="text-lg font-medium mb-3">Sources:</h3>
                 <ul className="list-disc pl-4">
                   {message.sources.map((source, index) => (
-                    <li key={index}>{source.pageContent}</li>
+                    <li key={index}>{source.content}</li>
                   ))}
                 </ul>
               </div>

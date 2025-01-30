@@ -10,13 +10,12 @@ import { toast } from 'sonner';
 import { websocketService, WebSocketMessage } from '@/lib/websocket';
 import { ProductDetail } from '@/types/productDetail';
 import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   content: string;
   isAI: boolean;
 }
-
-
 
 export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boolean; onClose: () => void; products: ProductDetail[] }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -27,7 +26,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
 
   useEffect(() => {
     if (!hasInteracted) {
-      // Add default welcome message
       setMessages([
         {
           content: "Hello! I'm your Compare Assistant. I can help you compare products, analyze their features, and make recommendations. What would you like to know about the products you're comparing?",
@@ -39,7 +37,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
   }, [hasInteracted]);
 
   useEffect(() => {
-    // Subscribe to WebSocket messages
     const unsubscribe = websocketService.subscribe((message: WebSocketMessage) => {
       if (message.type === 'COMPARE_RESPONSE') {
         const aiMessage = message.data as { response?: string };
@@ -51,6 +48,20 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
           setIsProcessing(false);
         }
       }
+      else if (message.type === 'ERROR') {
+        const errorMessage = message
+        setMessages(prev => {
+          if (errorMessage.message && errorMessage.message.trim() !== '') {
+            const newMessages = [...prev, {
+              content: errorMessage.message,
+              isAI: true
+            }];
+            return newMessages;
+          }
+          return prev;
+        });
+
+      }
     });
 
     return () => {
@@ -59,7 +70,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
   }, []);
 
   useEffect(() => {
-    // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -67,7 +77,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
     e.preventDefault();
     if (!message.trim() || isProcessing) return;
 
-    // Add user message
     const userMessage = {
       content: message.trim(),
       isAI: false
@@ -77,7 +86,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
     setIsProcessing(true);
 
     try {
-      // Send message to websocket
       await websocketService.sendMessage({
         type: 'COMPARE_REQUEST',
         data: {
@@ -95,7 +103,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-[#222] flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <Sparkles className="w-6 h-6 text-[#4ade80]" />
@@ -109,7 +116,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
         </button>
       </div>
 
-      {/* Messages */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((msg, index) => (
@@ -128,7 +134,17 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
                     : "bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                 )}
               >
-                {msg.content}
+                <ReactMarkdown
+                    className="prose prose-sm dark:prose-invert"
+                    components={{
+                      strong: ({ node, ...props }) => <strong className="font-semibold" {...props} />,
+                      p: ({ node, ...props }) => <p className="mb-2" {...props} />
+                    }}
+                    // breaks
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+
               </div>
             </div>
           ))}
@@ -151,7 +167,6 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
         </div>
       </ScrollArea>
 
-      {/* Input */}
       <div className="p-4 border-t border-gray-200 dark:border-[#222]">
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <Textarea

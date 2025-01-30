@@ -35,7 +35,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link 
-                  href="/auth/signup" 
+                  href="/signup" 
                   className="relative px-8 py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-3 font-medium">
@@ -47,7 +47,7 @@ export default function Home() {
                   <div className="absolute inset-0 rounded-xl bg-[url('/grid.svg')] opacity-10"></div>
                 </Link>
                 <Link 
-                  href="#features" 
+                  href="features" 
                   className="relative px-8 py-4 overflow-hidden group bg-gradient-to-b from-white/[0.03] to-white/[0.07] hover:from-white/[0.05] hover:to-white/[0.1] border border-white/10 rounded-xl transition-all duration-300"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
@@ -62,7 +62,7 @@ export default function Home() {
             {/* Right Content - Dashboard Preview */}
             <div className="flex-1 relative z-10">
               <div className="bg-[#111111]/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <div className="flex items-center justify-between mb-6">
+                {/* <div className="flex items-center justify-between mb-6">
                   <div className="space-y-2">
                     <div className="h-3 w-32 bg-emerald-500/20 rounded-full" />
                     <div className="h-3 w-24 bg-emerald-500/10 rounded-full" />
@@ -72,16 +72,16 @@ export default function Home() {
                     <div className="w-3 h-3 rounded-full bg-emerald-500/20" />
                     <div className="w-3 h-3 rounded-full bg-emerald-500/10" />
                   </div>
-                </div>
+                </div> */}
                 <div className="space-y-4">
                   <div className="h-24 bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 rounded-xl" />
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="h-32 bg-emerald-500/10 rounded-xl p-4">
+                    <div className="h-32  w-full bg-emerald-500/10 rounded-xl p-4">
                       <Image 
-                        src="/marketplace.PNG" 
+                        src="/dashboard.PNG" 
                         alt="Dashboard representation" 
                         fill
-                        className="object-cover rounded-xl" 
+                        className="object-cover rounded-xl"  
                       />
                     </div>
                     <div className="h-32 bg-emerald-500/5 rounded-xl p-4">
@@ -340,8 +340,8 @@ export default function Home() {
                     <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   </div>
                   <p className="text-gray-300 mb-4">
-                    "Volera completely transformed how I shop online. The AI recommendations
-                    are scarily accurate and saved me hours of research!"
+                    &quot;Volera completely transformed how I shop online. The AI recommendations
+                    are scarily accurate and saved me hours of research!&quot;
                   </p>
                   <div className="flex items-center gap-2 text-emerald-400">
                     <Sparkles className="w-4 h-4" />
@@ -371,8 +371,8 @@ export default function Home() {
                     <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   </div>
                   <p className="text-gray-300 mb-4">
-                    "Volera completely transformed how I shop online. The AI recommendations
-                    are scarily accurate and saved me hours of research!"
+                    &quot;Volera completely transformed how I shop online. The AI recommendations
+                    are scarily accurate and saved me hours of research!&quot;
                   </p>
                   <div className="flex items-center gap-2 text-emerald-400">
                     <Sparkles className="w-4 h-4" />
@@ -398,7 +398,7 @@ export default function Home() {
                 Ready to Transform Your Shopping Experience?
               </h2>
               <p className="text-xl text-gray-300 mb-8 max-w-2xl">
-                Join thousands of smart shoppers making better decisions with Volera's AI-powered platform
+                Join thousands of smart shoppers making better decisions with Volera&apos;s AI-powered platform
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link 

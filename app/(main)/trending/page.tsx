@@ -109,7 +109,7 @@ export default function TrendingPage() {
           Trending Now
         </h1>
         <p className="text-black/60 dark:text-white/60">
-          Discover what's popular and trending across all categories
+          Discover what&apos;s popular and trending across all categories
         </p>
       </div>
 

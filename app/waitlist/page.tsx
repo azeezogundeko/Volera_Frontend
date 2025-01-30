@@ -33,7 +33,7 @@ export default function Waitlist() {
             </h1>
             {/* Adjusted text size here */}
             <p className="text-base md:text-lg text-gray-400 mb-8 px-4 sm:px-0">
-              Be among the first to experience Volera's AI-powered shopping assistant. Get early access, exclusive updates, and special privileges.
+              Be among the first to experience Volera&apos;s AI-powered shopping assistant. Get early access, exclusive updates, and special privileges.
             </p>
 
             {/* Waitlist Form */}
@@ -132,7 +132,7 @@ export default function Waitlist() {
                 Ready to Transform Your Shopping Experience?
               </h2>
               <p className="text-base md:text-xl text-gray-300 mb-6 md:mb-8 max-w-2xl mx-auto">
-                Join thousands of smart shoppers making better decisions with Volera's AI-powered platform
+                Join thousands of smart shoppers making better decisions with Volera&apos;s AI-powered platform
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
                 <div className="flex-1 relative group max-w-md w-full">

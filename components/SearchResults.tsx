@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 import PriceWatchModal from './marketplace/PriceWatchModal';
 
 interface Product {
@@ -51,9 +52,11 @@ const SearchResults = ({ results, onClose }: SearchResultsProps) => {
           >
             {/* Product Image */}
             <div className="w-full sm:w-48 h-48 relative rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5">
-              <img
+              <Image
                 src={product.image}
                 alt={product.title}
+                width={400}
+                height={400}
                 className="w-full h-full object-cover"
               />
             </div>

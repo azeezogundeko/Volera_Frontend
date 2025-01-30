@@ -25,17 +25,20 @@ interface CompareState {
   clearCompare: () => void;
 }
 
-export const useCompareProducts = create<CompareState>((set: (arg0: { (state: { compareProducts: any[]; }): { compareProducts: any[]; }; (state: any): { compareProducts: any; }; compareProducts?: never[]; }) => any) => ({
+export const useCompareProducts = create<CompareState>((set) => ({
   compareProducts: [],
-  addToCompare: (product: { product_id: any; }) => set((state: { compareProducts: any[]; }) => {
+  
+  addToCompare: (product) => set((state) => {
     if (state.compareProducts.length >= 4) return state;
-    if (!state.compareProducts.some(p => p.product_id === product.product_id)) {
+    if (!state.compareProducts.some((p) => p.product_id === product.product_id)) {
       return { compareProducts: [...state.compareProducts, product] };
     }
     return state;
   }),
-  removeFromCompare: (productId: any) => set((state) => ({
-    compareProducts: state.compareProducts.filter((p: { product_id: any; }) => p.product_id !== productId)
+  
+  removeFromCompare: (productId) => set((state) => ({
+    compareProducts: state.compareProducts.filter((p) => p.product_id !== productId)
   })),
-  clearCompare: () => set({ compareProducts: [] }),
+
+  clearCompare: () => set({ compareProducts: [] }), 
 }));

@@ -161,7 +161,7 @@ export default function Home() {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Credits Left</p>
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  {stats.activeChats}
+                  {459}
                 </p>
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function Home() {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Tracked Items</p>
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  {stats.trackedItems}
+                  5
                 </p>
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function Home() {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Price Alerts</p>
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  {stats.priceAlerts}
+                  1
                 </p>
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function Home() {
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900 dark:text-white/90">
-                        ${data.price}
+                        {data.price}
                       </span>
                       {index > 0 && (
                         <span className={`flex items-center gap-0.5 ${
@@ -297,9 +297,9 @@ export default function Home() {
                         <span className="text-xs text-gray-500 dark:text-white/50">
                           Target: ${item.targetPrice}
                         </span>
-                        <p>
+                        {/* <p>
                           Price Change: {item.priceChange !== undefined ? item.priceChange : 'N/A'}
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                   </Link>

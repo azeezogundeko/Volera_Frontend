@@ -103,8 +103,11 @@ export default function LoginPage() {
         throw new Error('Invalid response from server');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      addNotification(err.message, 'error');
+      if (err instanceof Error) {
+        addNotification(err.message, 'error');
+      } else {
+        addNotification('An unknown error occurred', 'error');
+      }
     } finally {
       setLoading(false);
       // console.log('Login process completed');

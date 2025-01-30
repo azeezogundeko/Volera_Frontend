@@ -19,14 +19,14 @@ export default function Header() {
               <span className="text-xl font-bold">Volera</span>
             </Link>
             <nav className="hidden md:flex items-center ml-12 gap-8">
-              <Link href="#features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</Link>
-              <Link href="#how-it-works" className="text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link>
-              <Link href="#pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
+              <Link href="features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</Link>
+              <Link href="how-it-works" className="text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link>
+              <Link href="pro" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
             </nav>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <Link 
-              href="/auth/login" 
+              href="/login" 
               className="relative text-sm px-6 py-2.5 overflow-hidden group bg-gradient-to-b from-white/[0.03] to-white/[0.07] hover:from-white/[0.05] hover:to-white/[0.1] border border-white/10 rounded-xl transition-all duration-300"
             >
               <span className="relative z-10 flex items-center gap-2">
@@ -36,7 +36,7 @@ export default function Header() {
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/[0.05] to-emerald-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-700"></div>
             </Link>
             <Link 
-              href="/auth/signup" 
+              href="/signup" 
               className="relative text-sm px-6 py-2.5 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
             >
               <span className="relative z-10 flex items-center gap-2">
@@ -60,12 +60,12 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-white/10">
             <div className="px-4 py-6 space-y-4">
-              <Link href="#features" className="block text-sm text-gray-300 hover:text-white transition-colors">Features</Link>
-              <Link href="#how-it-works" className="block text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link>
-              <Link href="#pricing" className="block text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
+              <Link href="features" className="block text-sm text-gray-300 hover:text-white transition-colors">Features</Link>
+              <Link href="how-it-works" className="block text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link>
+              <Link href="pro" className="block text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
               <div className="pt-4 space-y-3">
                 <Link 
-                  href="/auth/login" 
+                  href="/login" 
                   className="relative block text-sm px-6 py-3 overflow-hidden group bg-gradient-to-b from-white/[0.03] to-white/[0.07] hover:from-white/[0.05] hover:to-white/[0.1] border border-white/10 rounded-xl transition-all duration-300"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
@@ -74,7 +74,7 @@ export default function Header() {
                   </span>
                 </Link>
                 <Link 
-                  href="/auth/signup" 
+                  href="/signup" 
                   className="relative block text-sm px-6 py-3 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">

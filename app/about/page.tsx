@@ -54,7 +54,7 @@ export default function AboutPage() {
 
           <h2 className="text-3xl font-bold">Join Us on Our Journey</h2>
           <p className="text-gray-400">
-            We invite you to be a part of our community. Whether you're a shopper looking for the best deals or a partner wanting to collaborate, we welcome you to reach out and connect with us.
+            We invite you to be a part of our community. Whether you&apos;re a shopper looking for the best deals or a partner wanting to collaborate, we welcome you to reach out and connect with us.
           </p>
           <Link
             href="/contact"

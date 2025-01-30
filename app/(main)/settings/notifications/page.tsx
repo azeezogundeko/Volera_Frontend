@@ -323,7 +323,7 @@ export default function NotificationSettings() {
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">Quiet Hours</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Set a time period when you don't want to receive notifications
+                Set a time period when you don&apos;t want to receive notifications
               </p>
             </div>
             <NotificationToggle

@@ -146,7 +146,7 @@ export const VerificationForm: React.FC = (): JSX.Element => {
         
         <div className="text-center text-sm">
           <span className="text-gray-600 dark:text-gray-400">
-            Didn't receive the code?{' '}
+            Didn&apos;t receive the code?{' '}
           </span>
           <button
             type="button"

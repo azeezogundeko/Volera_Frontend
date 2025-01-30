@@ -79,7 +79,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     };
 
     checkIfSaved();
-  }, [product]);
+  }, [product, isSaved, params.id]);
 
   const handleTrackPrice = async () => {
     if (!targetPrice || isNaN(Number(targetPrice))) {
@@ -439,7 +439,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                     <div className="bg-white dark:bg-dark-50 rounded-lg p-6 max-w-md w-full mx-4">
                       <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Track Price</h2>
                       <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        We'll notify you when the price drops below your target price.
+                        We&apos;ll notify you when the price drops below your target price.
                       </p>
                       <div className="space-y-4">
                         <div>

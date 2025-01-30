@@ -33,7 +33,7 @@ export default function Partnership() {
               with AI Shopping
             </h1>
             <p className="text-lg text-gray-400 mb-8 max-w-3xl mx-auto">
-              Integrate Volera's AI shopping assistant directly into your platform and provide unparalleled value to your customers.
+              Integrate Volera&apos;s AI shopping assistant directly into your platform and provide unparalleled value to your customers.
             </p>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function Partnership() {
               Why Partner with Volera?
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Create mutual value and enhance your platform's capabilities
+              Create mutual value and enhance your platform&apos;s capabilities
             </p>
           </div>
 
@@ -123,7 +123,7 @@ export default function Partnership() {
                 <Mail className="w-4 h-4" />
                 Partnership Inquiry
               </div>
-              <h2 className="text-3xl font-bold mb-4">Let's Build Together</h2>
+              <h2 className="text-3xl font-bold mb-4">Let&apos;s Build Together</h2>
               <p className="text-gray-400">Fill out the form and our partnership team will contact you within 24 hours</p>
             </div>
 
