@@ -56,6 +56,7 @@ export default function ChatSidebar({ isOpen, onClose, products }: { isOpen: boo
               content: errorMessage.message,
               isAI: true
             }];
+            setIsProcessing(false);
             return newMessages;
           }
           return prev;

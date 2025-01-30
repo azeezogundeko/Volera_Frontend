@@ -144,7 +144,7 @@ class WebSocketService {
                 message = {
                   type: parsedData.type || 'ERROR',
                   data: parsedData.data || parsedData,
-                  message: null
+                  message: parsedData.message
                 };
             }
 

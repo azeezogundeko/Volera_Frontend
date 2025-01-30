@@ -34,6 +34,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
   const [isActive, setIsActive] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [topN, setTopN] = useState<number>(25);
   const [error, setError] = useState<string | null>(null);
   const [selectedWebsite, setSelectedWebsite] = useState<string>('all');
   const [isListening, setIsListening] = useState(false);
@@ -160,9 +161,9 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
       const formData = new FormData();
       formData.append('query', query);
       formData.append('site', selectedWebsite);
-      formData.append('max_results', '5');
+      formData.append('max_results', '3');
+      formData.append('limit', topN.toString());
       formData.append('page', '1');
-      formData.append('limit', '50');
       console.log('Uploaded Images:', uploadedImages);
       uploadedImages.forEach(image => {
         formData.append('images', image);
@@ -190,9 +191,9 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
   return (
     <div className="relative w-full max-w-4xl mx-auto px-4 sm:px-6">
       {/* Main Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm hover:shadow-md transition-shadow">
-        {/* Search Input */}
-        <div className="flex-1 flex items-center gap-3 p-3 sm:p-4">
+      <div className="flex flex-col bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm hover:shadow-md transition-shadow">
+        {/* Search Input Row */}
+        <div className="flex items-center gap-3 p-3 sm:p-4">
           <Sparkles className="hidden sm:block w-5 h-5 text-emerald-500 flex-shrink-0" />
           <div className="flex-1">
             <div className="relative flex items-center">
@@ -246,11 +247,63 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
           className="hidden"
         />
 
-        {/* Website Selector and Search Button Container */}
-        <div className="flex border-t sm:border-t-0 sm:border-l border-gray-200 dark:border-[#222]">
-          {/* Website Selector */}
-          <div className="relative flex-1 sm:flex-none sm:min-w-[180px]">
-            <div className="h-full">
+        {/* Controls Row */}
+        <div className="flex flex-col sm:flex-row border-t border-gray-200 dark:border-[#222]">
+          {/* Mobile Layout: Grid for dropdowns */}
+          <div className="grid grid-cols-2 sm:hidden border-b border-gray-200 dark:border-[#222]">
+            {/* Top N Dropdown - Mobile */}
+            <div className="relative border-r border-gray-200 dark:border-[#222]">
+              <select
+                value={topN}
+                onChange={(e) => setTopN(Number(e.target.value))}
+                className="w-full h-full bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
+              >
+                <option value={10} className="bg-white dark:bg-[#1a1a1a]">10</option>
+                <option value={15} className="bg-white dark:bg-[#1a1a1a]">15</option>
+                <option value={25} className="bg-white dark:bg-[#1a1a1a]">25</option>
+                <option value={50} className="bg-white dark:bg-[#1a1a1a]">50</option>
+                <option value={75} className="bg-white dark:bg-[#1a1a1a]">75</option>
+              </select>
+            </div>
+
+            {/* Website Selector - Mobile */}
+            <div className="relative">
+              <select
+                value={selectedWebsite}
+                onChange={(e) => setSelectedWebsite(e.target.value)}
+                className="w-full h-full bg-transparent px-3 py-2 text-sm"
+              >
+                {websites.map(site => (
+                  <option key={site.id} value={site.id}>{site.shortName}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex flex-1">
+            {/* Top N Dropdown - Desktop */}
+            <div className="relative sm:min-w-[120px] border-r border-gray-200 dark:border-[#222]">
+              <select
+                value={topN}
+                onChange={(e) => setTopN(Number(e.target.value))}
+                className="h-full w-full appearance-none bg-transparent px-4 py-3 text-sm text-gray-700 dark:text-white/90 focus:outline-none focus:ring-0 border-0 cursor-pointer"
+              >
+                <option value={10} className="bg-white dark:bg-[#1a1a1a]">Top 10</option>
+                <option value={15} className="bg-white dark:bg-[#1a1a1a]">Top 15</option>
+                <option value={25} className="bg-white dark:bg-[#1a1a1a]">Top 25</option>
+                <option value={50} className="bg-white dark:bg-[#1a1a1a]">Top 50</option>
+                <option value={75} className="bg-white dark:bg-[#1a1a1a]">Top 75</option>
+              </select>
+              <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400 dark:text-white/40" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Website Selector - Desktop */}
+            <div className="relative sm:min-w-[180px]">
               <select
                 value={selectedWebsite}
                 onChange={(e) => setSelectedWebsite(e.target.value)}
@@ -268,41 +321,13 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
                 </svg>
               </div>
             </div>
-            
-            {/* Website Icons */}
-            <div className="hidden sm:flex absolute left-4 -bottom-3 -space-x-1.5">
-              {selectedWebsite === 'all' ? (
-                websites.slice(1).map((site) => (
-                  <div
-                    key={site.id}
-                    className="w-6 h-6 rounded-full border-2 border-white dark:border-[#141414] shadow-sm flex items-center justify-center"
-                    style={{ backgroundColor: site.bgColor }}
-                  >
-                    <span className="text-[10px] font-bold text-white">
-                      {site.shortName}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div
-                  className="w-6 h-6 rounded-full border-2 border-white dark:border-[#141414] shadow-sm flex items-center justify-center"
-                  style={{ 
-                    backgroundColor: websites.find(site => site.id === selectedWebsite)?.bgColor 
-                  }}
-                >
-                  <span className="text-[10px] font-bold text-white">
-                    {websites.find(site => site.id === selectedWebsite)?.shortName}
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Search Button */}
+          {/* Search Button - Full width on mobile */}
           <button
             onClick={handleSearch}
             disabled={isLoading || !query.trim()}
-            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white sm:rounded-r-2xl transition-colors disabled:opacity-50 disabled:hover:bg-emerald-500"
+            className="sm:w-auto w-full py-2 sm:py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white sm:rounded-r-2xl"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -361,7 +361,7 @@ export default function MarketplacePage() {
                 {mounted && lastSearchQuery && products.length > 0 && (
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-sm text-gray-600">
-                      Showing results for "{lastSearchQuery}"
+                      Showing results for &#34;{lastSearchQuery}&#34;
                     </p>
                     <button
                       onClick={clearSearchResults}
