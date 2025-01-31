@@ -85,6 +85,7 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
                     isAI: true
                   }];
                   // console.log('New Messages:', newMessages);
+                  
                   return newMessages;
                 }
                 return prev;
@@ -113,11 +114,12 @@ export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetail
                 content: errorMessage.message,
                 isAI: true
               }];
+              
               return newMessages;
             }
             return prev;
           });
-
+          setIsProcessing(false); 
         }
       });
 

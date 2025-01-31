@@ -4,12 +4,56 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
+import process from 'process'
 import { Sparkles, Zap, ShieldCheck, ArrowRight, Menu, X, ShoppingCart } from 'lucide-react';
 
 export default function Waitlist() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [topEmail, setTopEmail] = useState('');
-  const [bottomEmail, setBottomEmail] = useState('');
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState('');
+  const [emailError, setEmailError] = useState('');
+
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault(); // Prevent the default form submission
+
+    setIsSubmitting(true);
+    setSubmissionError('');
+    setEmailError(''); // Reset email error
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        setEmailError('Please enter a valid email address.');
+        setIsSubmitting(false);
+        return;
+    }
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/waitlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(email),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit top email. Please try again.');
+      }
+      // Handle successful submission
+      console.log('Submission successful');
+      setEmail('');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setSubmissionError(error.message);
+      } else {
+        setSubmissionError('An unknown error occurred');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
@@ -19,7 +63,7 @@ export default function Waitlist() {
       {/* </header> */}
 
       {/* Hero Section */}
-      <div className="relative pt-32 pb-24 md:pt-40 md:pb-32">
+      <div className="relative pt-32 pb-24 md:pt-40 md:pb-32 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
@@ -38,29 +82,31 @@ export default function Waitlist() {
 
             {/* Waitlist Form */}
             <div className="max-w-xl mx-auto px-4 sm:px-0">
-              <div className="flex flex-col sm:flex-row gap-3">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 relative group">
                   <input
                     type="email"
-                    value={topEmail}
-                    onChange={(e) => setTopEmail(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
                     className="relative z-10 w-full px-4 py-3 md:px-6 md:py-4 bg-white/5 border border-white/10 rounded-xl placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 transition-all text-sm md:text-base"
+                    required
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <button className="relative px-6 py-3 md:px-8 md:py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300 text-sm md:text-base">
+                <button
+                  type="submit"
+                  className="relative px-6 py-3 md:px-8 md:py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300 text-sm md:text-base"
+                  disabled={isSubmitting}
+                >
                   <span className="relative z-10 flex items-center justify-center gap-2 md:gap-3 font-medium">
                     Join Waitlist
                     <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </button>
-              </div>
-              <p className="text-xs md:text-sm text-gray-500 mt-3 flex items-center justify-center gap-2">
-                <ShieldCheck className="w-3 h-3 md:w-4 md:h-4 text-emerald-500" />
-                We respect your privacy. No spam, ever.
-              </p>
+              </form>
+              {emailError && <p className="text-red-500">{emailError}</p>}
+              {submissionError && <p className="text-red-500">{submissionError}</p>}
             </div>
           </div>
         </div>
@@ -73,7 +119,7 @@ export default function Waitlist() {
       </div>
 
       {/* Benefits Section */}
-      <div className="relative bg-[#0c0c0c] py-12 md:py-24 border-t border-white/5">
+      <div className="relative bg-[#0c0c0c] py-12 md:py-24 border-t border-white/5 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
@@ -124,7 +170,7 @@ export default function Waitlist() {
       </div>
 
       {/* CTA Section */}
-      <div className="relative bg-[#0c0c0c] py-12 md:py-24 border-t border-white/5">
+      <div className="relative bg-[#0c0c0c] py-12 md:py-24 border-t border-white/5 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent rounded-3xl overflow-hidden">
             <div className="relative z-10 px-4 py-8 md:px-16 md:py-16 text-center">
@@ -138,10 +184,11 @@ export default function Waitlist() {
                 <div className="flex-1 relative group max-w-md w-full">
                   <input
                     type="email"
-                    value={bottomEmail}
-                    onChange={(e) => setBottomEmail(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
                     className="relative z-10 w-full px-4 py-3 md:px-6 md:py-4 bg-white/5 border border-white/10 rounded-xl placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 transition-all text-sm md:text-base"
+                    required
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
@@ -154,7 +201,7 @@ export default function Waitlist() {
                     <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute inset-0 rounded-xl bg-[url('/grid.svg')] opacity-10"></div>
+                  <div className="absolute inset-0 rounded-3xl bg-[url('/grid.svg')] opacity-10"></div>
                 </button>
                 <span className="text-gray-400 text-xs md:text-sm flex items-center gap-2 sm:hidden">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>

@@ -151,6 +151,7 @@ export default function MarketplacePage() {
       setLastSearchQuery(query);
       localStorage.setItem('lastSearchQuery', query);
     }
+    setIsSearching(false);
   };
 
   const handleSearchComplete = (products: ProductResponse[] | null, error?: string): void => {

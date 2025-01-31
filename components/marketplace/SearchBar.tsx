@@ -172,19 +172,25 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/search`, {
         method: 'POST',
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        }
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch search results');
+        const err = await response.json();
+        console.log(err);
+        throw new Error(err.message);
       }
 
       const data: ProductResponse[] = await response.json();
       onSearch(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while searching');
-      console.error('Search error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while searching';
+      setError(errorMessage);
+      // onSearch(null, errorMessage);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false); 
     }
   };
 
@@ -256,13 +262,13 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
               <select
                 value={topN}
                 onChange={(e) => setTopN(Number(e.target.value))}
-                className="w-full h-full bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-white"
+                className="w-full h-full bg-transparent dark:bg-[#1a1a1a] dark:text-white px-3 py-2 text-sm focus:outline-none border-0"
               >
-                <option value={10} className="bg-white dark:bg-[#1a1a1a]">10</option>
-                <option value={15} className="bg-white dark:bg-[#1a1a1a]">15</option>
-                <option value={25} className="bg-white dark:bg-[#1a1a1a]">25</option>
-                <option value={50} className="bg-white dark:bg-[#1a1a1a]">50</option>
-                <option value={75} className="bg-white dark:bg-[#1a1a1a]">75</option>
+                <option value={10} className="bg-white dark:bg-[#1a1a1a]">Top 10</option>
+                <option value={15} className="bg-white dark:bg-[#1a1a1a]">Top 15</option>
+                <option value={25} className="bg-white dark:bg-[#1a1a1a]">Top 25</option>
+                <option value={50} className="bg-white dark:bg-[#1a1a1a]">Top 50</option>
+                <option value={75} className="bg-white dark:bg-[#1a1a1a]">Top 75</option>
               </select>
             </div>
 
@@ -271,10 +277,10 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
               <select
                 value={selectedWebsite}
                 onChange={(e) => setSelectedWebsite(e.target.value)}
-                className="w-full h-full bg-transparent px-3 py-2 text-sm"
+                className="w-full h-full bg-transparent dark:bg-[#1a1a1a] dark:text-white px-3 py-2 text-sm focus:outline-none border-0"
               >
                 {websites.map(site => (
-                  <option key={site.id} value={site.id}>{site.shortName}</option>
+                  <option key={site.id} value={site.id}>{site.name}</option>
                 ))}
               </select>
             </div>
