@@ -76,8 +76,6 @@ export default function LoginPage() {
       }
 
       if (data.token && data.user) {
-        // console.log('Login successful, storing auth data...');
-        
         // Store the token and user data
         localStorage.setItem('auth_token', data.token.access_token);
         localStorage.setItem('token_type', data.token.token_type);
@@ -89,8 +87,16 @@ export default function LoginPage() {
 
         // Set authorization header for future requests
         const authHeader = `${data.token.token_type} ${data.token.access_token}`;
-        // console.log('Setting auth header:', authHeader);
 
+        // Check for redirect URL from pro page
+        const redirectUrl = localStorage.getItem('redirectAfterLogin');
+        if (redirectUrl && redirectUrl.includes('/checkout')) {
+          localStorage.removeItem('redirectAfterLogin'); // Clean up
+          window.location.href = redirectUrl; // Redirect back to checkout
+          return; // Skip chat creation for checkout flow
+        }
+
+        // Default flow - create chat and redirect
         const da = await createNewChat();
         if (da) {
           router.push(`/c/${da.id}`);

@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html className="h-full" lang="en" suppressHydrationWarning>
       <body className={cn('h-full', montserrat.className)}>
-        {children}
+          {children}
       </body>
     </html>
   );

@@ -193,7 +193,7 @@ export default function ProPage() {
                   ))}
                 </ul>
                 <Link
-                  href={plan.name === 'Free' ? '/auth/signup' : '/checkout'}
+                  href={`/checkout?plan=${plan.name}&amount=${plan.price.replace(',', '')}`}
                   className={cn(
                     'relative w-full py-4 px-6 rounded-xl text-sm font-medium transition-all duration-300 overflow-hidden group',
                     plan.recommended
@@ -203,9 +203,8 @@ export default function ProPage() {
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     {plan.buttonText}
-                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                    <ArrowRight className="w-4 h-4" />
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </Link>
               </div>
             ))}
