@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/footer';
 import Header from '@/components/header';
-import { ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, Menu, X } from 'lucide-react';
+import { ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, Menu, X, Play, LineChart, Brain, Lock, ThumbsUp, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
@@ -16,92 +16,86 @@ export default function Home() {
       {/* Header */}
       <Header />
       {/* Hero Section */}
-      <div className="relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 md:pt-40 md:pb-32">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-            {/* Left Content */}
-            <div className="flex-1 text-center lg:text-left z-10">
-              <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                <Sparkles className="w-4 h-4" />
+      <div className="relative min-h-screen">
+        {/* Background Gradients */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-0 -left-4 w-72 md:w-96 h-72 md:h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob" />
+          <div className="absolute top-0 -right-4 w-72 md:w-96 h-72 md:h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob animation-delay-2000" />
+          <div className="absolute -bottom-8 left-20 w-72 md:w-96 h-72 md:h-96 bg-emerald-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob animation-delay-4000" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-12 md:pb-24">
+          <div className="flex flex-col items-center gap-12 md:gap-20">
+            {/* Text Content */}
+            <div className="text-center max-w-4xl mx-auto relative z-10 px-4">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500/20 to-emerald-400/20 text-emerald-400 px-4 md:px-6 py-2 rounded-full text-xs md:text-sm font-medium mb-6 md:mb-8 border border-emerald-500/20 backdrop-blur-sm">
+                <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
                 AI-Powered Shopping Assistant
+                <span className="inline-flex items-center justify-center px-2 py-0.5 text-[10px] md:text-xs font-semibold bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
+                  BETA
+                </span>
               </div>
-              <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
-                Shop Smarter with Artificial
-                <br />
-                 Intelligence
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 md:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-emerald-400 leading-tight">
+                Shop Smarter with
+                <br className="hidden sm:block" />
+                <span className="sm:inline"> Artificial Intelligence</span>
               </h1>
-              <p className="text-lg text-gray-400 mb-8 max-w-2xl">
-                Experience the future of e-commerce with Volera. Our AI agents analyze products across multiple platforms to help you make informed purchase decisions.
+              <p className="text-base md:text-lg text-gray-400 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed">
+                Experience the future of e-commerce with Volera.{" "}
+                <span className="hidden md:inline-block">Our AI agents analyze products across multiple platforms to help you make informed purchase decisions.</span>
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link 
-                  href="/signup" 
-                  className="relative px-8 py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
+              <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center">
+                <button 
+                  className="group relative px-6 md:px-8 py-3 md:py-4 overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl transition-all duration-300 hover:scale-105 transform"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-3 font-medium">
-                    <ShoppingCart className="w-5 h-5" />
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 rounded-xl bg-[url('/grid.svg')] opacity-20"></div>
+                  <span className="relative z-10 flex items-center justify-center gap-2 font-medium text-white text-sm md:text-base">
+                    <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
                     Get Started Free
-                    <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute inset-0 rounded-xl bg-[url('/grid.svg')] opacity-10"></div>
-                </Link>
-                <Link 
-                  href="features" 
-                  className="relative px-8 py-4 overflow-hidden group bg-gradient-to-b from-white/[0.03] to-white/[0.07] hover:from-white/[0.05] hover:to-white/[0.1] border border-white/10 rounded-xl transition-all duration-300"
+                </button>
+                <button 
+                  className="group relative px-6 md:px-8 py-3 md:py-4 overflow-hidden bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 transform backdrop-blur-sm"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
-                    Learn More
-                    <ArrowRight className="w-5 h-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                  <span className="relative z-10 flex items-center justify-center gap-2 font-medium text-sm md:text-base">
+                    Watch Demo
+                    <Play className="w-4 h-4 md:w-5 md:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/[0.05] to-emerald-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-700"></div>
-                </Link>
+                </button>
               </div>
             </div>
 
-            {/* Right Content - Dashboard Preview */}
-            <div className="flex-1 relative z-10">
-              <div className="bg-[#111111]/40 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                {/* <div className="flex items-center justify-between mb-6">
-                  <div className="space-y-2">
-                    <div className="h-3 w-32 bg-emerald-500/20 rounded-full" />
-                    <div className="h-3 w-24 bg-emerald-500/10 rounded-full" />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500/40" />
-                    <div className="w-3 h-3 rounded-full bg-emerald-500/20" />
-                    <div className="w-3 h-3 rounded-full bg-emerald-500/10" />
-                  </div>
-                </div> */}
-                <div className="space-y-4">
-                  <div className="h-24 bg-gradient-to-r from-emerald-500/20 to-emerald-500/5 rounded-xl" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="h-32  w-full bg-emerald-500/10 rounded-xl p-4">
-                      <Image 
-                        src="/dashboard.PNG" 
-                        alt="Dashboard representation" 
-                        fill
-                        className="object-cover rounded-xl"  
-                      />
-                    </div>
-                    <div className="h-32 bg-emerald-500/5 rounded-xl p-4">
-                      <div className="space-y-2">
-                        <div className="h-2 w-20 bg-emerald-500/20 rounded-full" />
-                        <div className="h-2 w-16 bg-emerald-500/10 rounded-full" />
-                      </div>
-                    </div>
-                  </div>
+            {/* Video Section */}
+            <div className="w-full max-w-5xl mx-auto relative z-10 px-4">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#111111]/60 to-[#111111]/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+                {/* Decorative Elements */}
+                <div className="absolute top-2 md:top-4 left-2 md:left-4 flex items-center gap-1.5 md:gap-2 z-10">
+                  <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-red-500/70" />
+                  <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-yellow-500/70" />
+                  <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-500/70" />
                 </div>
+                <video 
+                  className="w-full h-full object-cover opacity-90"
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline
+                >
+                  <source src="/demo.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                {/* Overlay Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              </div>
+              {/* Video Controls */}
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex items-center gap-3 md:gap-4 px-4 md:px-6 py-1.5 md:py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span className="text-xs md:text-sm text-gray-400">AI Demo in Progress</span>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Background Effects */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 -left-4 w-96 h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob" />
-          <div className="absolute top-0 -right-4 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob animation-delay-2000" />
-          <div className="absolute -bottom-8 left-20 w-96 h-96 bg-emerald-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob animation-delay-4000" />
         </div>
       </div>
 
@@ -125,98 +119,53 @@ export default function Home() {
             {[
               {
                 title: 'Smart Product Search',
-                description: 'Find exactly what you need with our AI-powered search across multiple platforms',
-                icon: Image,
-                gradient: 'from-emerald-500/20 to-emerald-500/0',
-                imageProps: {
-                  src: "/chat_pages.PNG",
-                  alt: "Chart representation",
-                  width: 24,
-                  height: 24,
-                  className: "w-6 h-6 text-emerald-400 mb-2"
-                }
+                description: 'AI-powered search across multiple platforms to find exactly what you need',
+                icon: Search,
+                gradient: 'from-emerald-500/20 to-emerald-500/0'
               },
               {
                 title: 'Price Analysis',
-                description: 'Get real-time price comparisons and historical price trends',
-                icon: Image,
-                gradient: 'from-emerald-400/20 to-emerald-400/0',
-                imageProps: {
-                  src: "/chat_pages.PNG",
-                  alt: "Chart representation",
-                  width: 24,
-                  height: 24,
-                  className: "w-6 h-6 text-emerald-400 mb-2"
-                }
+                description: 'Real-time price comparisons and historical trends for smart shopping',
+                icon: LineChart,
+                gradient: 'from-emerald-400/20 to-emerald-400/0'
               },
               {
                 title: 'Secure Transactions',
-                description: 'Shop with confidence with our secure transaction monitoring',
-                icon: Image,
-                gradient: 'from-emerald-600/20 to-emerald-600/0',
-                imageProps: {
-                  src: "/chat_pages.PNG",
-                  alt: "Chart representation",
-                  width: 24,
-                  height: 24,
-                  className: "w-6 h-6 text-emerald-400 mb-2"
-                }
+                description: 'Confidently shop with advanced secure transaction monitoring',
+                icon: Lock,
+                gradient: 'from-emerald-600/20 to-emerald-600/0'
               },
               {
                 title: 'Instant Recommendations',
-                description: 'Receive personalized product recommendations based on your preferences',
-                icon: Image,
-                gradient: 'from-emerald-500/20 to-emerald-500/0',
-                imageProps: {
-                  src: "/chat_pages.PNG",
-                  alt: "Chart representation",
-                  width: 24,
-                  height: 24,
-                  className: "w-6 h-6 text-emerald-400 mb-2"
-                }
-              },
-              {
-                title: 'Market Intelligence',
-                description: 'Access comprehensive market data and trends for informed decisions',
-                icon: Image,
-                gradient: 'from-emerald-400/20 to-emerald-400/0',
-                imageProps: {
-                  src: "/chat_pages.PNG",
-                  alt: "Chart representation",
-                  width: 24,
-                  height: 24,
-                  className: "w-6 h-6 text-emerald-400 mb-2"
-                }
+                description: 'Personalized product suggestions tailored to your unique preferences',
+                icon: Brain,
+                gradient: 'from-emerald-500/20 to-emerald-500/0'
               },
               {
                 title: 'Smart Comparisons',
-                description: 'Compare products across multiple dimensions with AI assistance',
-                icon: Image,
-                gradient: 'from-emerald-600/20 to-emerald-600/0',
-                imageProps: {
-                  src: "/chat_pages.PNG",
-                  alt: "Chart representation",
-                  width: 24,
-                  height: 24,
-                  className: "w-6 h-6 text-emerald-400 mb-2"
-                }
-              }
+                description: 'Compare products across multiple dimensions with intelligent AI',
+                icon: ThumbsUp,
+                gradient: 'from-emerald-600/20 to-emerald-600/0'
+              },
+              {
+                title: 'Market Intelligence',
+                description: 'Comprehensive market data and trends for informed decision-making',
+                icon: BarChart3,
+                gradient: 'from-emerald-400/20 to-emerald-400/0'
+              },
+              
             ].map((feature, index) => (
               <div 
-                key={index}
-                className="group relative bg-[#111111] hover:bg-[#141414] border border-white/5 rounded-2xl p-6 transition-all hover:border-emerald-500/20"
+                key={feature.title}
+                className="relative group"
               >
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                <div className="relative">
-                  <Image 
-                    src={feature.imageProps.src} 
-                    alt={feature.imageProps.alt} 
-                    width={feature.imageProps.width} 
-                    height={feature.imageProps.height} 
-                    className={feature.imageProps.className} 
-                  />
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-gray-400 text-sm">{feature.description}</p>
+                <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                <div className="relative p-6 md:p-8 bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 hover:border-emerald-500/20 transition-colors duration-300">
+                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-b ${feature.gradient} p-2 mb-4 border border-white/10`}>
+                    <feature.icon className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-gray-400">{feature.description}</p>
                 </div>
               </div>
             ))}

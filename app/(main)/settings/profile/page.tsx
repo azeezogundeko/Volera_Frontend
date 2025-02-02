@@ -34,7 +34,7 @@ interface ProfileData {
 
 async function fetchUserProfile(): Promise<ProfileData> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export default function ProfileSettings() {
 
     try {
       setIsSaving(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
