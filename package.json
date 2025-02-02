@@ -38,7 +38,7 @@
     "react-text-to-speech": "^0.14.5",
     "react-textarea-autosize": "^8.5.3",
     "react-toastify": "^11.0.2",
-    "recharts": "^2.15.0",
+    "recharts": "^2.10.0",
     "sonner": "^1.7.2",
     "tailwind-merge": "^2.6.0",
     "yet-another-react-lightbox": "^3.17.2",

@@ -9,30 +9,51 @@ import {
   ArrowDown, 
   Upload, 
   Sparkles, 
-  Search 
+  Search,
+  AlertCircle,
+  Ban,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
+import {
   DashboardStats,
-  PriceHistory,
+  BillingInfo,
   Chat,
   TrackedItem,
+  PriceHistory,
   TrendingProduct,
   getDashboardStats,
-  getPriceHistory,
+  getBillingInfo,
   getRecentChats,
   getTrackedItems,
   getTrendingProducts,
 } from '@/lib/api';
+import cn from 'classnames';
 
 export default function Home() {
   const [stats, setStats] = useState<DashboardStats>({
     activeChats: 0,
     trackedItems: 0,
     priceAlerts: 0,
+  });
+  const [billingInfo, setBillingInfo] = useState<BillingInfo>({
+    currentPlan: '',
+    totalCredits: 0,
+    usedCredits: 0,
+    remainingCredits: 0,
+    creditHistory: [],
   });
   const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
   const [recentChats, setRecentChats] = useState<Chat[]>([]);
@@ -47,20 +68,23 @@ export default function Home() {
         setIsLoading(true);
         const [
           statsData,
-          historyData,
+          billingData,
+          // historyData,
           chatsData,
           itemsData,
           productsData,
         ] = await Promise.all([
           getDashboardStats(),
-          getPriceHistory(),
+          getBillingInfo(),
+          // getPriceHistory(),
           getRecentChats(),
           getTrackedItems(),
           getTrendingProducts(),
         ]);
 
         setStats(statsData);
-        setPriceHistory(historyData);
+        setBillingInfo(billingData);
+        // setPriceHistory(historyData);
         setRecentChats(chatsData);
         setTrackedItems(itemsData);
         setTrendingProducts(productsData);
@@ -116,41 +140,62 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Pro Upgrade Banner */}
-        <div className="mb-6 sm:mb-8 bg-[#E5F7E5] dark:bg-[#1a1a1a] rounded-xl p-4 border border-[#4CAF50]/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-[#4CAF50]/10 rounded-lg">
-                <Sparkles className="w-5 h-5 text-[#4CAF50]" />
+        {/* Credits Status Banner */}
+        {billingInfo.remainingCredits < 500 && (
+          <div className={cn(
+            "mb-6 sm:mb-8 rounded-xl p-4 border transition-colors",
+            billingInfo.remainingCredits <= 0 
+              ? "bg-red-600/10 dark:bg-red-600/10 border-red-600/20"
+              : "bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/20"
+          )}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  billingInfo.remainingCredits <= 0 
+                    ? "bg-red-600/10" 
+                    : "bg-amber-500/10"
+                )}>
+                  {billingInfo.remainingCredits <= 0 ? (
+                    <Ban className="w-5 h-5 text-red-600" />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-base font-medium text-gray-900 dark:text-white/90">
+                    {billingInfo.remainingCredits <= 0 
+                      ? "Out of Credits!" 
+                      : "Credits Running Low!"}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-white/70">
+                    {billingInfo.remainingCredits <= 0
+                      ? "Your account has no remaining credits"
+                      : `Only ${billingInfo.remainingCredits} credits left`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-base font-medium text-gray-900 dark:text-white/90">Try Pro</h2>
-                <p className="text-sm text-gray-600 dark:text-white/70">
-                  Unlock premium features
-                </p>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Link 
+                  href="/settings/billing"
+                  className={cn(
+                    "group relative w-full sm:w-auto px-4 py-1.5 hover:shadow-lg transition-all duration-200 rounded-lg text-sm font-medium text-white",
+                    billingInfo.remainingCredits <= 0
+                      ? "bg-red-600 hover:bg-red-700 hover:shadow-red-600/20"
+                      : "bg-amber-600 hover:bg-amber-700 hover:shadow-amber-600/20"
+                  )}
+                >
+                  {billingInfo.remainingCredits <= 0 ? "Buy Credits" : "Top Up Now"}
+                  <span className="absolute -top-8 right-0 w-max opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded pointer-events-none">
+                    {billingInfo.remainingCredits <= 0
+                      ? "Purchase credits to continue using services"
+                      : "Add more credits to maintain access"}
+                  </span>
+                </Link>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 text-sm text-[#4CAF50] dark:text-[#4CAF50]">
-                <Upload className="w-4 h-4" />
-                <span>Image Upload</span>
-                <span className="mx-1">•</span>
-                <Search className="w-4 h-4" />
-                <span>Pro Search</span>
-              </div>
-              <Link 
-                href="/upgrade"
-                className="group relative px-4 py-1.5 bg-[#4CAF50] hover:bg-[#45a049] text-white rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-lg hover:shadow-[#4CAF50]/20"
-              >
-                Upgrade
-                <span className="absolute -top-8 right-0 w-max opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded pointer-events-none">
-                  Get smarter AI & more!
-                </span>
-              </Link>
             </div>
           </div>
-        </div>
-
+        )}
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
@@ -161,7 +206,7 @@ export default function Home() {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Credits Left</p>
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  {459}
+                  {billingInfo.remainingCredits}
                 </p>
               </div>
             </div>
@@ -174,7 +219,7 @@ export default function Home() {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Tracked Items</p>
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  5
+                  {stats.trackedItems}
                 </p>
               </div>
             </div>
@@ -187,7 +232,7 @@ export default function Home() {
               <div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Price Alerts</p>
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  1
+                  {stats.priceAlerts}
                 </p>
               </div>
             </div>
@@ -198,7 +243,55 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-            {/* Price History */}
+            {/* Credit Usage */}
+            <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">
+                Credit Usage
+              </h2>
+              <div className="mt-6 h-48 w-full">
+                {billingInfo.creditHistory.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart 
+                      data={billingInfo.creditHistory}
+                      margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#222" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="#888" 
+                        interval="preserveStartEnd"
+                        tick={{ fontSize: 10 }}
+                      />
+                      <YAxis 
+                        stroke="#888" 
+                        tick={{ fontSize: 10 }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#0a0a0a', 
+                          borderColor: '#222',
+                          color: 'white',
+                          fontSize: 12
+                        }} 
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="credits" 
+                        stroke="#10b981" 
+                        strokeWidth={2} 
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-white/60 text-sm">
+                    No credit usage history available
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Price History
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
               <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">
                 Price History
@@ -214,7 +307,7 @@ export default function Home() {
                         {data.price}
                       </span>
                       {index > 0 && (
-                        <span className={`flex items-center gap-0.5 ${
+                        <span className={`text-xs flex items-center gap-0.5 ${
                           data.price < priceHistory[index - 1].price 
                             ? 'text-emerald-500' 
                             : 'text-red-500'
@@ -231,7 +324,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Recent Chats */}
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">

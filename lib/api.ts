@@ -52,6 +52,17 @@ export interface DashboardStats {
   priceAlerts: number;
 }
 
+export interface BillingInfo {
+  currentPlan: string;
+  totalCredits: number;
+  usedCredits: number;
+  remainingCredits: number;
+  creditHistory: {
+    date: string;
+    credits: number;
+  }[];
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const response = await fetch(
     `${getBaseURL()}/track/stats`,
@@ -167,6 +178,24 @@ export async function getAllTrackedItems(): Promise<TrackedItem[]> {
   );
   if (!response.ok) {
     throw new Error('Failed to fetch tracked items');
+  }
+  return response.json();
+}
+
+export async function getBillingInfo(): Promise<BillingInfo> {
+  const response = await fetch(
+    `${getBaseURL()}/payments/billing/info`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch billing information');
   }
   return response.json();
 }

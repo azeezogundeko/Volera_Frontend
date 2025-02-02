@@ -30,7 +30,7 @@ const plans = [
   {
     name: 'Pro Pack',
     description: 'Best for power users',
-    price: '100',
+    price: '3,000',
     currency: '₦',
     features: [
       '7000 credits',
