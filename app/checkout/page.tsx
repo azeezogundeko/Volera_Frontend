@@ -74,22 +74,22 @@ const CheckoutPage = () => {
           return
         }
 
-        const { access_code } = data
+        const { access_code, _ } = data
         
         const popup = new Paystack()
         
         popup.resumeTransaction(access_code, {
           onSuccess: async (transaction) => {
+            router.push(`/payment/processing?plan=${plan}&reference=${transaction.reference}`)
             console.log('Payment successful:', transaction)
             try {
-              // Verify payment and save subscription
-              const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/verify-payment`, {
+                const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/verify-payment`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                  reference: transaction.reference,
+                  transaction_id: transaction.transaction,
                   plan_name: plan.toLowerCase(),
                   email: userEmail
                 })
@@ -102,32 +102,41 @@ const CheckoutPage = () => {
               const verificationData = await verifyResponse.json();
               
               if (verificationData.status) {
-                // Redirect to success page with plan info
-                router.push(`/pro?status=success&plan=${plan}&reference=${transaction.reference}`);
+                // Show success notification before redirect
+                addNotification('Payment successful! Redirecting...', 'success');
+                // Delay redirect to show notification
+                setTimeout(() => {
+                  router.push(`/payment/success?plan=${plan}&reference=${transaction.reference}`);
+                }, 2000);
               } else {
                 // If verification shows payment wasn't successful
                 addNotification('Payment verification failed. Please contact support.', 'error');
-                router.push(`/pro?status=failed&reason=verification_failed`);
+                setTimeout(() => {
+                  router.push(`/payment/failed?reason=verification_failed`);
+                }, 2000);
               }
             } catch (error) {
               console.error('Verification error:', error);
               addNotification('Error verifying payment. Please contact support.', 'error');
-              router.push(`/pro?status=failed&reason=verification_error`);
+              setTimeout(() => {
+                router.push(`/payment/failed?reason=verification_error`);
+              }, 2000);
             }
           },
           onCancel: () => {
-            console.log('Payment cancelled')
             addNotification('Payment was cancelled', 'error')
-            router.push(`/pro?status=failed&reason=cancelled`)
+            setTimeout(() => {
+              router.push(`/payment/failed?reason=cancelled`);
+            }, 2000);
           },
           onError: (error) => {
-            console.error('Payment error:', error)
             addNotification('Payment failed. Please try again.', 'error')
-            router.push(`/pro?status=failed&reason=payment_error`)
+            setTimeout(() => {
+              router.push(`/payment/failed?reason=payment_error`);
+            }, 2000);
           }
         })
       } catch (error) {
-        console.error('Error during payment:', error)
         addNotification('An error occurred. Please try again.', 'error')
       } finally {
         setLoading(false)
