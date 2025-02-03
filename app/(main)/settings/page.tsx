@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -35,18 +35,11 @@ const settingsSections = [
         icon: User
       },
       { 
-        
         label: 'Security',
         description: 'Manage your password and security preferences',
         href: '/settings/security',
         icon: Shield
       },
-      // { 
-      //   label: 'Notifications',
-      //   description: 'Configure how you receive notifications',
-      //   href: '/settings/notifications',
-      //   icon: Bell
-      // },
       { 
         label: 'Preferences',
         description: 'Manage your shopping preferences',
@@ -55,36 +48,11 @@ const settingsSections = [
       },
     ]
   },
-  // {
-  //   title: 'Preferences',
-  //   icon: Palette,
-  //   description: 'Customize your experience',
-  //   items: [
-  //     { 
-  //       label: 'Appearance',
-  //       description: 'Customize the look and feel of the application',
-  //       href: '/settings/appearance',
-  //       icon: Palette
-  //     },
-  //     { 
-  //       label: 'Language',
-  //       description: 'Choose your preferred language',
-  //       href: '/settings/language',
-  //       icon: Globe
-  //     }
-  //   ]
-  // },
   {
     title: 'Billing',
     icon: CreditCard,
     description: 'Manage your billing information and subscription',
     items: [
-      // { 
-      //   label: 'Payment Methods',
-      //   description: 'Add or remove payment methods',
-      //   href: '/settings/payment',
-      //   icon: CreditCard
-      // },
       { 
         label: 'Subscription',
         description: 'View and manage your subscription',
@@ -113,86 +81,6 @@ const themes = [
   }
 ] as const;
 
-export default function SettingsPage() {
-  const { theme, setTheme } = useTheme();
-  const [language, setLanguage] = useState('en');
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white/90">Settings</h1>
-          <p className="mt-2 text-base text-gray-600 dark:text-white/60">
-            Manage your account settings and preferences
-          </p>
-        </div>
-
-        {/* Theme Selector */}
-        <div className="mb-12 bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-4">Theme Preference</h2>
-          <div className="grid grid-cols-3 gap-4">
-            {themes.map(({ value, label, icon: Icon }) => (
-              <motion.button
-                key={value}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setTheme(value)}
-                className={cn(
-                  'relative p-4 rounded-lg',
-                  'flex items-center gap-3',
-                  'border-2 transition-all duration-200',
-                  theme === value
-                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                    : 'border-gray-200 dark:border-[#222] hover:border-emerald-500/50'
-                )}
-              >
-                <Icon className={cn(
-                  'w-5 h-5',
-                  theme === value ? 'text-emerald-500' : 'text-gray-500 dark:text-white/60'
-                )} />
-                <span className={cn(
-                  'font-medium',
-                  theme === value ? 'text-emerald-500' : 'text-gray-700 dark:text-white/90'
-                )}>
-                  {label}
-                </span>
-                {theme === value && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2"
-                  >
-                    <Check className="w-4 h-4 text-emerald-500" />
-                  </motion.div>
-                )}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
-        {/* Settings Sections */}
-        <div className="space-y-6">
-          {settingsSections.map((section) => (
-            <SettingsSection key={section.title} {...section} />
-          ))}
-        </div>
-
-        {/* Logout Button */}
-        <div className="mt-12 border-t border-gray-200 dark:border-[#222] pt-8">
-          <button
-            onClick={() => {}}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface SettingsSectionProps {
   title: string;
   icon: React.ElementType;
@@ -207,7 +95,7 @@ interface SettingsSectionProps {
 
 function SettingsSection({ title, icon: Icon, description, items }: SettingsSectionProps) {
   return (
-    <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm p-6">
+    <div className="bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg">
           <Icon className="w-5 h-5 text-emerald-500" />
@@ -241,6 +129,136 @@ function SettingsSection({ title, icon: Icon, description, items }: SettingsSect
             <ChevronRight className="w-5 h-5 text-gray-400 dark:text-white/40 group-hover:text-emerald-500" />
           </a>
         ))}
+      </div>
+    </div>
+  );
+}
+
+export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+  const [language, setLanguage] = useState('en');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white/90">Settings</h1>
+            <p className="mt-2 text-base text-gray-600 dark:text-white/60">
+              Manage your account settings and preferences
+            </p>
+          </div>
+          
+          {/* Loading state for theme selector */}
+          <div className="mb-12 bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">Theme Preference</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              {themes.map(({ value, label, icon: Icon }) => (
+                <div
+                  key={value}
+                  className="relative py-3 sm:py-4 px-4 rounded-lg flex items-center justify-between sm:justify-start gap-3 border-2 border-gray-200 dark:border-[#222]"
+                >
+                  <div className="flex items-center gap-3 flex-1 sm:flex-none">
+                    <Icon className="w-5 h-5 text-gray-500 dark:text-white/60" />
+                    <span className="font-medium text-gray-700 dark:text-white/90">
+                      {label}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Settings Sections */}
+          <div className="space-y-6">
+            {settingsSections.map((section) => (
+              <SettingsSection key={section.title} {...section} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white/90">Settings</h1>
+          <p className="mt-2 text-base text-gray-600 dark:text-white/60">
+            Manage your account settings and preferences
+          </p>
+        </div>
+
+        {/* Theme Selector */}
+        <div className="mb-12 bg-white dark:bg-[#141414] rounded-2xl border border-gray-200 dark:border-[#222] shadow-sm p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">Theme Preference</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            {themes.map(({ value, label, icon: Icon }) => (
+              <motion.button
+                key={value}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setTheme(value)}
+                className={cn(
+                  'relative py-3 sm:py-4 px-4 rounded-lg',
+                  'flex items-center justify-between sm:justify-start gap-3',
+                  'border-2 transition-all duration-200',
+                  theme === value
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+                    : 'border-gray-200 dark:border-[#222] hover:border-emerald-500/50'
+                )}
+              >
+                <div className="flex items-center gap-3 flex-1 sm:flex-none">
+                  <Icon className={cn(
+                    'w-5 h-5',
+                    theme === value ? 'text-emerald-500' : 'text-gray-500 dark:text-white/60'
+                  )} />
+                  <span className={cn(
+                    'font-medium',
+                    theme === value ? 'text-emerald-500' : 'text-gray-700 dark:text-white/90'
+                  )}>
+                    {label}
+                  </span>
+                </div>
+                {theme === value && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="flex-shrink-0"
+                  >
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  </motion.div>
+                )}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Settings Sections */}
+        <div className="space-y-6">
+          {settingsSections.map((section) => (
+            <SettingsSection key={section.title} {...section} />
+          ))}
+        </div>
+
+        {/* Logout Button */}
+        <div className="mt-12 border-t border-gray-200 dark:border-[#222] pt-8">
+          <button
+            onClick={() => {}}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );

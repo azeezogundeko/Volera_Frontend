@@ -21,7 +21,11 @@ import { useRouter } from 'next/navigation';
 import process from 'process'
 
 interface ProfileData {
-  avatar?: File | string | null;
+  avatar?: {
+    id?: string;
+    name?: string;
+    url?: string;
+  } | null;
   first_name: string;
   last_name: string;
   email: string;
@@ -95,8 +99,8 @@ export default function ProfileSettings() {
   };
 
   useEffect(() => {
-    if (typeof formData.avatar === 'string') {
-      setPreviewImage(formData.avatar);
+    if (formData.avatar && formData.avatar.url) {
+      setPreviewImage(formData.avatar.url);
     }
   }, [formData.avatar]);
 
@@ -125,7 +129,7 @@ export default function ProfileSettings() {
         setIsDirty(true);
         setFormData(prevData => ({
           ...prevData,
-          avatar: file
+          avatar: { ...prevData.avatar, url: reader.result as string }
         }));
       };
       reader.readAsDataURL(file);
@@ -165,11 +169,10 @@ export default function ProfileSettings() {
       }
     });
 
+    // Handle avatar upload
     if (formData.avatar instanceof File) {
       formDataToSend.append('avatar', formData.avatar);
-    }
-
-    if (formData.avatar === null) {
+    } else if (formData.avatar === null) {
       formDataToSend.append('avatar', '');
     }
 
@@ -199,8 +202,13 @@ export default function ProfileSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      <div className="min-h-screen bg-white dark:bg-[#0a0a0a] py-12">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            <p className="text-sm text-gray-600 dark:text-white/60">Loading profile information...</p>
+          </div>
+        </div>
       </div>
     );
   }

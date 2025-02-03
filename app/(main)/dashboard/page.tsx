@@ -245,49 +245,55 @@ export default function Home() {
           <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* Credit Usage */}
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">
-                Credit Usage
-              </h2>
-              <div className="mt-6 h-48 w-full">
-                {billingInfo.creditHistory.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart 
-                      data={billingInfo.creditHistory}
-                      margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="#888" 
-                        interval="preserveStartEnd"
-                        tick={{ fontSize: 10 }}
-                      />
-                      <YAxis 
-                        stroke="#888" 
-                        tick={{ fontSize: 10 }}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#0a0a0a', 
-                          borderColor: '#222',
-                          color: 'white',
-                          fontSize: 12
-                        }} 
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="credits" 
-                        stroke="#10b981" 
-                        strokeWidth={2} 
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-white/60 text-sm">
-                    No credit usage history available
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90">
+                  Credit Usage
+                </h2>
+                <div className="text-sm text-gray-500 dark:text-white/60">
+                  {billingInfo.usedCredits.toLocaleString()} / {billingInfo.totalCredits.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Progress Bar */}
+                <div className="relative w-full h-4 bg-gray-100 dark:bg-[#222] rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "absolute left-0 top-0 h-full transition-all duration-500",
+                      billingInfo.remainingCredits <= 0 
+                        ? "bg-red-500" 
+                        : billingInfo.remainingCredits < 500 
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
+                    )}
+                    style={{ 
+                      width: `${Math.min((billingInfo.usedCredits / billingInfo.totalCredits) * 100, 100)}%` 
+                    }}
+                  />
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-white/60 mb-1">Used Credits</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white/90">
+                      {billingInfo.usedCredits.toLocaleString()}
+                    </p>
                   </div>
-                )}
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500 dark:text-white/60 mb-1">Remaining</p>
+                    <p className={cn(
+                      "text-lg font-semibold",
+                      billingInfo.remainingCredits <= 0 
+                        ? "text-red-500" 
+                        : billingInfo.remainingCredits < 500 
+                          ? "text-amber-500"
+                          : "text-emerald-500"
+                    )}>
+                      {billingInfo.remainingCredits.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 

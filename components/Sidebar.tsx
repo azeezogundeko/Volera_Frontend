@@ -24,7 +24,10 @@ import {
   Heart,
   User,
   LogOut,
-  Scale
+  Scale,
+  Twitter,
+  Linkedin,
+  Share2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
@@ -126,28 +129,27 @@ const NavSection = ({
           </div>
   );
 };
-
-const ProFeature = ({ expanded }: { expanded: boolean }) => {
-  if (!expanded) return null;
+// const ProFeature = ({ expanded }: { expanded: boolean }) => {
+//   if (!expanded) return null;
   
-  return (
-    <div className="px-3 mt-2 mb-4">
-      <div className="rounded-lg bg-emerald-600 p-3 space-y-3">
-        <h3 className="text-white text-sm font-medium">Try Pro</h3>
-        <p className="text-xs text-emerald-100">
-          Upgrade for image upload, smarter AI, and more Pro Search.
-        </p>
-        <Link
-          href="/pro"
-          className="inline-flex items-center gap-1 text-xs text-white/90 hover:text-white transition-colors group"
-        >
-          Learn More
-          <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-        </Link>
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className="px-3 mt-2 mb-4">
+//       <div className="rounded-lg bg-emerald-600 p-3 space-y-3">
+//         <h3 className="text-white text-sm font-medium">Try Pro</h3>
+//         <p className="text-xs text-emerald-100">
+//           Upgrade for image upload, smarter AI, and more Pro Search.
+//         </p>
+//         <Link
+//           href="/pro"
+//           className="inline-flex items-center gap-1 text-xs text-white/90 hover:text-white transition-colors group"
+//         >
+//           Learn More
+//           <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+//         </Link>
+//       </div>
+//     </div>
+//   );
+// };
 
 const UserButton = ({ expanded }: { expanded: boolean }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -235,6 +237,39 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
         </span>
       )}
     </button>
+  );
+};
+
+const SocialIcons = ({ expanded }: { expanded: boolean }) => {
+  return (
+    <div className={cn(
+      'flex gap-2',
+      expanded ? 'px-3 justify-start' : 'justify-center'
+    )}>
+      <Link
+        href="https://twitter.com"
+        target="_blank"
+        className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+      >
+        <X className="w-4 h-4 text-gray-500 dark:text-white/50" />
+      </Link>
+      <Link
+        href="https://linkedin.com"
+        target="_blank"
+        className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+      >
+        <Linkedin className="w-4 h-4 text-gray-500 dark:text-white/50" />
+      </Link>
+      <Link
+        href="https://bsky.app"
+        target="_blank"
+        className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+      >
+        <svg className="w-4 h-4 text-gray-500 dark:text-white/50" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L1 21h22L12 2zm0 4.5l7.5 13H4.5L12 6.5z"/>
+        </svg>
+      </Link>
+    </div>
   );
 };
 
@@ -370,6 +405,13 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               expanded={true}
               active={segments[0] === 'compare'}
             />
+            <IconButton
+              href="/refer"
+              icon={Share2}
+              label="Refer & Earn"
+              expanded={true}
+              active={segments[0] === 'refer'}
+            />
           </div>
         </nav>
       </div>
@@ -384,33 +426,38 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           onClick={() => setIsSettingsOpen(true)}
         />
         <UserButton expanded={true} />
+        <SocialIcons expanded={true} />
       </div>
     </div>
   );
 
   // Desktop sidebar content with collapsible state
   const desktopSidebarContent = (
-    <div className={cn(
-      'flex flex-col h-full',
-      expanded ? 'w-[280px]' : 'w-16',
-      'bg-white dark:bg-[#111111]',
-      'border-r border-gray-200 dark:border-white/10',
-      'transition-all duration-300'
-    )}>
+    <div
+      className={cn(
+        'flex flex-col h-full',
+        expanded ? 'w-[280px]' : 'w-16',
+        'bg-white dark:bg-[#111111]',
+        'border-r border-gray-200 dark:border-white/10',
+        'transition-all duration-300'
+      )}
+    >
       {/* Logo Section - Desktop */}
-      <div className={cn(
-        'flex items-center',
-        expanded ? 'justify-center' : 'justify-center',
-        'h-16 px-4 border-b border-gray-200 dark:border-white/10',
-        'relative'
-      )}>
+      <div
+        className={cn(
+          'flex items-center',
+          expanded ? 'justify-center' : 'justify-center',
+          'h-16 px-4 border-b border-gray-200 dark:border-white/10',
+          'relative'
+        )}
+      >
         {expanded && (
           <span className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent tracking-tight">
             Volera
           </span>
         )}
         <button
-          onClick={toggleExpanded} 
+          onClick={toggleExpanded}
           className="absolute right-4 p-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 lg:block hidden"
         >
           {expanded ? (
@@ -478,6 +525,13 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               expanded={expanded}
               active={segments[0] === 'compare'}
             />
+            <IconButton
+              href="/refer"
+              icon={Share2}
+              label="Refer & Earn"
+              expanded={expanded}
+              active={segments[0] === 'refer'}
+            />
           </div>
 
           {isProUser ? (
@@ -497,17 +551,17 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 active={segments[0] === 'pro' && segments[1] === 'settings'}
               />
             </div>
-          ) : (
-            <ProFeature expanded={expanded} />
-          )}
+          ) : null}
         </nav>
       </div>
 
       {/* Settings and User Profile */}
-      <div className={cn(
-        'mt-auto border-t border-gray-200 dark:border-white/10',
-        'p-4 space-y-3'
-      )}>
+      <div
+        className={cn(
+          'mt-auto border-t border-gray-200 dark:border-white/10',
+          'p-4 space-y-3'
+        )}
+      >
         <IconButton
           href="#"
           icon={Settings}
@@ -516,6 +570,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           onClick={() => setIsSettingsOpen(true)}
         />
         <UserButton expanded={expanded} />
+        <SocialIcons expanded={expanded} />
       </div>
     </div>
   );
