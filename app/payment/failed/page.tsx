@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { XCircle, ArrowRight, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ const errorMessages = {
   default: 'Something went wrong with your credit purchase.'
 };
 
-export default function PaymentFailedPage() {
+function PaymentFailedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reason = searchParams?.get('reason') || 'default';
@@ -67,5 +68,17 @@ export default function PaymentFailedPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentFailedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+        <div className="text-emerald-400">Loading...</div>
+      </div>
+    }>
+      <PaymentFailedContent />
+    </Suspense>
   );
 }

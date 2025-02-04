@@ -1,0 +1,189 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { NotificationContainer } from '@/components/Notification'
+import { Card, CardContent } from '@/components/ui/card'
+
+interface User {
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
+export default function CheckoutClient() {
+  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [isClient, setIsClient] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const plan = searchParams?.get('plan') ?? ''
+  const amount = searchParams?.get('amount') ?? '0'
+  const [notifications, setNotifications] = useState<Array<{ id: string; message: string; type: 'success' | 'error' }>>([])
+
+  useEffect(() => {
+    setIsClient(true)
+    // Get user data after component mounts
+    try {
+      const userData = window.localStorage.getItem('user')
+      if (userData) {
+        const parsedUser = JSON.parse(userData) as User
+        setUser(parsedUser)
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error)
+    }
+  }, [])
+
+  const addNotification = (message: string, type: 'success' | 'error') => {
+    const id = Math.random().toString(36).substr(2, 9)
+    setNotifications(prev => [...prev, { id, message, type }])
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(notification => notification.id !== id))
+    }, 3300)
+  }
+
+  const handlePayment = async () => {
+    if (!isClient) return;
+    
+    setLoading(true)
+    const userEmail = user?.email
+    
+    if (!userEmail) {
+      setLoading(false)
+      addNotification('Please log in to complete your payment', 'error')
+      
+      // Save current URL to redirect back after login
+      const currentUrl = window.location.href
+      window.localStorage.setItem('redirectAfterLogin', currentUrl)
+      
+      setTimeout(() => {
+        router.push('/login')
+      }, 1000)
+      return
+    }
+
+    const paymentData = {
+      email: userEmail,
+      amount: parseInt(amount || '0') * 100,
+      plan: plan
+    }
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/initialize-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(paymentData)
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        console.error('Payment initialization failed:', data.error)
+        return
+      }
+
+      const { access_code } = data
+      
+      // Initialize Paystack only on client side
+      const PaystackPop = (await import('@paystack/inline-js')).default
+      const popup = new PaystackPop()
+      
+      popup.resumeTransaction(access_code, {
+        onSuccess: async (transaction) => {
+          router.push(`/payment/processing?plan=${plan}&reference=${transaction.reference}`)
+          try {
+            const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/verify-payment`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${window.localStorage.getItem('auth_token')}`
+              },
+              body: JSON.stringify({
+                transaction_id: transaction.transaction,
+                plan_name: plan.toLowerCase(),
+                email: userEmail
+              })
+            });
+
+            if (!verifyResponse.ok) {
+              throw new Error('Payment verification failed');
+            }
+
+            const verificationData = await verifyResponse.json();
+            
+            if (verificationData.status) {
+              addNotification('Payment successful! Redirecting...', 'success');
+              setTimeout(() => {
+                router.push(`/payment/success?plan=${plan}&reference=${transaction.reference}`);
+              }, 2000);
+            } else {
+              addNotification('Payment verification failed. Please contact support.', 'error');
+              setTimeout(() => {
+                router.push(`/payment/failed?reason=verification_failed`);
+              }, 2000);
+            }
+          } catch (error) {
+            console.error('Verification error:', error);
+            addNotification('Error verifying payment. Please contact support.', 'error');
+            setTimeout(() => {
+              router.push(`/payment/failed?reason=verification_error`);
+            }, 2000);
+          }
+        },
+        onCancel: () => {
+          addNotification('Payment was cancelled', 'error')
+          setTimeout(() => {
+            router.push(`/payment/failed?reason=cancelled`);
+          }, 2000);
+        },
+        onError: (error) => {
+          addNotification('Payment failed. Please try again.', 'error')
+          setTimeout(() => {
+            router.push(`/payment/failed?reason=payment_error`);
+          }, 2000);
+        }
+      })
+    } catch (error) {
+      addNotification('An error occurred. Please try again.', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isClient) {
+    return (
+      <div className="max-w-md w-full space-y-8 p-8 rounded-2xl bg-gradient-to-b from-white/[0.03] to-white/[0.07] border border-white/10">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-pulse">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <NotificationContainer notifications={notifications} />
+      <div className="max-w-md w-full space-y-8 p-8 rounded-2xl bg-gradient-to-b from-white/[0.03] to-white/[0.07] border border-white/10">
+        <h1 className="text-3xl font-bold text-center">Complete Your Payment</h1>
+        <div className="space-y-4">
+          <div className="text-center">
+            <p className="text-lg">Selected Plan: <span className="font-semibold">{plan}</span></p>
+            <p className="text-2xl font-bold">₦{amount}</p>
+          </div>
+          <button
+            onClick={handlePayment}
+            disabled={loading}
+            className="w-full py-4 px-6 rounded-xl text-sm font-medium transition-all duration-300
+              bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700
+              disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Processing...' : 'Pay Now'}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+} 
