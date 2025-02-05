@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LoadingPage from '@/components/LoadingPage';
 import {Button} from '@/components/ui/button';
-import {ProductDetailSidebar} from '@/components/marketplace/ProductDetailSidebar';
+import { ProductDetailSidebar } from '@/components/marketplace/ProductDetailSidebar';
 
 import { ProductDetail } from '../../../utils/types'; 
 
