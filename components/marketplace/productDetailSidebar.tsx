@@ -20,7 +20,7 @@ interface ProductDetailSidebarProps {
   onClose?: () => void;
 }
 
-export function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetailSidebarProps) {
+export default function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetailSidebarProps) {
   const [isClient, setIsClient] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   const [message, setMessage] = useState('');
