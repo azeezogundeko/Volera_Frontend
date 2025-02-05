@@ -11,7 +11,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTheme } from 'next-themes';
 import ReactMarkdown from 'react-markdown';
 import { websocketService, ProductDetailsResponse, WebSocketMessage } from '@/lib/websocket';
-
 import { ProductDetail } from '@/types/productDetail'
 
 interface ProductDetailSidebarProps {
@@ -20,7 +19,7 @@ interface ProductDetailSidebarProps {
   onClose?: () => void;
 }
 
-export default function ProductDetailSidebar({ product, isOpen, onClose }: ProductDetailSidebarProps) {
+const ProductDetailSidebar = ({ product, isOpen, onClose }: ProductDetailSidebarProps) => {
   const [isClient, setIsClient] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
   const [message, setMessage] = useState('');
@@ -392,3 +391,5 @@ export default function ProductDetailSidebar({ product, isOpen, onClose }: Produ
     </AnimatePresence>
   );
 }
+
+export default ProductDetailSidebar;
