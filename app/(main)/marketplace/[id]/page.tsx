@@ -8,10 +8,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LoadingPage from '@/components/LoadingPage';
 import {Button} from '@/components/ui/button';
-import ProductDetailSidebar from '@/components/marketplace/ProductDetailSidebar';
-
-import { ProductDetail } from '../../../utils/types'; 
-
+import ProductDetailSidebar from '@/components/marketplace/productDetailSidebar';
+import { ProductDetail } from '../../../utils/types';
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
