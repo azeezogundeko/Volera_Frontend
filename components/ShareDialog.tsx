@@ -45,10 +45,10 @@ export function ShareDialog({ open, onOpenChange, chatId }: ShareDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-md bg-white text-black rounded-lg rounded`}>
+      <DialogContent className="sm:max-w-md bg-white dark:bg-dark-100 text-black dark:text-white rounded-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Share Chat</DialogTitle>
-          <DialogDescription className="text-muted-foreground">
+          <DialogTitle className="text-xl font-semibold text-black/90 dark:text-white/90">Share Chat</DialogTitle>
+          <DialogDescription className="text-black/60 dark:text-white/60">
             Share this chat with your friends and colleagues
           </DialogDescription>
         </DialogHeader>
@@ -57,18 +57,18 @@ export function ShareDialog({ open, onOpenChange, chatId }: ShareDialogProps) {
             <Input
               value={shareUrl}
               readOnly
-              className="flex-1 px-3 py-2 text-sm bg-background border-border"
+              className="flex-1 px-3 py-2 text-sm bg-white dark:bg-dark-200 border-light-200 dark:border-dark-200 text-black dark:text-white"
             />
             <Button
               variant="outline"
               size="icon"
-              className="shrink-0 border-border"
+              className="shrink-0 border-light-200 dark:border-dark-200 hover:bg-light-200 dark:hover:bg-dark-200"
               onClick={copyToClipboard}
             >
               {copied ? (
                 <Check className="h-4 w-4 text-green-500" />
               ) : (
-                <Copy className="h-4 w-4" />
+                <Copy className="h-4 w-4 text-black/70 dark:text-white/70" />
               )}
             </Button>
           </div>
@@ -76,27 +76,27 @@ export function ShareDialog({ open, onOpenChange, chatId }: ShareDialogProps) {
           <div className="flex justify-center space-x-4">
             <Button
               variant="outline"
-              className="flex items-center gap-2 border-border hover:bg-accent"
+              className="flex items-center gap-2 border-light-200 dark:border-dark-200 hover:bg-light-200 dark:hover:bg-dark-200"
               onClick={shareToTwitter}
             >
               <Twitter className="h-4 w-4 text-blue-400" />
-              <span className="text-foreground">Twitter</span>
+              <span className="text-black/90 dark:text-white/90">Twitter</span>
             </Button>
             <Button
               variant="outline"
-              className="flex items-center gap-2 border-border hover:bg-accent"
+              className="flex items-center gap-2 border-light-200 dark:border-dark-200 hover:bg-light-200 dark:hover:bg-dark-200"
               onClick={shareToFacebook}
             >
               <Facebook className="h-4 w-4 text-blue-600" />
-              <span className="text-foreground">Facebook</span>
+              <span className="text-black/90 dark:text-white/90">Facebook</span>
             </Button>
             <Button
               variant="outline"
-              className="flex items-center gap-2 border-border hover:bg-accent"
+              className="flex items-center gap-2 border-light-200 dark:border-dark-200 hover:bg-light-200 dark:hover:bg-dark-200"
               onClick={copyToClipboard}
             >
-              <Link2 className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">Copy Link</span>
+              <Link2 className="h-4 w-4 text-black/50 dark:text-white/50" />
+              <span className="text-black/90 dark:text-white/90">Copy Link</span>
             </Button>
           </div>
         </div>

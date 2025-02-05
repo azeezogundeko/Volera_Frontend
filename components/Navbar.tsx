@@ -117,17 +117,18 @@ const Navbar = ({ chatId, messages, userEmail = 'user@example.com' }: NavbarProp
                     <MoreHorizontal size={14} className="sm:w-[18px] sm:h-[18px]" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
+                <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-dark-100 border border-light-200 dark:border-dark-200">
+                  <DropdownMenuItem className="text-black/90 dark:text-white/90 focus:bg-light-200 dark:focus:bg-dark-200 cursor-pointer" onClick={() => setShareDialogOpen(true)}>
                     <Share2 className="mr-2 h-4 w-4" />
                     Share
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleBookmark}>
+                  <DropdownMenuItem className="text-black/90 dark:text-white/90 focus:bg-light-200 dark:focus:bg-dark-200 cursor-pointer" onClick={handleBookmark}>
                     <Bookmark className="mr-2 h-4 w-4" />
                     {isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-light-200 dark:bg-dark-200" />
+                  <DropdownMenuItem className="text-red-500 dark:text-red-400 focus:bg-light-200 dark:focus:bg-dark-200 cursor-pointer">
+                    <Trash className="mr-2 h-4 w-4" />
                     Delete chat
                   </DropdownMenuItem>
                 </DropdownMenuContent>

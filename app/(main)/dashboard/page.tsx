@@ -104,9 +104,11 @@ export default function Home() {
       try {
         const response = await fetch('/api/recent-chats'); 
         const data = await response.json();
-        setRecentChats(data); 
+        // Ensure data is an array before setting state
+        setRecentChats(Array.isArray(data) ? data : []); 
       } catch (error) {
         console.error('Error fetching recent chats:', error);
+        setRecentChats([]);
       }
     };
 
@@ -132,16 +134,25 @@ export default function Home() {
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl font-medium bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-white/70 text-transparent bg-clip-text">
-            Welcome back, {userName}! 👋
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-white/50 mt-1">
-            Overview of your tracking and chat activities
-          </p>
+          {isLoading ? (
+            <>
+              <div className="h-8 w-64 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse mb-2"></div>
+              <div className="h-4 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-xl sm:text-2xl font-medium bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-white/70 text-transparent bg-clip-text">
+                Welcome back, {userName}! 👋
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-white/50 mt-1">
+                Overview of your tracking and chat activities
+              </p>
+            </>
+          )}
         </div>
 
         {/* Credits Status Banner */}
-        {billingInfo.remainingCredits < 500 && (
+        {!isLoading && billingInfo.remainingCredits < 500 && (
           <div className={cn(
             "mb-6 sm:mb-8 rounded-xl p-4 border transition-colors",
             billingInfo.remainingCredits <= 0 
@@ -198,45 +209,63 @@ export default function Home() {
         )}
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg">
-                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+          {isLoading ? (
+            <>
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
+                      <div className="h-6 w-16 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg">
+                    <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Credits Left</p>
+                    <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
+                      {billingInfo.remainingCredits}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Credits Left</p>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  {billingInfo.remainingCredits}
-                </p>
+              <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-2 sm:p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg">
+                    <Package className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Tracked Items</p>
+                    <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
+                      {stats.trackedItems}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg">
-                <Package className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" />
+              <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6 sm:col-span-2 md:col-span-1">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-2 sm:p-3 bg-purple-50 dark:bg-purple-500/10 rounded-lg">
+                    <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Price Alerts</p>
+                    <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
+                      {stats.priceAlerts}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Tracked Items</p>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  {stats.trackedItems}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6 sm:col-span-2 md:col-span-1">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="p-2 sm:p-3 bg-purple-50 dark:bg-purple-500/10 rounded-lg">
-                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50">Price Alerts</p>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white/90">
-                  {stats.priceAlerts}
-                </p>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Main Content Grid */}
@@ -297,162 +326,205 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Price History
+            {/* Tracked Items */}
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">
-                Price History
-              </h2>
-              <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
-                {priceHistory.map((data, index) => (
-                  <div key={data.date} className="flex items-center justify-between">
-                    <span className="text-gray-500 dark:text-white/50">
-                      {new Date(data.date).toLocaleDateString()}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 dark:text-white/90">
-                        {data.price}
-                      </span>
-                      {index > 0 && (
-                        <span className={`text-xs flex items-center gap-0.5 ${
-                          data.price < priceHistory[index - 1].price 
-                            ? 'text-emerald-500' 
-                            : 'text-red-500'
-                        }`}>
-                          {data.price < priceHistory[index - 1].price ? (
-                            <ArrowDown className="w-3 h-3" />
-                          ) : (
-                            <ArrowUp className="w-3 h-3" />
-                          )}
-                          ${Math.abs(data.price - priceHistory[index - 1].price)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90">
+                  Tracked Items
+                </h2>
               </div>
-            </div> */}
-
-            {/* Recent Chats */}
-            <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">
-                Recent Chats
-              </h2>
-              {Array.isArray(recentChats) && recentChats.length > 0 ? (
-                recentChats.map((chat) => (
-                  <Link
-                    key={chat.id}
-                    href={`/chat/${chat.id}`}
-                    className="block bg-gray-50 dark:bg-white/5 rounded-lg p-3 sm:p-4 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-0 mb-1 sm:mb-2">
-                      <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base">
-                        {chat.title}
-                      </h3>
-                      <span className="text-xs text-gray-500 dark:text-white/50">
-                        {chat.timestamp}
-                      </span>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((index) => (
+                    <div key={index} className="flex items-center gap-4 p-3 rounded-lg border border-gray-200 dark:border-white/10">
+                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                      <div className="flex-1">
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
+                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                      </div>
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50 truncate">
-                      {chat.lastMessage}
-                    </p>
-                  </Link>
-                ))
+                  ))}
+                </div>
               ) : (
-                <div>No recent chats available.</div>
+                <div className="space-y-3 sm:space-y-4">
+                  {trackedItems.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/track/${item.id}`}
+                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-white/5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                    >
+                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
+                        <Image
+                          src={item.product.image}
+                          alt={item.product.name}
+                          fill
+                          className="object-cover rounded-lg"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base truncate">
+                          {item.product.name}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                          <span className="text-xs sm:text-sm text-emerald-500 font-medium">
+                            ${item.currentPrice}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-white/50">
+                            Target: ${item.targetPrice}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               )}
             </div>
           </div>
 
           {/* Right Column */}
           <div className="space-y-6 sm:space-y-8">
-            {/* Tracked Items */}
+            {/* Recent Chats */}
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4 sm:mb-6">
-                Tracked Items
+              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
+                Recent Chats
               </h2>
-              <div className="space-y-3 sm:space-y-4">
-                {trackedItems.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={`/track/${item.id}`}
-                    className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-white/5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-                  >
-                    <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
-                      <Image
-                        src={item.product.image}
-                        alt={item.product.name}
-                        fill
-                        className="object-cover rounded-lg"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base truncate">
-                        {item.product.name}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                        <span className="text-xs sm:text-sm text-emerald-500 font-medium">
-                          ${item.currentPrice}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-white/50">
-                          Target: ${item.targetPrice}
-                        </span>
-                        {/* <p>
-                          Price Change: {item.priceChange !== undefined ? item.priceChange : 'N/A'}
-                        </p> */}
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((index) => (
+                    <div key={index} className="flex items-center gap-3 p-2">
+                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse"></div>
+                      <div className="flex-1">
+                        <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-1"></div>
+                        <div className="h-3 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
                       </div>
                     </div>
-                  </Link>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : Array.isArray(recentChats) && recentChats.length > 0 ? (
+                <div className="space-y-3 sm:space-y-4">
+                  {recentChats.map((chat) => (
+                    <Link
+                      key={chat.id}
+                      href={`/chat/${chat.id}`}
+                      className="block bg-gray-50 dark:bg-white/5 rounded-lg p-3 sm:p-4 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-0 mb-1 sm:mb-2">
+                        <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base">
+                          {chat.title}
+                        </h3>
+                        <span className="text-xs text-gray-500 dark:text-white/50">
+                          {chat.timestamp}
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-white/50 truncate">
+                        {chat.lastMessage}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <MessageSquare className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No recent chats available</p>
+                </div>
+              )}
             </div>
 
             {/* Trending Products */}
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90">
-                  Trending Products
-                </h2>
-                <div className="p-1.5 sm:p-2 bg-orange-50 dark:bg-orange-500/10 rounded-lg">
-                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-orange-50 dark:bg-orange-500/10 rounded-lg">
+                    <TrendingUp className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90">
+                    Trending Products
+                  </h2>
                 </div>
+                <Link 
+                  href="/marketplace"
+                  className="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                >
+                  View All
+                </Link>
               </div>
-              <div className="space-y-3 sm:space-y-4">
-                {trendingProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-white/5 rounded-lg"
-                  >
-                    <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
-                      <Image
-                        src={product.image}
-                        alt={product.title}
-                        fill
-                        className="object-cover rounded-lg"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base truncate">
-                        {product.title}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs sm:text-sm text-emerald-500 font-medium">
-                          ${product.price}
-                        </span>
-                        <span className={`text-xs flex items-center gap-0.5 ${
-                          product.trend === 'up' ? 'text-emerald-500' : 'text-red-500'
-                        }`}>
-                          {product.trend === 'up' ? (
-                            <ArrowUp className="w-3 h-3" />
-                          ) : (
-                            <ArrowDown className="w-3 h-3" />
-                          )}
-                          {product.trendValue}
-                        </span>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                      <div className="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+                      <div className="flex-1">
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
+                        <div className="h-4 w-1/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
+                        <div className="flex gap-2">
+                          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : Array.isArray(trendingProducts) && trendingProducts.length > 0 ? (
+                <div className="space-y-3">
+                  {trendingProducts.map((product) => (
+                    <Link
+                      key={product.id}
+                      href={`/marketplace/${product.id}`}
+                      className="group flex items-start gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                    >
+                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                        <Image
+                          src={product.image}
+                          alt={product.title}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                          {product.title}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                            ${product.price}
+                          </span>
+                          <div className={cn(
+                            "flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full",
+                            product.trend === 'up' 
+                              ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
+                              : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10"
+                          )}>
+                            {product.trend === 'up' ? (
+                              <ArrowUp className="w-3 h-3" />
+                            ) : (
+                              <ArrowDown className="w-3 h-3" />
+                            )}
+                            {product.trendValue}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-0.5">
+                            <span className="text-yellow-400">★</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {product.rating || '4.5'}
+                            </span>
+                          </div>
+                          {product.isHot && (
+                            <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-1.5 py-0.5 rounded-full">
+                              Hot 🔥
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <TrendingUp className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No trending products available</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

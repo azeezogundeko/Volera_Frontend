@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 
 export interface WebSocketMessage {
   message: any;
-  type: 'FILTER_REQUEST' | 'FILTER_RESPONSE' | 'ERROR' | 'PRODUCT_DETAILS_RESPONSE' | 'PRODUCT_DETAILS_REQUEST' | 'COMPARE_REQUEST' | 'COMPARE_RESPONSE';
+  type: 'FILTER_REQUEST' | 'FILTER_RESPONSE' | 'ERROR' | 'PRODUCT_DETAILS_RESPONSE' | 'PRODUCT_DETAILS_REQUEST' | 'COMPARE_REQUEST' | 'COMPARE_RESPONSE' | 'AGENT_RESPONSE' | 'AGENT_REQUEST' | 'NOTIFICATION';
   data: any;
 }
 
@@ -22,8 +22,35 @@ export interface CompareResponse extends WebSocketMessage {
   response?: string;
 }
 
-class WebSocketService {
-  private static instance: WebSocketService;
+// Define the public interface of the WebSocket service
+export interface IWebSocketService {
+  subscribeToNotifications(callback: (notification: { id: string; message: string; type: string }) => void): () => void;
+  sendNotification(message: string, type?: 'success' | 'error' | 'info'): Promise<boolean>;
+  subscribe(callback: (message: WebSocketMessage) => void): () => void;
+  sendMessage(message: WebSocketMessage): Promise<boolean>;
+  isConnected(): boolean;
+}
+
+class WebSocketService implements IWebSocketService {
+  subscribeToNotifications(callback: (notification: { id: string; message: string; type: string }) => void) {
+    return this.subscribe((message: WebSocketMessage) => {
+      if (message.type === 'NOTIFICATION') {
+        callback({
+          id: String(Date.now()), // Generate a unique ID for the notification
+          message: message.message || message.data?.message || '',
+          type: message.data?.type || 'info'
+        });
+      }
+    });
+  }
+  sendNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
+    return this.sendMessage({
+      type: 'NOTIFICATION',
+      message: message,
+      data: { type }
+    });
+  }
+  private static instance: WebSocketService | null = null;
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -33,10 +60,24 @@ class WebSocketService {
   private connecting = false;
 
   private constructor() {
-    this.connect();
+    // Only connect if we're on the client side
+    if (typeof window !== 'undefined') {
+      this.connect();
+    }
   }
 
-  static getInstance(): WebSocketService {
+  static getInstance(): IWebSocketService {
+    if (typeof window === 'undefined') {
+      // Return a dummy instance for server-side rendering
+      return {
+        subscribeToNotifications: () => () => {},
+        sendNotification: () => Promise.resolve(false),
+        subscribe: () => () => {},
+        sendMessage: () => Promise.resolve(false),
+        isConnected: () => false,
+      };
+    }
+    
     if (!WebSocketService.instance) {
       WebSocketService.instance = new WebSocketService();
     }
@@ -47,12 +88,15 @@ class WebSocketService {
     const wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001';
     const url = new URL('/websocket', wsBaseUrl);
     
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-    const tokenType = typeof window !== 'undefined' ? localStorage.getItem('token_type') : null;
-    
-    if (token) {
-      const fullToken = tokenType ? `${tokenType} ${token}` : token;
-      url.searchParams.append('token', fullToken);
+    // Only access localStorage on the client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth_token');
+      const tokenType = localStorage.getItem('token_type');
+      
+      if (token) {
+        const fullToken = tokenType ? `${tokenType} ${token}` : token;
+        url.searchParams.append('token', fullToken);
+      }
     }
     
     return url.toString();

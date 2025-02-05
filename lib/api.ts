@@ -44,6 +44,8 @@ export interface TrendingProduct {
   image: string;
   trend: 'up' | 'down';
   trendValue: string;
+  rating?: number;
+  isHot?: boolean;
 }
 
 export interface DashboardStats {

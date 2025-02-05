@@ -35,6 +35,11 @@ export function MarketplaceSidebar({
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
+  const [agentType, setAgentType] = useState<'default' | 'copilot'>('default');
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const QUICK_FILTERS = [
     { label: 'Under $100', icon: CircleDollarSign },
@@ -45,14 +50,82 @@ export function MarketplaceSidebar({
     { label: 'Premium', icon: Sparkles }
   ];
 
+  // Add function to save messages to localStorage
+  const saveMessagesToStorage = (msgs: Array<{
+    content: string;
+    isAI: boolean;
+    filters?: Record<string, any>;
+  }>) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('marketplaceMessages', JSON.stringify(msgs));
+    }
+  };
+
+  // Add function to load messages from localStorage
+  const loadMessagesFromStorage = () => {
+    if (typeof window !== 'undefined') {
+      const savedMessages = localStorage.getItem('marketplaceMessages');
+      if (savedMessages) {
+        try {
+          return JSON.parse(savedMessages);
+        } catch (error) {
+          console.error('Error parsing saved messages:', error);
+          return [];
+        }
+      }
+    }
+    return [];
+  };
+
+  // Modify setMessages to save to localStorage whenever messages change
+  const updateMessages = (
+    updater: Array<{
+      content: string;
+      isAI: boolean;
+      filters?: Record<string, any>;
+    }> | ((prev: Array<{
+      content: string;
+      isAI: boolean;
+      filters?: Record<string, any>;
+    }>) => Array<{
+      content: string;
+      isAI: boolean;
+      filters?: Record<string, any>;
+    }>)
+  ) => {
+    if (typeof updater === 'function') {
+      setMessages(prev => {
+        const newMessages = updater(prev);
+        // Keep only the most recent 30 messages
+        const trimmedMessages = newMessages.slice(-30);
+        saveMessagesToStorage(trimmedMessages);
+        return trimmedMessages;
+      });
+    } else {
+      // Keep only the most recent 30 messages
+      const trimmedMessages = updater.slice(-30);
+      setMessages(trimmedMessages);
+      saveMessagesToStorage(trimmedMessages);
+    }
+  };
+
   useEffect(() => {
     setIsClient(true);
+    
+    // Load saved messages when component mounts
+    const savedMessages = loadMessagesFromStorage();
+    if (savedMessages.length > 0) {
+      setMessages(savedMessages);
+    }
     
     // Safely check localStorage only on client
     if (typeof window !== 'undefined') {
       const hasUserInteracted = localStorage.getItem('marketplaceSidebarInteracted') === 'true';
       setHasInteracted(hasUserInteracted);
     }
+
+    // Auto scroll to bottom whenever messages change
+    scrollToBottom();
 
     const unsubscribe = websocketService.subscribe((message: WebSocketMessage) => {
       if (message.type === 'FILTER_RESPONSE') {
@@ -61,32 +134,72 @@ export function MarketplaceSidebar({
           const filters: Record<string, any> = { filteredProducts: responseData.filters };
           onFiltersUpdate(filters);
           
-          setMessages(prev => [...prev, { 
+          updateMessages(prevMessages => [...prevMessages, { 
             content: responseData.aiResponse || 'Filtering complete', 
             isAI: true
           }]);
           
-          toast.success('Filters updated successfully', {
-            className: resolvedTheme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
-          });
+          // Removed duplicate toast notification here since the message already appears in chat
         } catch (error) {
           console.error('Error processing filter response:', error);
-          toast.error('Error processing filter response');
+          toast.error('Error processing filter response', {
+            className: resolvedTheme === 'dark' ? 'bg-red-500 text-white' : 'bg-red-600 text-white'
+          });
+        }
+        setIsProcessing(false);
+      }
+      else if (message.type === 'AGENT_RESPONSE') {
+        try {
+          const responseData = message.data;
+          const action = responseData.action;
+
+          // Handle different action types
+          switch (action) {
+            case 'FILTER':
+              // Update filters and show response
+              if (responseData.filters) {
+                const filters: Record<string, any> = { filteredProducts: responseData.filters };
+                onFiltersUpdate(filters);
+              }
+              break;
+            case 'SEARCH':
+              // Handle new search results if provided
+              if (responseData.searchResults) {
+                onFiltersUpdate({ filteredProducts: responseData.searchResults });
+              }
+              break;
+            case 'RESPONSE':
+              // Just display the AI response without any filter/search updates
+              break;
+            default:
+              console.warn('Unknown agent action type:', action);
+          }
+
+          // Always add the AI response to messages
+          if (responseData.aiResponse) {
+            updateMessages(prevMessages => [...prevMessages, {
+              content: responseData.aiResponse,
+              isAI: true
+            }]);
+          }
+
+          // Removed commented out toast notification
+        } catch (error) {
+          console.error('Error processing agent response:', error);
+          toast.error('Error processing agent response', {
+            className: resolvedTheme === 'dark' ? 'bg-red-500 text-white' : 'bg-red-600 text-white'
+          });
         }
         setIsProcessing(false);
       }
       else if (message.type === 'ERROR') {
         const errorMessage = message
-        setMessages(prev => {
-          if (errorMessage.message && errorMessage.message.trim() !== '') {
-            const newMessages = [...prev, {
-              content: errorMessage.message,
-              isAI: true
-            }];
-            return newMessages;
-          }
-          return prev;
-        });
+        if (errorMessage.message && errorMessage.message.trim() !== '') {
+          updateMessages(prevMessages => [...prevMessages, {
+            content: errorMessage.message,
+            isAI: true
+          }]);
+        }
         setIsProcessing(false);
       }
     });
@@ -106,10 +219,6 @@ export function MarketplaceSidebar({
     }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const handleQuickFilter = async (filter: string) => {
     markAsInteracted();
     setMessage(filter);
@@ -121,29 +230,30 @@ export function MarketplaceSidebar({
     if (!userMessage.trim()) return;
 
     markAsInteracted();
-    setMessages(prev => [...prev, { content: userMessage, isAI: false }]);
+    updateMessages(prevMessages => [...prevMessages, { content: userMessage, isAI: false }]);
     setMessage('');
     setIsProcessing(true);
 
     try {
       const success = await websocketService.sendMessage({
-        type: 'FILTER_REQUEST',
+        type: agentType === 'copilot' ? 'AGENT_REQUEST' : 'FILTER_REQUEST',
         data: {
           message: userMessage,
           currentProducts: currentProducts,
-          currentFilters: currentFilters || {}
+          currentFilters: currentFilters || {},
+          agentType: agentType
         },
         message: undefined
       });
 
       if (!success) {
         toast.error('Failed to send message');
-        setIsProcessing(false); // Clear processing state if sending fails
+        setIsProcessing(false);
       }
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to process request');
-      setIsProcessing(false); // Clear processing state on error
+      setIsProcessing(false);
     }
   };
 
@@ -288,14 +398,30 @@ export function MarketplaceSidebar({
                   AI Shopping Assistant
                 </h3>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setIsChatExpanded(!isChatExpanded)}
-              >
-                {isChatExpanded ? <ChevronUp className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-xs text-gray-500 dark:text-white/50 hover:text-gray-900 dark:hover:text-white/90"
+                  onClick={() => {
+                    updateMessages([]);
+                    localStorage.removeItem('marketplaceMessages');
+                    // toast.success('Chat history cleared', {
+                    //   className: resolvedTheme === 'dark' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white'
+                    // });
+                  }}
+                >
+                  Clear History
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setIsChatExpanded(!isChatExpanded)}
+                >
+                  {isChatExpanded ? <ChevronUp className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
 
             <AnimatePresence>
@@ -307,8 +433,8 @@ export function MarketplaceSidebar({
                   transition={{ duration: 0.2 }}
                   className="flex-1 flex flex-col min-h-0"
                 >
-                  <div className="flex-1 overflow-y-auto">
-                    <div className="px-4">
+                  <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
+                    <div className="px-4 flex flex-col justify-end min-h-full">
                       <div className="space-y-4 py-4">
                         {/* Welcome Message - Only shown if user hasn't interacted */}
                         {!hasInteracted && (
@@ -371,27 +497,54 @@ export function MarketplaceSidebar({
 
       {/* Input Area - Fixed at bottom */}
       {isChatExpanded && (
-        <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] shrink-0">
-          <div className="relative">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ask the AI assistant to help you find products..."
-              className="min-h-[80px] resize-none bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white/90 placeholder:text-gray-500 dark:placeholder:text-white/50"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-            />
-            <Button 
-              size="sm" 
-              className="absolute right-2 bottom-2 h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600" 
-              onClick={() => handleSendMessage()}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+        <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-black shrink-0">
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <div className="w-full flex items-center gap-1 bg-gray-100 dark:bg-zinc-900 rounded-md p-1">
+                <button
+                  onClick={() => setAgentType('default')}
+                  className={cn(
+                    'flex-1 px-3 py-1 text-sm rounded-md transition-colors',
+                    agentType === 'default' 
+                      ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' 
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  )}
+                >
+                  normal
+                </button>
+                <button
+                  onClick={() => setAgentType('copilot')}
+                  className={cn(
+                    'flex-1 px-3 py-1 text-sm rounded-md transition-colors',
+                    agentType === 'copilot' 
+                      ? 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white shadow-sm' 
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  )}
+                >
+                  agent
+                </button>
+              </div>
+            </div>
+            <div className="relative">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask the AI assistant to help you find products..."
+                className="min-h-[80px] resize-none bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white/90 placeholder:text-gray-500 dark:placeholder:text-white/50 rounded-md pr-10"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+              />
+              <button
+                onClick={() => handleSendMessage()}
+                className="absolute right-2 bottom-2 p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -15,6 +15,8 @@ import 'yet-another-react-lightbox/styles.css';
 import SearchImages from './SearchImages';
 import SearchVideos from './SearchVideos';
 import { getWebSocketURL } from '@/lib/config';
+import { WebSocketNotifications } from './WebSocketNotifications';
+import { websocketService } from '@/lib/websocket';
 
 export interface Source {
   url: string;
@@ -103,7 +105,6 @@ const useSocket = (
   }, [setIsWSReady, setError, onMessageCallback]);
 
   const connectWebSocket = useCallback(() => {
-    // console.log('[WS Lifecycle] Attempting to connect WebSocket');
     if (typeof window === 'undefined') return null;
 
     try {
@@ -112,7 +113,7 @@ const useSocket = (
 
       connectionTimeout = setTimeout(() => {
         if (websocket.readyState !== WebSocket.OPEN) {
-          toast.error('Failed to connect to the server. Please try again later.');
+          websocketService.sendNotification('Failed to connect to the server. Please try again later.', 'error');
           setErrorRef.current(true);
           websocket.close();
         }
@@ -127,7 +128,7 @@ const useSocket = (
 
       websocket.onerror = (error) => {
         clearTimeout(connectionTimeout);
-        toast.error('Connection error. Please try again later.');
+        websocketService.sendNotification('Connection error. Please try again later.', 'error');
         setErrorRef.current(true);
       };
 
@@ -138,8 +139,7 @@ const useSocket = (
         wsRef.current = null;
         
         if (event.code === 4001) {
-          // console.log('[WS Lifecycle] Authentication required');
-          toast.error('Authentication required. Please sign in.');
+          websocketService.sendNotification('Authentication required. Please sign in.', 'error');
           window.location.href = '/login';
           return;
         }
@@ -150,8 +150,6 @@ const useSocket = (
 
         if (reconnectAttempt < maxReconnectAttempts) {
           const timeout = Math.min(1000 * Math.pow(2, reconnectAttempt), 10000);
-
-          
           reconnectTimeoutRef.current = setTimeout(() => {
             setReconnectAttempt(prev => prev + 1);
             const newWs = connectWebSocket();
@@ -159,7 +157,7 @@ const useSocket = (
           }, timeout);
         } else {
           setErrorRef.current(true);
-          toast.error('Connection lost. Please refresh the page to reconnect.');
+          websocketService.sendNotification('Connection lost. Please refresh the page to reconnect.', 'error');
         }
       };
 
@@ -176,7 +174,7 @@ const useSocket = (
       setErrorRef.current(true);
       return null;
     }
-  }, [url, reconnectAttempt]); // Reduced dependencies
+  }, [url, reconnectAttempt]);
 
   // Single effect to manage WebSocket lifecycle
   useEffect(() => {
@@ -677,7 +675,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
 
   const sendMessage = async (message: string, parentMessageId?: string) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      toast.error('WebSocket is not connected');
+      websocketService.sendNotification('WebSocket is not connected', 'error');
       return;
     }
   
@@ -806,53 +804,50 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
         </div>
       );
     }
-    return isReady ? (
-      notFound ? (
-        <Error statusCode={404} />
-      ) : (
-        <div className="flex flex-1 relative overflow-hidden">
-          <div className="flex-1 flex flex-col">
-            {localMessages.length > 0 ? (
-              <>
-                <Navbar
-                  messages={localMessages}
-                  chatId={id || ''}
-                  userEmail={userEmail}
-                />
-                <Chat
-                  loading={loadingState}
-                  messages={localMessages}
-                  messageAppeared={messageAppeared}
-                  searchProgress={searchProgress}
-                  searchStatusMessage={getSearchStatusMessage()}
-                  sendMessage={sendMessage}
-                  rewrite={rewrite}
-                  fileIds={fileIds}
-                  setFileIds={setFileIds}
-                  files={files}
-                  setFiles={setFiles}
-                  isError={searchProgress.status === 'error'}
-                />
-              </>
-            ) : (
-              <EmptyChat
+    return (
+      <div className="flex flex-col h-screen">
+        <WebSocketNotifications />
+        {localMessages.length > 0 ? (
+          <>
+            <Navbar
+              messages={localMessages}
+              chatId={id || ''}
+              userEmail={userEmail}
+            />
+            <div className="flex-1 flex flex-col">
+              <Chat
+                loading={loadingState}
+                messages={localMessages}
+                messageAppeared={messageAppeared}
+                searchProgress={searchProgress}
+                searchStatusMessage={getSearchStatusMessage()}
                 sendMessage={sendMessage}
-                focusMode={focusMode}
-                setFocusMode={setFocusMode}
-                optimizationMode={optimizationMode}
-                setOptimizationMode={setOptimizationMode}
+                rewrite={rewrite}
                 fileIds={fileIds}
                 setFileIds={setFileIds}
                 files={files}
                 setFiles={setFiles}
+                isError={searchProgress.status === 'error'}
               />
-            )}
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col">
+            <EmptyChat
+              sendMessage={sendMessage}
+              focusMode={focusMode}
+              setFocusMode={setFocusMode}
+              optimizationMode={optimizationMode}
+              setOptimizationMode={setOptimizationMode}
+              fileIds={fileIds}
+              setFileIds={setFileIds}
+              files={files}
+              setFiles={setFiles}
+            />
           </div>
-          <Lightbox open={open} close={() => setOpen(false)} slides={slides} />
-        </div>
-      )
-    ) : (
-      null
+        )}
+        <Lightbox open={open} close={() => setOpen(false)} slides={slides} />
+      </div>
     );
   };
 

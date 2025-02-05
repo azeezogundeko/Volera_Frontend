@@ -27,7 +27,8 @@ import {
   Scale,
   Twitter,
   Linkedin,
-  Share2
+  Share2,
+  Bird
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
@@ -229,7 +230,10 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
       {isCreatingChat ? (
         <LoadingSpinner className="w-5 h-5 text-white" />
       ) : (
-        <Plus className="w-5 h-5 text-white" />
+        <Plus className={cn(
+          "text-white",
+          expanded ? "w-10 h-5" : "w-6 h-6"
+        )} />
       )}
         {expanded && (
         <span className="text-sm font-medium text-white">
@@ -241,33 +245,33 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
 };
 
 const SocialIcons = ({ expanded }: { expanded: boolean }) => {
+  if (!expanded) return null;
+  
   return (
-    <div className={cn(
-      'flex gap-2',
-      expanded ? 'px-3 justify-start' : 'justify-center'
-    )}>
+    <div className="flex gap-2 px-3 justify-start">
       <Link
         href="https://twitter.com"
         target="_blank"
-        className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        rel="noopener noreferrer"
+        className="p-2 text-gray-400 hover:text-gray-500 dark:text-white/40 dark:hover:text-white/60 transition-colors"
       >
-        <X className="w-4 h-4 text-gray-500 dark:text-white/50" />
-      </Link>
-      <Link
-        href="https://linkedin.com"
-        target="_blank"
-        className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-      >
-        <Linkedin className="w-4 h-4 text-gray-500 dark:text-white/50" />
+        <Twitter className="w-5 h-5" />
       </Link>
       <Link
         href="https://bsky.app"
         target="_blank"
-        className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        rel="noopener noreferrer"
+        className="p-2 text-gray-400 hover:text-gray-500 dark:text-white/40 dark:hover:text-white/60 transition-colors"
       >
-        <svg className="w-4 h-4 text-gray-500 dark:text-white/50" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2L1 21h22L12 2zm0 4.5l7.5 13H4.5L12 6.5z"/>
-        </svg>
+        <Bird className="w-5 h-5" />
+      </Link>
+      <Link
+        href="https://linkedin.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="p-2 text-gray-400 hover:text-gray-500 dark:text-white/40 dark:hover:text-white/60 transition-colors"
+      >
+        <Linkedin className="w-5 h-5" />
       </Link>
     </div>
   );
@@ -340,7 +344,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
   // Mobile sidebar content with always expanded state
   const mobileSidebarContent = (
-    <div className="flex flex-col h-full w-[280px] bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-white/10">
+    <div className="flex flex-col h-full w-[240px] bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-white/10">
       {/* Logo Section - Mobile */}
       <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-white/10">
         <span className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent tracking-tight">
@@ -436,7 +440,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
     <div
       className={cn(
         'flex flex-col h-full',
-        expanded ? 'w-[280px]' : 'w-16',
+        expanded ? 'w-[240px]' : 'w-16',
         'bg-white dark:bg-[#111111]',
         'border-r border-gray-200 dark:border-white/10',
         'transition-all duration-300'
@@ -641,7 +645,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       {/* Main Content */}
       <main className={cn(
         'min-h-screen',
-        expanded ? 'lg:pl-[280px]' : 'lg:pl-16',
+        expanded ? 'lg:pl-[240px]' : 'lg:pl-16',
         'transition-all duration-300',
         'pt-16 lg:pt-0'
       )}>
