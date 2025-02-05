@@ -7,6 +7,7 @@ import { BookOpenText, ClockIcon, Search, Filter, MessageSquare, Calendar, Arrow
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import ChatThreads from '@/components/ChatThreads';
+import { useApi } from '@/lib/hooks/useApi';
 
 export interface Chat {
   id: string;
@@ -25,6 +26,7 @@ export interface Chat {
 }
 
 const Page = () => {
+  const { fetchWithAuth } = useApi();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -33,20 +35,15 @@ const Page = () => {
   const [dateRange, setDateRange] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [focusMode, setFocusMode] = useState('all');
+  const [libraryData, setLibraryData] = useState(null);
 
   useEffect(() => {
     setMounted(true);
     const fetchChats = async () => {
       setLoading(true);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats`, {
+      const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/chats`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(typeof window !== 'undefined' && {
-            'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
-          })
-        },
       });
 
       const data = await res.json();
@@ -56,6 +53,20 @@ const Page = () => {
     };
 
     fetchChats();
+  }, []);
+
+  useEffect(() => {
+    const fetchLibraryData = async () => {
+      try {
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/library/data`);
+        const data = await response.json();
+        setLibraryData(data);
+      } catch (error) {
+        console.error('Failed to fetch library data:', error);
+      }
+    };
+
+    fetchLibraryData();
   }, []);
 
   const handleDateRangeChange = (e: { target: { value: string; }; }) => {
@@ -75,12 +86,8 @@ const Page = () => {
 
   const fetchFilteredChats = async (dateRange: string, sortBy: string, focusMode: string) => {
     setLoading(true);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/filter?dateRange=${dateRange}&sortBy=${sortBy}&focusMode=${focusMode}`, {
+    const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/chats/filter?dateRange=${dateRange}&sortBy=${sortBy}&focusMode=${focusMode}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
-      },
     });
     const data = await res.json();
     setChats(data.chats);

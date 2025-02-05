@@ -7,6 +7,7 @@ import ProductCard from '@/components/marketplace/ProductCard';
 import { MarketplaceSidebar } from '@/components/marketplace/rightSidebar';
 import { Store, Zap, Tag, TrendingUp, Star, Clock, Flame, MessageCircle, XCircle, Filter } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useApi } from '@/lib/hooks/useApi';
 
 interface ProductResponse {
   name: string;
@@ -42,6 +43,7 @@ export default function MarketplacePage() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [comparisonProducts, setComparisonProducts] = useState<ProductResponse[]>([]);
   const [remainingProducts, setRemainingProducts] = useState<ProductResponse[]>([]);
+  const { fetchWithAuth } = useApi();
 
   useEffect(() => {
     // Ensure this only runs on the client
@@ -257,6 +259,21 @@ export default function MarketplacePage() {
       </div>
     </section>
   );
+
+  const fetchData = async () => {
+    try {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/products`);
+      const data = await response.json();
+      // Handle the data...
+    } catch (error) {
+      // Error handling is already done by useApi
+      console.error('Failed to fetch marketplace data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // Only render client-side content
   if (!isClient) {

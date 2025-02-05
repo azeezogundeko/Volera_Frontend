@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import process from 'process';
+import { useApi } from '@/lib/hooks/useApi';
 
 interface PreferencesData {
   interest?: string[];
@@ -26,6 +27,7 @@ const NOTIFICATION_TYPES = [
 ];
 
 export default function PreferencesSettings() {
+  const { fetchWithAuth } = useApi();
   const [formData, setFormData] = useState<PreferencesData>({
     interest: [],
     price_range: 'mid',
@@ -40,36 +42,20 @@ export default function PreferencesSettings() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let isSubscribed = true;
-
     const fetchPreferences = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/preferences`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-        });
-        const data: PreferencesData = await response.json();
-        if (isSubscribed) {
-          setFormData(data);
-        }
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/settings/preferences`);
+        const data = await response.json();
+        setFormData(data);
       } catch (error) {
         console.error('Failed to fetch preferences:', error);
       } finally {
-        if (isSubscribed) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
     fetchPreferences();
-
-    return () => {
-      isSubscribed = false;
-    };
-  }, []); // Fetch preferences on component mount
+  }, []);
 
   const toggleCategory = (category: string) => {
     setFormData(prev => ({
@@ -105,11 +91,10 @@ export default function PreferencesSettings() {
     setIsSaving(true);
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/preferences`, {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/settings/preferences`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },
         body: JSON.stringify(formData),
       });

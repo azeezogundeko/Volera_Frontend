@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import process from 'process';
 import LoadingPage from '@/components/LoadingPage';
+import { useApi } from '@/lib/hooks/useApi';
 
 interface SavedProduct {
   product_id: string;
@@ -34,6 +35,7 @@ interface SavedChat {
 }
 
 export default function WishlistPage() {
+  const { fetchWithAuth } = useApi();
   const [savedProducts, setSavedProducts] = useState<SavedProduct[]>([]);
   const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,38 +43,21 @@ export default function WishlistPage() {
 
   useEffect(() => {
     setMounted(true);
-    const fetchData = async () => {
+    const fetchWishlistData = async () => {
       try {
         setIsLoading(true);
-        const params = new URLSearchParams();
-        params.set('limit', '10');
-        let token;
-        if (typeof window !== 'undefined') {
-          token = localStorage.getItem('auth_token'); // Retrieve the token
-        }
-        const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/saved_products?${params.toString()}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        const chatsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/saved_chats?${params.toString()}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        const productsData = await productsResponse.json();
-        const chatsData = await chatsResponse.json();
-    
-        setSavedProducts(productsData);
-        setSavedChats(chatsData.data);
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/data`);
+        const data = await response.json();
+        setSavedProducts(data.products);
+        setSavedChats(data.chats);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Failed to fetch wishlist data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
+    fetchWishlistData();
   }, []);
 
   if (!mounted || isLoading) {
@@ -80,16 +65,9 @@ export default function WishlistPage() {
   }
 
   const removeProduct = async (productId: string) => {
-    let token;
-    if (typeof window !== 'undefined') {
-      token = localStorage.getItem('auth_token'); 
-    }
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/unsave_product/${productId}`, {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/product/unsave_product/${productId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
       });
   
       if (response.ok) {
@@ -106,16 +84,9 @@ export default function WishlistPage() {
   };
 
   const removeChat = async (chatId: string) => {
-    let token;
-    if (typeof window !== 'undefined') {
-      token = localStorage.getItem('auth_token'); 
-    }
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/unstar_chat/${chatId}`, {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/chats/unstar_chat/${chatId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
       });
   
       if (response.ok) {

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import AddItemModal from '@/components/AddItemModal';
 import { getAllTrackedItems } from '@/lib/api';
 import LoadingPage from '@/components/LoadingPage';
+import { useApi } from '@/lib/hooks/useApi';
 
 interface ProductResponse {
   name: string;
@@ -35,10 +36,12 @@ interface TrackedItem {
 }
 
 export default function TrackPage() {
+  const { fetchWithAuth } = useApi();
   const [trackedItems, setTrackedItems] = useState<TrackedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [trackingData, setTrackingData] = useState(null);
 
   useEffect(() => {
     setMounted(true);
@@ -55,7 +58,18 @@ export default function TrackPage() {
       }
     };
 
+    const fetchTrackingData = async () => {
+      try {
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/tracking/data`);
+        const data = await response.json();
+        setTrackingData(data);
+      } catch (error) {
+        console.error('Failed to fetch tracking data:', error);
+      }
+    };
+
     fetchTrackedItems();
+    fetchTrackingData();
   }, []);
 
   const removeItem = async (id: string) => {

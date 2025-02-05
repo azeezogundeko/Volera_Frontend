@@ -11,6 +11,7 @@ import ChatSidebar from '@/components/chat/ChatSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import process from 'process';
+import { useApi } from '@/lib/hooks/useApi';
 
 interface Specification {
   label: string;
@@ -18,6 +19,7 @@ interface Specification {
 }
 
 export default function ComparePage() {
+  const { fetchWithAuth } = useApi();
   const [products, setProducts] = useState<ProductDetail[]>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
@@ -26,16 +28,17 @@ export default function ComparePage() {
   const prevProductsRef = useRef<ProductDetail[]>([]);
   
   useEffect(() => {
-    try {
-      const savedProducts = localStorage.getItem('compareProducts');
-      if (savedProducts) {
-        const parsedProducts = JSON.parse(savedProducts) as ProductDetail[];
-        setProducts(parsedProducts);
+    const fetchCompareData = async () => {
+      try {
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/compare/data`);
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error('Failed to fetch compare data:', error);
       }
-    } catch (error) {
-      console.error('Error loading compare products:', error);
-      localStorage.removeItem('compareProducts');
-    }
+    };
+
+    fetchCompareData();
   }, []);
 
   useEffect(() => {

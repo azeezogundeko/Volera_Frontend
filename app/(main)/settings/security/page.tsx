@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, 
@@ -16,6 +16,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useApi } from '@/lib/hooks/useApi';
 
 interface SecurityData {
   twoFactorEnabled: boolean;
@@ -44,6 +45,7 @@ const SECURITY_QUESTIONS = [
 ];
 
 export default function SecuritySettings() {
+  const { fetchWithAuth } = useApi();
   const [formData, setFormData] = useState<SecurityData>({
     twoFactorEnabled: false,
     twoFactorMethod: 'authenticator',
@@ -65,13 +67,55 @@ export default function SecuritySettings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleInputChange = (field: keyof SecurityData, value: any) => {
+  useEffect(() => {
+    const fetchSecuritySettings = async () => {
+      try {
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/settings/security`);
+        const data = await response.json();
+        setFormData(data);
+      } catch (error) {
+        console.error('Failed to fetch security settings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSecuritySettings();
+  }, []);
+
+  const handleInputChange = async (field: keyof SecurityData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
     setIsDirty(true);
+
+    // If the field is related to immediate settings (like 2FA or notifications), update immediately
+    if (['twoFactorEnabled', 'loginNotifications', 'suspiciousActivityAlerts'].includes(field)) {
+      try {
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/settings/security/${field}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value }),
+        });
+
+        if (!response.ok) throw new Error(`Failed to update ${field}`);
+
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } catch (error) {
+        console.error(`Error updating ${field}:`, error);
+        // Revert the change if the update failed
+        setFormData(prev => ({
+          ...prev,
+          [field]: !value
+        }));
+      }
+    }
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -88,15 +132,27 @@ export default function SecuritySettings() {
     setIsSaving(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/settings/security/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update password');
+
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      // Handle error
+      console.error('Error updating password:', error);
+      setPasswordError('Failed to update password. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -107,17 +163,33 @@ export default function SecuritySettings() {
     setIsSaving(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/settings/security`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error('Failed to update security settings');
+
       setShowSuccess(true);
       setIsDirty(false);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      // Handle error
+      console.error('Error updating security settings:', error);
     } finally {
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] py-12">

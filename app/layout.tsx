@@ -7,6 +7,7 @@ import LoadingPage from '@/components/LoadingPage';
 import { Toaster } from 'sonner';
 import ThemeProvider from '@/components/theme/Provider';
 import { Suspense } from 'react';
+import { SessionProvider } from '@/components/providers/SessionProvider'
 
 const montserrat = Montserrat({
   weight: ['300', '400', '500', '700'],
@@ -29,7 +30,10 @@ export default function RootLayout({
   return (
     <html className="h-full" lang="en" suppressHydrationWarning>
       <body className={cn('h-full', montserrat.className)}>
+        <SessionProvider>
+          {/* Your existing providers */}
           {children}
+        </SessionProvider>
       </body>
     </html>
   );

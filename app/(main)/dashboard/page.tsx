@@ -432,97 +432,58 @@ export default function Home() {
 
             {/* Trending Products */}
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-orange-50 dark:bg-orange-500/10 rounded-lg">
-                    <TrendingUp className="w-4 h-4 text-orange-500" />
-                  </div>
-                  <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90">
-                    Trending Products
-                  </h2>
-                </div>
-                <Link 
-                  href="/marketplace"
-                  className="text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-                >
-                  View All
-                </Link>
-              </div>
+              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
+                Trending Products
+              </h2>
               {isLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
-                      <div className="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
                       <div className="flex-1">
-                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
-                        <div className="h-4 w-1/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
-                        <div className="flex gap-2">
-                          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-                          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-                        </div>
+                        <div className="h-4 w-40 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
+                        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : Array.isArray(trendingProducts) && trendingProducts.length > 0 ? (
-                <div className="space-y-3">
+              ) : (
+                <div className="space-y-3 sm:space-y-4">
                   {trendingProducts.map((product) => (
-                    <Link
+                    <div
                       key={product.id}
-                      href={`/marketplace/${product.id}`}
-                      className="group flex items-start gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-white/5 rounded-lg"
                     >
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
                         <Image
                           src={product.image}
                           alt={product.title}
                           fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                          className="object-cover rounded-lg"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base truncate">
                           {product.title}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                          <span className="text-xs sm:text-sm text-emerald-500 font-medium">
                             ${product.price}
                           </span>
-                          <div className={cn(
-                            "flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full",
-                            product.trend === 'up' 
-                              ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
-                              : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10"
-                          )}>
+                          <span className={`text-xs flex items-center gap-0.5 ${
+                            product.trend === 'up' ? 'text-emerald-500' : 'text-red-500'
+                          }`}>
                             {product.trend === 'up' ? (
                               <ArrowUp className="w-3 h-3" />
                             ) : (
                               <ArrowDown className="w-3 h-3" />
                             )}
                             {product.trendValue}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex items-center gap-0.5">
-                            <span className="text-yellow-400">★</span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {product.rating || '4.5'}
-                            </span>
-                          </div>
-                          {product.isHot && (
-                            <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-1.5 py-0.5 rounded-full">
-                              Hot 🔥
-                            </span>
-                          )}
+                          </span>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <TrendingUp className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-3" />
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No trending products available</p>
                 </div>
               )}
             </div>
