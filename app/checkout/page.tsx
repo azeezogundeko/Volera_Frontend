@@ -7,17 +7,14 @@ import { NotificationContainer } from '@/components/Notification'
 import type { PaystackPaymentProps } from '@/components/PaystackPayment'
 
 // Dynamically import Paystack to ensure it's only loaded client-side
-const PaystackPayment = dynamic<PaystackPaymentProps>(
-  () => import('@/components/PaystackPayment'),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
-        <div className="text-emerald-400">Loading payment system...</div>
-      </div>
-    )
-  }
-);
+const PaystackPayment = dynamic<PaystackPaymentProps>(() => import('@/components/PaystackPayment').then(mod => mod.default), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+      <div className="text-emerald-400">Loading payment system...</div>
+    </div>
+  )
+});
 
 interface User {
   first_name: string;
