@@ -423,11 +423,10 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       {/* Settings and User Profile */}
       <div className="mt-auto border-t border-gray-200 dark:border-white/10 p-4 space-y-3">
         <IconButton
-          href="#"
+          href="/settings"
           icon={Settings}
           label="Settings"
           expanded={true}
-          onClick={() => setIsSettingsOpen(true)}
         />
         <UserButton expanded={true} />
         <SocialIcons expanded={true} />
@@ -567,11 +566,10 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
         )}
       >
         <IconButton
-          href="#"
+          href="/settings"
           icon={Settings}
           label="Settings"
           expanded={expanded}
-          onClick={() => setIsSettingsOpen(true)}
         />
         <UserButton expanded={expanded} />
         <SocialIcons expanded={expanded} />

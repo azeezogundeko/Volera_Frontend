@@ -30,12 +30,6 @@ const EmptyChat = ({
   return (
     <div className="relative h-screen overflow-hidden">
       <SettingsDialog isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
-      <div className="absolute w-full flex flex-row items-center justify-end mr-5 mt-5">
-        <Settings
-          className="cursor-pointer lg:hidden"
-          onClick={() => setIsSettingsOpen(true)}
-        />
-      </div>
       <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto p-2 space-y-8">
         <div className="flex flex-col items-center space-y-4 -mt-8">
           <p className="text-black/50 dark:text-white/50 text-2xl sm:text-3xl md:text-4xl font-bold text-center px-4">

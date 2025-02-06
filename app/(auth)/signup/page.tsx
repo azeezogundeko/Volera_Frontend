@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Mail, Lock, User, Globe2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -76,6 +77,17 @@ export default function SignupPage() {
         localStorage.setItem('token_type', data.token.token_type);
         localStorage.setItem('user', JSON.stringify(data.user));
 
+        // Show success notification with react-hot-toast
+        toast.success('Account created successfully! Please verify your email.', {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: 'rgb(34 197 94)',
+            color: '#fff',
+            padding: '16px',
+          },
+        });
+
         // Redirect to verification page
         router.push('/verify');
       } else {
@@ -123,6 +135,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-light-primary dark:bg-dark-primary p-4">
+      <Toaster />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -48,8 +48,8 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
   };
 
   useEffect(() => {
-    setFormData({ ...formData, profile: profileData });
-  }, [profileData, formData, setFormData]);
+    setFormData((prev: { profile: Partial<ProfileData>; preferences: any }) => ({ ...prev, profile: profileData }));
+  }, [profileData, setFormData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -108,16 +108,18 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-white/70 mb-1">
-              Gender
+              Gender <span className="text-red-500">*</span>
             </label>
             <select
               name="gender"
               value={profileData.gender}
               onChange={handleInputChange}
+              required
               className={cn(
                 'w-full px-3 py-2 rounded-lg',
                 'bg-[#0a0a0a]',
-                'border border-dark-200',
+                'border',
+                !profileData.gender ? 'border-red-500' : 'border-dark-200',
                 'text-white',
                 'focus:outline-none focus:ring-2 focus:ring-primary/50'
               )}
@@ -126,6 +128,11 @@ export default function ProfileStep({ onNext, setFormData, formData }: ProfileSt
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
+            {!profileData.gender && (
+              <p className="mt-1 text-sm text-red-500">
+                Please select your gender
+              </p>
+            )}
           </div>
 
           <div>

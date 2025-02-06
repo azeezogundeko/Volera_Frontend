@@ -27,19 +27,19 @@ export default function ComparePage() {
   const router = useRouter();
   const prevProductsRef = useRef<ProductDetail[]>([]);
   
-  useEffect(() => {
-    const fetchCompareData = async () => {
-      try {
-        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/compare/data`);
-        const data = await response.json();
-        setProducts(data);
-      } catch (error) {
-        console.error('Failed to fetch compare data:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchCompareData = async () => {
+  //     try {
+  //       const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/product/detail/${product.product_id}`);
+  //       const data = await response.json();
+  //       setProducts(data);
+  //     } catch (error) {
+  //       console.error('Failed to fetch compare data:', error);
+  //     }
+  //   };
 
-    fetchCompareData();
-  }, []);
+  //   fetchCompareData();
+  // }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsChatVisible(false);

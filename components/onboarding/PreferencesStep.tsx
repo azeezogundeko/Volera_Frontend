@@ -13,13 +13,15 @@ interface PreferencesData {
   notification_preferences: string[];
 }
 
+interface FormData {
+  profile: any;
+  preferences: Partial<PreferencesData>;
+}
+
 interface PreferencesStepProps {
   onNext: () => void;
-  setFormData: (data: any) => void;
-  formData: {
-    profile: any;
-    preferences: Partial<PreferencesData>;
-  };
+  setFormData: (data: FormData | ((prev: FormData) => FormData)) => void;
+  formData: FormData;
 }
 
 const CATEGORIES = [
@@ -52,8 +54,11 @@ export default function PreferencesStep({ onNext, setFormData, formData }: Prefe
   };
 
   useEffect(() => {
-    setFormData({ ...formData, preferences: preferencesData });
-  }, [preferencesData, formData, setFormData]);
+    setFormData((prev: FormData) => ({
+      ...prev,
+      preferences: preferencesData
+    }));
+  }, [preferencesData, setFormData]);
 
   const toggleNotification = (type: string) => {
     setPreferencesData(prev => ({
