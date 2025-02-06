@@ -3,15 +3,31 @@
 import { useState } from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import Link from 'next/link';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import process from 'process';
+
 
 export default function ContactPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Handle form submission logic here
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/contact`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, message }),
+    });
+
+    if (response.ok) {
+      toast.success('Message sent successfully!');
+    } else {
+      toast.error('Failed to send message. Please try again.');
+    }
   };
 
   return (
