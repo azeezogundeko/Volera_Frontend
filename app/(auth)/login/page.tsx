@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useChat } from '@/hooks/useChat';
@@ -132,147 +132,102 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-light-primary dark:bg-dark-primary p-4">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-4">
       <NotificationContainer notifications={notifications} />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md space-y-8 bg-white dark:bg-dark-secondary rounded-xl shadow-lg p-8"
-      >
+      <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
+            Welcome Back
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-emerald-500 hover:text-emerald-600">
-              Sign up
-            </Link>
+          <p className="mt-2 text-sm text-gray-400">
+            Sign in to your account to continue
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+                Email Address
               </label>
-              <div className="mt-1 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-500" />
+                </div>
                 <input
-                  type="email"
-                  name="email"
                   id="email"
+                  type="email"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={cn(
-                    "block w-full pl-10 pr-3 py-2 rounded-lg",
-                    "border border-gray-300 dark:border-gray-600",
-                    "bg-white dark:bg-dark-secondary",
-                    "text-gray-900 dark:text-white",
-                    "placeholder-gray-400 dark:placeholder-gray-500",
-                    "focus:ring-2 focus:ring-emerald-500 focus:border-transparent",
-                    "transition duration-200"
-                  )}
-                  placeholder="you@example.com"
+                  className="block w-full pl-10 pr-3 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
+                  placeholder="Enter your email"
                 />
               </div>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-emerald-500 hover:text-emerald-600"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="mt-1 relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-500" />
+                </div>
                 <input
-                  type="password"
-                  name="password"
                   id="password"
+                  type="password"
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={cn(
-                    "block w-full pl-10 pr-3 py-2 rounded-lg",
-                    "border border-gray-300 dark:border-gray-600",
-                    "bg-white dark:bg-dark-secondary",
-                    "text-gray-900 dark:text-white",
-                    "placeholder-gray-400 dark:placeholder-gray-500",
-                    "focus:ring-2 focus:ring-emerald-500 focus:border-transparent",
-                    "transition duration-200"
-                  )}
-                  placeholder="••••••••"
+                  className="block w-full pl-10 pr-3 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
+                  placeholder="Enter your password"
                 />
               </div>
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={cn(
-                "w-full flex justify-center py-2.5 px-4 rounded-lg",
-                "bg-gradient-to-r from-emerald-400 to-emerald-500",
-                "hover:from-emerald-500 hover:to-emerald-600",
-                "text-white font-medium",
-                "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500",
-                "transition duration-200",
-                loading && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-dark-secondary text-gray-500">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className={cn(
-                "w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg",
-                "bg-white dark:bg-dark-secondary",
-                "border border-gray-300 dark:border-gray-600",
-                "hover:bg-gray-50 dark:hover:bg-dark-100",
-                "text-gray-700 dark:text-gray-300 font-medium",
-                "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500",
-                "transition duration-200",
-                loading && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <Image
-                src="/google.svg"
-                alt="Google"
-                width={20}
-                height={20}
-                className="w-5 h-5"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 rounded border-white/10 bg-[#111111] text-emerald-500 focus:ring-emerald-500"
               />
-              Sign in with Google
-            </button>
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400">
+                Remember me
+              </label>
+            </div>
+
+            <Link
+              href="/forgot-password"
+              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+            >
+              Forgot password?
+            </Link>
           </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </form>
-      </motion.div>
+
+        <p className="text-center text-sm text-gray-400">
+          Don't have an account?{' '}
+          <Link
+            href="/signup"
+            className="text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

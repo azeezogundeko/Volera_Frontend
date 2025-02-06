@@ -33,7 +33,7 @@ const sections = [
   },
   {
     title: 'Subscription',
-    href: '/settings/subscription',
+    href: '/settings/billing',
     description: 'View and manage your subscription'
   }
 ];

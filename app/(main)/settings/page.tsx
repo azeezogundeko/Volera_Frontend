@@ -49,14 +49,14 @@ const settingsSections = [
     ]
   },
   {
-    title: 'Billing',
+    title: 'Billing & Credits',
     icon: CreditCard,
-    description: 'Manage your billing information and subscription',
+    description: 'Manage your billing and credit information',
     items: [
       { 
         label: 'Subscription',
         description: 'View and manage your subscription',
-        href: '/settings/subscription',
+        href: '/settings/billing',
         icon: CreditCard
       }
     ]
