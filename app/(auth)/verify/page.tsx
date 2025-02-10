@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, ArrowRight, CheckCircle } from 'lucide-react';
@@ -11,8 +11,9 @@ export default function VerifyPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [email, setEmail] = useState('');
+  const inputRefs = useRef<HTMLInputElement[]>([]);
 
   useEffect(() => {
     // Get the user's email from localStorage
@@ -23,16 +24,66 @@ export default function VerifyPage() {
     }
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const isCodeComplete = (code: string[]) => {
+    return code.every(digit => digit !== '');
+  };
+
+  const handleCodeChange = async (index: number, value: string) => {
+    // Only allow numeric input
+    if (!/^\d*$/.test(value)) return;
+    
+    // Only allow single digit
+    if (value.length > 1) return;
+
+    const newCode = [...verificationCode];
+    newCode[index] = value;
+    setVerificationCode(newCode);
+    setError(''); // Clear any previous errors
+
+    // Move to next input if value is entered
+    if (value !== '' && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // If this is the last digit and code is complete, submit automatically
+    if (value !== '' && isCodeComplete(newCode)) {
+      await handleSubmit(newCode.join('')); // Pass the newCode directly
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (verificationCode[index] === '' && index > 0) {
+        // Move to previous input if current is empty
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        // Clear current input
+        const newCode = [...verificationCode];
+        newCode[index] = '';
+        setVerificationCode(newCode);
+      }
+    }
+  };
+
+  const handleSubmit = async (submittedCode?: string, e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    if (loading) return;
+
+    const code = submittedCode || verificationCode.join('');
+    const codeArray = submittedCode ? submittedCode.split('') : verificationCode;
+    
+    if (!isCodeComplete(codeArray)) {
+      setError('Please enter the complete verification code');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      if (!verificationCode) {
-        throw new Error('Please enter the verification code');
-      }
-
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
         method: 'POST',
         headers: {
@@ -40,7 +91,7 @@ export default function VerifyPage() {
         },
         body: JSON.stringify({
           email,
-          code: verificationCode,
+          code,
         }),
       });
 
@@ -57,7 +108,6 @@ export default function VerifyPage() {
           },
         });
 
-        // Update user status in localStorage if needed
         const userData = localStorage.getItem('user');
         if (userData) {
           const user = JSON.parse(userData);
@@ -65,7 +115,6 @@ export default function VerifyPage() {
           localStorage.setItem('user', JSON.stringify(user));
         }
 
-        // Redirect to dashboard or home page
         router.push('/dashboard');
       } else {
         throw new Error(data.detail || 'Verification failed');
@@ -123,11 +172,14 @@ export default function VerifyPage() {
             <Mail className="w-6 h-6 text-emerald-400" />
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
-            Verify Your Email
+            Verify Your Account
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            We've sent a verification code to{' '}
+            We emailed you the six digit code to{' '}
             <span className="text-emerald-400">{email}</span>
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Enter the code below to confirm your email address.
           </p>
         </div>
 
@@ -137,23 +189,24 @@ export default function VerifyPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="code" className="block text-sm font-medium text-gray-300">
-              Verification Code
-            </label>
-            <div className="mt-1 relative">
-              <CheckCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+        <form onSubmit={(e) => handleSubmit(undefined, e)} className="mt-8 space-y-6">
+          <div className="flex justify-center gap-2">
+            {verificationCode.map((digit, index) => (
               <input
+                key={index}
                 type="text"
-                id="code"
-                required
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 rounded-lg border border-white/10 bg-[#0a0a0a] text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
-                placeholder="Enter verification code"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={1}
+                value={digit}
+                ref={(el) => {
+                  if (el) inputRefs.current[index] = el;
+                }}
+                onChange={(e) => handleCodeChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className="w-12 h-14 text-center text-2xl font-semibold rounded-lg border border-white/10 bg-[#0a0a0a] text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
               />
-            </div>
+            ))}
           </div>
 
           <button

@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - 3000
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.volera-frontend.rule=Host(`www.volera.app`)
+      - traefik.http.routers.volera-frontend.entrypoints=web,websecure
+      - traefik.http.routers.volera-frontend.tls=true
+      - traefik.http.routers.volera-frontend.tls.certresolver=letsencrypt
+      - traefik.http.services.volera-frontend.loadbalancer.server.port=3000
+
+networks:
+  dokploy-network:
+    external: true

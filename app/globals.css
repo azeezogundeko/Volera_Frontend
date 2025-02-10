@@ -10,6 +10,30 @@
   .overflow-hidden-scrollable::-webkit-scrollbar {
     display: none;
   }
+
+  /* iOS Optimizations */
+  /* Disable iOS text size adjustment */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* Remove tap highlight color */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Smooth scrolling for iOS */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for iOS input zooming */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    font-size: 16px;
+  }
 }
 
 @layer utilities {

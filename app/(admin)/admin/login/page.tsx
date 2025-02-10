@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { useTheme } from '@/app/contexts/ThemeContext';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -44,85 +46,164 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+    <div className={cn(
+      "min-h-screen flex flex-col items-center justify-center p-4",
+      theme === 'dark' ? "bg-[#0a0a0a]" : "bg-gray-50"
+    )}>
       <div className="w-full max-w-md">
-        <div className="bg-[#1a1a1a] rounded-2xl p-8 shadow-xl border border-white/10">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white mb-2">Admin Login</h1>
-            <p className="text-gray-400">Access the admin dashboard</p>
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <div className={cn(
+            "w-12 h-12 rounded-xl mb-4 mx-auto flex items-center justify-center",
+            theme === 'dark' 
+              ? "bg-emerald-500/10" 
+              : "bg-emerald-50"
+          )}>
+            <Shield className={cn(
+              "w-6 h-6",
+              theme === 'dark' ? "text-emerald-400" : "text-emerald-500"
+            )} />
           </div>
+          <h1 className={cn(
+            "text-2xl font-bold mb-2 bg-gradient-to-r from-emerald-500 to-emerald-700 bg-clip-text text-transparent"
+          )}>
+            Admin Portal
+          </h1>
+          <p className={cn(
+            "text-sm",
+            theme === 'dark' ? "text-gray-400" : "text-gray-600"
+          )}>
+            Sign in to access the admin dashboard
+          </p>
+        </div>
 
+        {/* Login Form */}
+        <div className={cn(
+          "rounded-2xl p-8 shadow-xl",
+          theme === 'dark' 
+            ? "bg-[#1a1a1a] border border-white/10" 
+            : "bg-white border border-gray-200"
+        )}>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className={cn(
+                "block text-sm font-medium mb-2",
+                theme === 'dark' ? "text-gray-300" : "text-gray-700"
+              )}>
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                <Mail className={cn(
+                  "absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5",
+                  theme === 'dark' ? "text-gray-400" : "text-gray-500"
+                )} />
                 <input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className={cn(
-                    'w-full pl-10 pr-3 py-2 rounded-lg',
-                    'bg-[#0a0a0a]',
-                    'border border-white/10',
-                    'text-white',
-                    'placeholder-white/30',
-                    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                    'w-full pl-10 pr-3 py-2 rounded-lg transition-colors',
+                    theme === 'dark'
+                      ? [
+                          "bg-[#0a0a0a]",
+                          "border border-white/10",
+                          "text-white",
+                          "placeholder-gray-500"
+                        ]
+                      : [
+                          "bg-white",
+                          "border border-gray-300",
+                          "text-gray-900",
+                          "placeholder-gray-400"
+                        ],
+                    'focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent'
                   )}
                   placeholder="admin@example.com"
                 />
               </div>
             </div>
 
+            {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className={cn(
+                "block text-sm font-medium mb-2",
+                theme === 'dark' ? "text-gray-300" : "text-gray-700"
+              )}>
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+                <Lock className={cn(
+                  "absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5",
+                  theme === 'dark' ? "text-gray-400" : "text-gray-500"
+                )} />
                 <input
                   type="password"
                   required
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   className={cn(
-                    'w-full pl-10 pr-3 py-2 rounded-lg',
-                    'bg-[#0a0a0a]',
-                    'border border-white/10',
-                    'text-white',
-                    'placeholder-white/30',
-                    'focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                    'w-full pl-10 pr-3 py-2 rounded-lg transition-colors',
+                    theme === 'dark'
+                      ? [
+                          "bg-[#0a0a0a]",
+                          "border border-white/10",
+                          "text-white",
+                          "placeholder-gray-500"
+                        ]
+                      : [
+                          "bg-white",
+                          "border border-gray-300",
+                          "text-gray-900",
+                          "placeholder-gray-400"
+                        ],
+                    'focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent'
                   )}
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
+            {/* Login Button */}
             <button
               type="submit"
               disabled={isLoading}
               className={cn(
                 'w-full py-2 px-4 rounded-lg',
-                'bg-emerald-500 hover:bg-emerald-600',
+                'bg-gradient-to-r from-emerald-500 to-emerald-600',
+                'hover:from-emerald-600 hover:to-emerald-700',
                 'text-white font-medium',
-                'transition-colors duration-200',
+                'transition-all duration-200',
                 'flex items-center justify-center gap-2',
-                'disabled:opacity-50 disabled:cursor-not-allowed'
+                'disabled:opacity-50 disabled:cursor-not-allowed',
+                'focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2',
+                theme === 'dark' ? 'focus:ring-offset-[#1a1a1a]' : 'focus:ring-offset-white'
               )}
             >
               {isLoading ? (
                 <>
                   <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Logging in...
+                  Signing in...
                 </>
               ) : (
-                'Login'
+                <>
+                  Sign In
+                  <ArrowRight className="w-4 h-4" />
+                </>
               )}
             </button>
           </form>
+        </div>
+
+        {/* Security Notice */}
+        <div className="mt-6 text-center">
+          <p className={cn(
+            "text-xs",
+            theme === 'dark' ? "text-gray-500" : "text-gray-600"
+          )}>
+            This is a secure area. Only authorized personnel allowed.
+          </p>
         </div>
       </div>
     </div>

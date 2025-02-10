@@ -2,125 +2,146 @@
 
 import { useEffect, useState } from 'react';
 import { 
-  Users, Activity, AlertTriangle, Mail, 
+  Users, Activity, AlertTriangle, 
   TrendingUp, ShoppingBag, MessageSquare, 
-  BarChart2 
+  DollarSign, CreditCard, Wallet,
+  TrendingDown 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Line, Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { useTheme } from '@/app/contexts/ThemeContext';
 
 interface DashboardStats {
   totalUsers: number;
   newUsers: number;
-  activeUsers: number;
+  newTransactions: number;
   errorRate: number;
-  totalOrders: number;
+  totalTransactions: number;
+  activeUsers: number;
+  inactiveUsers: number;
   totalMessages: number;
+  revenue: {
+    today: number;
+    thisMonth: number;
+    total: number;
+    trend: number;
+  };
 }
 
 export default function AdminDashboard() {
+  const { theme } = useTheme();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     newUsers: 0,
-    activeUsers: 0,
+    newTransactions: 0,
     errorRate: 0,
-    totalOrders: 0,
+    totalTransactions: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
     totalMessages: 0,
+    revenue: {
+      today: 0,
+      thisMonth: 0,
+      total: 0,
+      trend: 0
+    }
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/stats`, {
+        const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/stats`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
           },
         });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setStats(data);
+
+        if (statsResponse.ok) {
+          const { stats: statsData } = await statsResponse.json();
+          setStats(statsData);
         }
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
-  const userGrowthData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'User Growth',
-        data: [100, 220, 350, 500, 780, 1000],
-        borderColor: '#10b981',
-        backgroundColor: '#10b98120',
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  };
-
-  const errorRateData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Error Rate',
-        data: [2.1, 1.8, 2.3, 1.5, 1.9, 1.2, 1.6],
-        backgroundColor: '#ef4444',
-      },
-    ],
-  };
-
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2 text-emerald-400">
-              <Activity className="w-4 h-4" />
-              System Status: Healthy
-            </span>
+    <div className={cn(
+      "p-4 lg:p-8 min-h-screen",
+      theme === 'dark' ? "bg-[#0a0a0a]" : "bg-gray-50"
+    )}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className={cn(
+              "text-2xl font-bold bg-gradient-to-r from-emerald-500 to-emerald-700 bg-clip-text text-transparent",
+            )}>Dashboard Overview</h1>
+            <p className={cn(
+              "mt-1 text-sm",
+              theme === 'dark' ? "text-gray-400" : "text-gray-600"
+            )}>Monitor your system's performance and metrics</p>
+          </div>
+          <div className={cn(
+            "flex items-center gap-3 px-4 py-2 rounded-lg",
+            theme === 'dark' ? "bg-[#1a1a1a]" : "bg-white",
+            theme === 'dark' ? "border-white/10" : "border-gray-200",
+            "border"
+          )}>
+            <Activity className={cn(
+              "w-4 h-4",
+              theme === 'dark' ? "text-emerald-400" : "text-emerald-500"
+            )} />
+            <span className={cn(
+              "text-sm font-medium",
+              theme === 'dark' ? "text-emerald-400" : "text-emerald-500"
+            )}>System Status: Healthy</span>
           </div>
         </div>
 
+        {/* Revenue Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+          <StatCard
+            title="Today's Revenue"
+            value={`$${stats.revenue.today.toLocaleString()}`}
+            icon={DollarSign}
+            trend={`${stats.revenue.trend > 0 ? '+' : ''}${stats.revenue.trend}%`}
+            trendType={stats.revenue.trend >= 0 ? 'positive' : 'negative'}
+            isLoading={isLoading}
+            theme={theme}
+          />
+          <StatCard
+            title="Monthly Revenue"
+            value={`$${stats.revenue.thisMonth.toLocaleString()}`}
+            icon={CreditCard}
+            trend="+15%"
+            isLoading={isLoading}
+            theme={theme}
+          />
+          <StatCard
+            title="Total Revenue"
+            value={`$${stats.revenue.total.toLocaleString()}`}
+            icon={Wallet}
+            trend="+25%"
+            isLoading={isLoading}
+            theme={theme}
+          />
+        </div>
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           <StatCard
             title="Total Users"
             value={stats.totalUsers}
             icon={Users}
             trend="+12%"
             isLoading={isLoading}
+            theme={theme}
           />
           <StatCard
             title="New Users (Today)"
@@ -128,13 +149,15 @@ export default function AdminDashboard() {
             icon={TrendingUp}
             trend="+5%"
             isLoading={isLoading}
+            theme={theme}
           />
           <StatCard
             title="Active Users"
             value={stats.activeUsers}
             icon={Activity}
-            trend="+8%"
+            trend={`${((stats.activeUsers / (stats.activeUsers + stats.inactiveUsers)) * 100).toFixed(1)}%`}
             isLoading={isLoading}
+            theme={theme}
           />
           <StatCard
             title="Error Rate"
@@ -143,83 +166,24 @@ export default function AdminDashboard() {
             trend="-2%"
             trendType="negative"
             isLoading={isLoading}
+            theme={theme}
           />
           <StatCard
-            title="Total Orders"
-            value={stats.totalOrders}
+            title="New Transactions"
+            value={stats.newTransactions}
             icon={ShoppingBag}
             trend="+15%"
             isLoading={isLoading}
+            theme={theme}
           />
           <StatCard
-            title="Total Messages"
-            value={stats.totalMessages}
+            title="Total Transactions"
+            value={stats.totalTransactions}
             icon={MessageSquare}
             trend="+20%"
             isLoading={isLoading}
+            theme={theme}
           />
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10">
-            <h2 className="text-lg font-semibold mb-4">User Growth</h2>
-            <Line 
-              data={userGrowthData} 
-              options={{
-                responsive: true,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    ticks: { color: 'rgba(255, 255, 255, 0.7)' },
-                  },
-                  x: {
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    ticks: { color: 'rgba(255, 255, 255, 0.7)' },
-                  },
-                },
-                plugins: {
-                  legend: {
-                    labels: { color: 'rgba(255, 255, 255, 0.7)' },
-                  },
-                },
-              }}
-            />
-          </div>
-          <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10">
-            <h2 className="text-lg font-semibold mb-4">Error Rate</h2>
-            <Bar 
-              data={errorRateData}
-              options={{
-                responsive: true,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    ticks: { color: 'rgba(255, 255, 255, 0.7)' },
-                  },
-                  x: {
-                    grid: {
-                      color: 'rgba(255, 255, 255, 0.1)',
-                    },
-                    ticks: { color: 'rgba(255, 255, 255, 0.7)' },
-                  },
-                },
-                plugins: {
-                  legend: {
-                    labels: { color: 'rgba(255, 255, 255, 0.7)' },
-                  },
-                },
-              }}
-            />
-          </div>
         </div>
       </div>
     </div>
@@ -232,7 +196,8 @@ function StatCard({
   icon: Icon, 
   trend, 
   trendType = 'positive',
-  isLoading
+  isLoading,
+  theme
 }: { 
   title: string; 
   value: number | string; 
@@ -240,34 +205,57 @@ function StatCard({
   trend: string;
   trendType?: 'positive' | 'negative';
   isLoading: boolean;
+  theme: 'dark' | 'light';
 }) {
   return (
-    <div className="bg-[#1a1a1a] rounded-xl p-6 border border-white/10">
+    <div className={cn(
+      "rounded-xl p-6 border transition-all duration-200",
+      theme === 'dark'
+        ? "bg-[#1a1a1a] border-white/10 hover:border-emerald-500/50"
+        : "bg-white border-gray-200 hover:border-emerald-500/50"
+    )}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-white/70">{title}</p>
+          <p className={cn(
+            "text-sm",
+            theme === 'dark' ? "text-gray-400" : "text-gray-600"
+          )}>{title}</p>
           {isLoading ? (
-            <div className="h-8 w-24 bg-white/10 animate-pulse rounded mt-1" />
+            <div className={cn(
+              "h-8 w-24 animate-pulse rounded mt-1",
+              theme === 'dark' ? "bg-white/10" : "bg-gray-200"
+            )} />
           ) : (
-            <p className="text-2xl font-semibold mt-1">{value}</p>
+            <p className={cn(
+              "text-2xl font-semibold mt-1",
+              theme === 'dark' ? "text-white" : "text-gray-900"
+            )}>{value}</p>
           )}
         </div>
         <div className={cn(
           'p-3 rounded-lg',
-          'bg-white/5'
+          theme === 'dark' ? "bg-white/5" : "bg-gray-100"
         )}>
-          <Icon className="w-5 h-5 text-white/70" />
+          <Icon className={cn(
+            "w-5 h-5",
+            theme === 'dark' ? "text-white/70" : "text-gray-600"
+          )} />
         </div>
       </div>
       {!isLoading && (
         <div className="mt-4 flex items-center gap-2">
           <span className={cn(
-            'text-sm',
-            trendType === 'positive' ? 'text-emerald-400' : 'text-red-400'
+            'text-sm font-medium',
+            trendType === 'positive' 
+              ? theme === 'dark' ? 'text-emerald-400' : 'text-emerald-500'
+              : theme === 'dark' ? 'text-red-400' : 'text-red-500'
           )}>
             {trend}
           </span>
-          <span className="text-sm text-white/50">vs last month</span>
+          <span className={cn(
+            "text-sm",
+            theme === 'dark' ? "text-gray-500" : "text-gray-600"
+          )}>vs last month</span>
         </div>
       )}
     </div>

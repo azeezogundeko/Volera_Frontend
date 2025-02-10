@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, KeyRound, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -12,11 +12,53 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const inputRefs = useRef<HTMLInputElement[]>([]);
+
+  const isCodeComplete = (code: string[]) => {
+    return code.every(digit => digit !== '');
+  };
+
+  const handleCodeChange = async (index: number, value: string) => {
+    // Only allow numeric input
+    if (!/^\d*$/.test(value)) return;
+    
+    // Only allow single digit
+    if (value.length > 1) return;
+
+    const newCode = [...verificationCode];
+    newCode[index] = value;
+    setVerificationCode(newCode);
+    setError(''); // Clear any previous errors
+
+    // Move to next input if value is entered
+    if (value !== '' && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // If this is the last digit and code is complete, submit automatically
+    if (value !== '' && isCodeComplete(newCode)) {
+      await handleVerifyCode(newCode.join(''));
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (verificationCode[index] === '' && index > 0) {
+        // Move to previous input if current is empty
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        // Clear current input
+        const newCode = [...verificationCode];
+        newCode[index] = '';
+        setVerificationCode(newCode);
+      }
+    }
+  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +66,6 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     
     try {
-      // TODO: Replace with your actual API call
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot_password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,17 +82,29 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const handleVerifyCode = async (submittedCode?: string, e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    if (loading) return;
+
+    const code = submittedCode || verificationCode.join('');
+    const codeArray = submittedCode ? submittedCode.split('') : verificationCode;
+    
+    if (!isCodeComplete(codeArray)) {
+      setError('Please enter the complete verification code');
+      return;
+    }
+
     setLoading(true);
+    setError('');
 
     try {
-      // TODO: Replace with your actual API call
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify_code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: verificationCode })
+        body: JSON.stringify({ email, code })
       });
 
       if (!response.ok) throw new Error('Invalid verification code');
@@ -76,16 +129,18 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // TODO: Replace with your actual API call
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset_password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: verificationCode, password })
+        body: JSON.stringify({ 
+          email, 
+          code: verificationCode.join(''), 
+          password 
+        })
       });
 
       if (!response.ok) throw new Error('Failed to reset password');
 
-      // Redirect to login page on success
       router.push('/login');
     } catch (err) {
       setError('Failed to reset password. Please try again.');
@@ -149,25 +204,24 @@ export default function ForgotPasswordPage() {
         )}
 
         {step === 'verify' && (
-          <form onSubmit={handleVerifyCode} className="mt-8 space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="code" className="block text-sm font-medium text-gray-300">
-                Verification Code
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <KeyRound className="h-5 w-5 text-gray-500" />
-                </div>
+          <form onSubmit={(e) => handleVerifyCode(undefined, e)} className="mt-8 space-y-6">
+            <div className="flex justify-center gap-2">
+              {verificationCode.map((digit, index) => (
                 <input
-                  id="code"
+                  key={index}
                   type="text"
-                  required
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
-                  placeholder="Enter verification code"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  value={digit}
+                  ref={(el) => {
+                    if (el) inputRefs.current[index] = el;
+                  }}
+                  onChange={(e) => handleCodeChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  className="w-12 h-14 text-center text-2xl font-semibold rounded-lg border border-white/10 bg-[#0a0a0a] text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
                 />
-              </div>
+              ))}
             </div>
             <button
               type="submit"
