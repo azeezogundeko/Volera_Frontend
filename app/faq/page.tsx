@@ -105,7 +105,7 @@ export default function FAQPage() {
             Still Have Questions?
           </h2>
           <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">
-            Can't find what you're looking for? Reach out to our support team.
+            Can&apos;t find what you&apos;re looking for? Reach out to our support team.
           </p>
           <Link
             href="/contact"
@@ -119,7 +119,7 @@ export default function FAQPage() {
           </Link>
           <div className="mt-4 text-gray-400 text-xs sm:text-sm flex items-center justify-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-            We're here to help!
+            We&apos;re here to help!
           </div>
         </div>
       </div>

@@ -85,7 +85,7 @@ export default function AdminDashboard() {
             <p className={cn(
               "mt-1 text-sm",
               theme === 'dark' ? "text-gray-400" : "text-gray-600"
-            )}>Monitor your system's performance and metrics</p>
+            )}>Monitor your system&apos;s performance and metrics</p>
           </div>
           <div className={cn(
             "flex items-center gap-3 px-4 py-2 rounded-lg",

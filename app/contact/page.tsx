@@ -40,7 +40,7 @@ export default function ContactPage() {
             Contact Us
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
-            We're Here to Help
+            We&apos;re Here to Help
           </h1>
           <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto">
             Have questions or need assistance? Reach out to us!
@@ -119,7 +119,7 @@ export default function ContactPage() {
           </Link>
           <div className="mt-4 text-gray-400 text-xs sm:text-sm flex items-center justify-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-            We're here to help!
+            We&#39;re here to help!
           </div>
         </div>
       </div>

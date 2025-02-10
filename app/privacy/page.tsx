@@ -125,7 +125,7 @@ export default function PrivacyPage() {
             Have Privacy Concerns?
           </h2>
           <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">
-            If you have any questions about our privacy practices, we're here to help.
+            If you have any questions about our privacy practices, we&apos;re here to help.
           </p>
           <Link
             href="/contact"
