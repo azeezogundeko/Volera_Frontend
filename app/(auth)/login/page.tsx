@@ -156,6 +156,7 @@ export default function LoginPage() {
                 </div>
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   required
                   value={formData.email}
@@ -176,6 +177,7 @@ export default function LoginPage() {
                 </div>
                 <input
                   id="password"
+                  name="password"
                   type="password"
                   required
                   value={formData.password}
@@ -187,19 +189,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 rounded border-white/10 bg-[#111111] text-emerald-500 focus:ring-emerald-500"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400">
-                Remember me
-              </label>
-            </div>
-
+          <div className="flex items-center justify-end">
             <Link
               href="/forgot-password"
               className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
