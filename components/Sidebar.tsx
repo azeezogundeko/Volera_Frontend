@@ -537,7 +537,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             />
           </div>
 
-          {isProUser ? (
+          {/* {isProUser ? (
             <div className="space-y-1">
               <IconButton
                 href="/pro"
@@ -554,7 +554,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 active={segments[0] === 'pro' && segments[1] === 'settings'}
               />
             </div>
-          ) : null}
+          ) : null} */}
         </nav>
       </div>
 
