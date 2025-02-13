@@ -260,20 +260,20 @@ export default function MarketplacePage() {
     </section>
   );
 
-  const fetchData = async () => {
-    try {
-      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/products`);
-      const data = await response.json();
-      // Handle the data...
-    } catch (error) {
-      // Error handling is already done by useApi
-      console.error('Failed to fetch marketplace data:', error);
-    }
-  };
+  // const fetchData = async () => {
+  //   try {
+  //     const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/products`);
+  //     const data = await response.json();
+  //     // Handle the data...
+  //   } catch (error) {
+  //     // Error handling is already done by useApi
+  //     console.error('Failed to fetch marketplace data:', error);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   fetchData();
+  // }, []);
 
   // Only render client-side content
   if (!isClient) {

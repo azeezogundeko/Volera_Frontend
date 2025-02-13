@@ -11,7 +11,6 @@ import ChatSidebar from '@/components/chat/ChatSidebar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import process from 'process';
-import { useApi } from '@/lib/hooks/useApi';
 
 interface Specification {
   label: string;
@@ -19,27 +18,25 @@ interface Specification {
 }
 
 export default function ComparePage() {
-  const { fetchWithAuth } = useApi();
   const [products, setProducts] = useState<ProductDetail[]>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);  
   const router = useRouter();
   const prevProductsRef = useRef<ProductDetail[]>([]);
   
-  // useEffect(() => {
-  //   const fetchCompareData = async () => {
-  //     try {
-  //       const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/product/detail/${product.product_id}`);
-  //       const data = await response.json();
-  //       setProducts(data);
-  //     } catch (error) {
-  //       console.error('Failed to fetch compare data:', error);
-  //     }
-  //   };
-
-  //   fetchCompareData();
-  // }, []);
+  useEffect(() => {
+    try {
+      const savedProducts = localStorage.getItem('compareProducts');
+      if (savedProducts) {
+        const parsedProducts = JSON.parse(savedProducts) as ProductDetail[];
+        setProducts(parsedProducts);
+      }
+    } catch (error) {
+      console.error('Error loading compare products:', error);
+      localStorage.removeItem('compareProducts');
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsChatVisible(false);
@@ -61,8 +58,8 @@ export default function ComparePage() {
 
   useEffect(() => {
     const fetchProductDetails = async () => {
-      setIsLoading(true);
       try {
+        setIsLoading(true);  
         const token = localStorage.getItem('auth_token');
         const productDetailsPromises = products.map(product => 
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/detail/${product.product_id}`,
@@ -77,17 +74,21 @@ export default function ComparePage() {
         const fullProductDetails = await Promise.all(productDetailsPromises);
         console.log(fullProductDetails);
 
-        if (JSON.stringify(fullProductDetails) !== JSON.stringify(products)) {
+        // Only update if the details are different and not empty
+        if (fullProductDetails.length > 0 && 
+            JSON.stringify(fullProductDetails) !== JSON.stringify(products)) {
           setProducts(fullProductDetails);
         }
       } catch (error) {
         console.error('Error fetching product details:', error);
       } finally {
-        setIsLoading(false);
+        setIsLoading(false);  
       }
     };
 
-    if (products.length > 0 && JSON.stringify(prevProductsRef.current) !== JSON.stringify(products)) {
+    // Only fetch if products have changed and are not empty
+    if (products.length > 0 && 
+        JSON.stringify(prevProductsRef.current) !== JSON.stringify(products)) {
       fetchProductDetails();
       prevProductsRef.current = products; // Update ref to current products
     }
@@ -97,6 +98,9 @@ export default function ComparePage() {
     const updatedProducts = products.filter(p => p.product_id !== productId);
     setProducts(updatedProducts);
     localStorage.setItem('compareProducts', JSON.stringify(updatedProducts));
+    
+    // Reset the prevProductsRef to prevent unnecessary re-fetching
+    prevProductsRef.current = updatedProducts;
   };
 
   const addProduct = () => {
@@ -149,37 +153,14 @@ export default function ComparePage() {
         <div className="flex max-w-[90rem] mx-auto relative">
           {/* Main Content */}
           <main className="flex-1 px-2 sm:px-6 lg:pr-[22rem] lg:pl-8 py-3 sm:py-8">
-            {/* Loading State */}
-            {isLoading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-8">
-                {[1, 2, 3].map((index) => (
-                  <div key={index} className="bg-white dark:bg-[#141414] rounded-xl border border-gray-200 dark:border-[#222] shadow-sm overflow-hidden">
-                    {/* Image Skeleton */}
-                    <div className="relative h-48 sm:h-44 lg:h-48 w-full bg-gray-100 dark:bg-[#1a1a1a] animate-pulse"></div>
-                    
-                    {/* Content Skeleton */}
-                    <div className="p-2.5 sm:p-4">
-                      <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                        {/* Store Logo Skeleton */}
-                        <div className="h-5 w-5 sm:h-6 sm:w-6 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-                        {/* Rating Skeleton */}
-                        <div className="w-12 h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-                      </div>
-                      {/* Title Skeleton */}
-                      <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded mb-2 animate-pulse"></div>
-                      <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-800 rounded mb-2 animate-pulse"></div>
-                      {/* Price Skeleton */}
-                      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* Product Cards */}
-            {!isLoading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-8">
-                {products.map((product) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-8">
+              {isLoading ? (
+                <div className="col-span-full flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+                </div>
+              ) : (
+                products.map((product) => (
                   <div
                     key={product.product_id}
                     onClick={() => router.push(`/marketplace/${product.product_id}`)}
@@ -192,7 +173,10 @@ export default function ComparePage() {
                     >
                       <div className="relative">
                         <button
-                          onClick={() => removeProduct(product.product_id)}
+                          onClick={(e) => {
+                            e.stopPropagation();  
+                            removeProduct(product.product_id);
+                          }}
                           className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-1 sm:p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors z-10"
                         >
                           <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
@@ -249,9 +233,9 @@ export default function ComparePage() {
                       </div>
                     </motion.div>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
 
             {/* Comparison Table */}
             {products.length > 0 && (
