@@ -74,6 +74,16 @@ export interface BillingInfo {
   }[];
 }
 
+function formatDate(datetimeStr: string): string {
+  const date = new Date(datetimeStr);
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const response = await fetch(
     `${getBaseURL()}/track/stats`,
@@ -136,7 +146,7 @@ export async function getRecentChats(): Promise<Chat[]> {
     id: chat.id,
     title: chat.title,
     lastMessage: "", // Placeholder if not available
-    timestamp: chat.updated_at, // Use `updated_at` as timestamp
+    timestamp: formatDate(chat.updated_at), // Use `updated_at` as timestamp
   }));
 }
 
