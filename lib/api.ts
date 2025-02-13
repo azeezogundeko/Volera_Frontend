@@ -8,8 +8,17 @@ export interface PriceHistory {
 export interface Chat {
   id: string;
   title: string;
-  lastMessage: string;
+  lastMessage?: string; // Optional if not in JSON
   timestamp: string;
+}
+
+export interface ChatResponse {
+  chats: {
+    id: string;
+    title: string;
+    start_time: string; // Keeping the original field from JSON
+    updated_at: string; // Using updated_at as the last timestamp
+  }[];
 }
 
 interface ProductResponse {
@@ -122,7 +131,13 @@ export async function getRecentChats(): Promise<Chat[]> {
   if (!response.ok) {
     throw new Error('Failed to fetch recent chats');
   }
-  return response.json();
+  const data: ChatResponse = await response.json();
+  return data.chats.map(chat => ({
+    id: chat.id,
+    title: chat.title,
+    lastMessage: "", // Placeholder if not available
+    timestamp: chat.updated_at, // Use `updated_at` as timestamp
+  }));
 }
 
 

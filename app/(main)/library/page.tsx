@@ -35,7 +35,7 @@ const Page = () => {
   const [dateRange, setDateRange] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [focusMode, setFocusMode] = useState('all');
-  const [libraryData, setLibraryData] = useState(null);
+  // const [libraryData, setLibraryData] = useState(null);
 
   useEffect(() => {
     setMounted(true);
@@ -55,19 +55,19 @@ const Page = () => {
     fetchChats();
   }, []);
 
-  useEffect(() => {
-    const fetchLibraryData = async () => {
-      try {
-        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/library/data`);
-        const data = await response.json();
-        setLibraryData(data);
-      } catch (error) {
-        console.error('Failed to fetch library data:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchLibraryData = async () => {
+  //     try {
+  //       const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/library/data`);
+  //       const data = await response.json();
+  //       setLibraryData(data);
+  //     } catch (error) {
+  //       console.error('Failed to fetch library data:', error);
+  //     }
+  //   };
 
-    fetchLibraryData();
-  }, []);
+  //   fetchLibraryData();
+  // }, []);
 
   const handleDateRangeChange = (e: { target: { value: string; }; }) => {
     setDateRange(e.target.value);

@@ -46,10 +46,11 @@ export default function WishlistPage() {
     const fetchWishlistData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/wishlist/data`);
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/product/saved_products`);
         const data = await response.json();
-        setSavedProducts(data.products);
-        setSavedChats(data.chats);
+        setSavedProducts(Array.isArray(data.products) ? data.products : []);
+        setSavedChats(Array.isArray(data.chats) ? data.chats : []);
+
       } catch (error) {
         console.error('Failed to fetch wishlist data:', error);
       } finally {
@@ -121,13 +122,13 @@ export default function WishlistPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="products" className="w-full">
           <TabsList className="mb-8 p-1 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#222] rounded-lg shadow-sm">
-            <TabsTrigger 
-              value="products" 
-              className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-emerald-500/10 dark:data-[state=active]:text-emerald-400"
-            >
-              <Heart className="w-4 h-4" />
-              Saved Products ({savedProducts.length})
-            </TabsTrigger>
+              <TabsTrigger 
+                value="products" 
+                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-emerald-500/10 dark:data-[state=active]:text-emerald-400"
+              >
+                <Heart className="w-4 h-4" />
+                Saved Products ({savedProducts?.length || 0})
+              </TabsTrigger>
             <TabsTrigger 
               value="chats" 
               className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 dark:data-[state=active]:bg-emerald-500/10 dark:data-[state=active]:text-emerald-400"

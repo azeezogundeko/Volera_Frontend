@@ -31,6 +31,7 @@ import {
   DashboardStats,
   BillingInfo,
   Chat,
+  ChatResponse,
   TrackedItem,
   PriceHistory,
   TrendingProduct,
@@ -41,6 +42,21 @@ import {
   getTrendingProducts,
 } from '@/lib/api';
 import cn from 'classnames';
+
+interface User {
+  first_name: string;
+  last_name: string;
+  email: string;
+  // Add other properties as needed
+}
+let token: string | null;
+let user: User = { first_name: '', last_name: '', email: '' }; // Initialize with default values
+
+if (typeof window !== 'undefined') {
+  token = localStorage.getItem('auth_token');
+  user = JSON.parse(localStorage.getItem('user') || '{}') as User; // Cast to User type
+}
+
 
 export default function Home() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -60,7 +76,6 @@ export default function Home() {
   const [trackedItems, setTrackedItems] = useState<TrackedItem[]>([]);
   const [trendingProducts, setTrendingProducts] = useState<TrendingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userName, setUserName] = useState('User');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -99,35 +114,35 @@ export default function Home() {
     fetchDashboardData();
   }, []);
 
-  useEffect(() => {
-    const fetchRecentChats = async () => {
-      try {
-        const response = await fetch('/api/recent-chats'); 
-        const data = await response.json();
-        // Ensure data is an array before setting state
-        setRecentChats(Array.isArray(data) ? data : []); 
-      } catch (error) {
-        console.error('Error fetching recent chats:', error);
-        setRecentChats([]);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchRecentChats = async () => {
+  //     try {
+  //       const response = await fetch('/api/recent-chats'); 
+  //       const data = await response.json();
+  //       // Ensure data is an array before setting state
+  //       setRecentChats(Array.isArray(data) ? data : []); 
+  //     } catch (error) {
+  //       console.error('Error fetching recent chats:', error);
+  //       setRecentChats([]);
+  //     }
+  //   };
 
-    fetchRecentChats();
-  }, []);
+  //   fetchRecentChats();
+  // }, []);
 
-  useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        const response = await fetch('/api/user');
-        const data = await response.json();
-        setUserName(data.name || 'User');
-      } catch (error) {
-        console.error('Error fetching user name:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUserName = async () => {
+  //     try {
+  //       const response = await fetch('/api/user');
+  //       const data = await response.json();
+  //       setUserName(data.name || 'User');
+  //     } catch (error) {
+  //       console.error('Error fetching user name:', error);
+  //     }
+  //   };
 
-    fetchUserName();
-  }, []);
+  //   fetchUserName();
+  // }, []);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#111111]">
@@ -142,7 +157,7 @@ export default function Home() {
           ) : (
             <>
               <h1 className="text-xl sm:text-2xl font-medium bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-white/70 text-transparent bg-clip-text">
-                Welcome back, {userName}! 👋
+                Welcome back, {user.first_name}! 👋
               </h1>
               <p className="text-sm text-gray-500 dark:text-white/50 mt-1">
                 Overview of your tracking and chat activities
