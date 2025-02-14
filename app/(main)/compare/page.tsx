@@ -61,16 +61,27 @@ export default function ComparePage() {
       try {
         setIsLoading(true);  
         const token = localStorage.getItem('auth_token');
-        const productDetailsPromises = products.map(product => 
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/detail/${product.product_id}`,
-            {
+        const productDetailsPromises = products.map(async (product) => {
+          try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/detail/${product.product_id}`, {
               method: 'GET',
               headers: {
                 Authorization: `Bearer ${token}`
               }
+            });
+
+            if (!response.ok) {
+              // If server request fails, return the original product from local storage
+              return product;
             }
-          ).then(res => res.json())
-        );
+
+            return await response.json();
+          } catch (error) {
+            console.error(`Error fetching details for product ${product.product_id}:`, error);
+            return product;
+          }
+        });
+
         const fullProductDetails = await Promise.all(productDetailsPromises);
         console.log(fullProductDetails);
 
@@ -78,6 +89,8 @@ export default function ComparePage() {
         if (fullProductDetails.length > 0 && 
             JSON.stringify(fullProductDetails) !== JSON.stringify(products)) {
           setProducts(fullProductDetails);
+          // Update localStorage with the latest details
+          localStorage.setItem('compareProducts', JSON.stringify(fullProductDetails));
         }
       } catch (error) {
         console.error('Error fetching product details:', error);
@@ -186,6 +199,7 @@ export default function ComparePage() {
                             src={product.images && product.images.length > 0 ? product.images[0].url : '/placeholder-product.png'}
                             alt={product.name || 'Product Image'}
                             fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="object-contain rounded-t-lg p-3 sm:p-4"
                             onError={(e) => {
                               const img = e.target as HTMLImageElement;
@@ -202,6 +216,7 @@ export default function ComparePage() {
                                 src="/placeholder-store-logo.png"
                                 alt={product.seller.name}
                                 fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className="object-contain rounded"
                                 onError={(e) => {
                                   const img = e.target as HTMLImageElement;
@@ -318,6 +333,7 @@ export default function ComparePage() {
                                       src="/placeholder-store-logo.png"
                                       alt={product.seller.name}
                                       fill
+                                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                       className="object-contain rounded"
                                       onError={(e) => {
                                         const img = e.target as HTMLImageElement;

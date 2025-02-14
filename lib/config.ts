@@ -1,16 +1,16 @@
 // WebSocket configuration
 import process from 'process'
 
-const WS_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://server.volera.app';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://server.volera.app';
+const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export const getBaseURL = () => {
   return API_BASE_URL;
 };
 
 export const getWebSocketURL = () => {
-  // Ensure we're using 'wss' protocol for secure WebSocket
-  const wsUrl = WS_BASE_URL.replace(/^http/, 'wss');
+  // Ensure we're using 'ws' protocol
+  const wsUrl = WS_BASE_URL.replace(/^http/, 'ws');
   const url = new URL('/websocket', wsUrl);
   
   // Get auth token with correct structure
