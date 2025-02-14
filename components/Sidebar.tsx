@@ -250,7 +250,7 @@ const SocialIcons = ({ expanded }: { expanded: boolean }) => {
   return (
     <div className="flex gap-2 px-3 justify-start">
       <Link
-        href="https://twitter.com"
+        href="https://x.com/volera4727"
         target="_blank"
         rel="noopener noreferrer"
         className="p-2 text-gray-400 hover:text-gray-500 dark:text-white/40 dark:hover:text-white/60 transition-colors"
@@ -258,7 +258,7 @@ const SocialIcons = ({ expanded }: { expanded: boolean }) => {
         <Twitter className="w-5 h-5" />
       </Link>
       <Link
-        href="https://bsky.app"
+        href="https://bsky.app/profile/solvebyte.bsky.social"
         target="_blank"
         rel="noopener noreferrer"
         className="p-2 text-gray-400 hover:text-gray-500 dark:text-white/40 dark:hover:text-white/60 transition-colors"
@@ -266,7 +266,7 @@ const SocialIcons = ({ expanded }: { expanded: boolean }) => {
         <Bird className="w-5 h-5" />
       </Link>
       <Link
-        href="https://linkedin.com"
+        href="https://www.linkedin.com/company/volera/"
         target="_blank"
         rel="noopener noreferrer"
         className="p-2 text-gray-400 hover:text-gray-500 dark:text-white/40 dark:hover:text-white/60 transition-colors"

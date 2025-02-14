@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   title: 'Volera - Shop with Artificial Intelligence',
   description:
     'Volera is an AI powered agentic shopping assistant.',
+  icons: {
+    icon: '/favicon.ico',  
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
