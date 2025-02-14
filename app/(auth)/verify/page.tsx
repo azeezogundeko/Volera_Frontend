@@ -84,7 +84,7 @@ export default function VerifyPage() {
     setError('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify_account`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,6 +98,7 @@ export default function VerifyPage() {
       const data = await response.json();
 
       if (response.ok) {
+       
         toast.success('Email verified successfully!', {
           duration: 5000,
           position: 'top-center',
@@ -115,7 +116,7 @@ export default function VerifyPage() {
           localStorage.setItem('user', JSON.stringify(user));
         }
 
-        router.push('/dashboard');
+        router.push('/onboarding');
       } else {
         throw new Error(data.detail || 'Verification failed');
       }
@@ -124,19 +125,19 @@ export default function VerifyPage() {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const handleResendCode = async () => {
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-verification`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-verification-code`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(email),
       });
 
       if (response.ok) {
