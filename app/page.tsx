@@ -77,7 +77,7 @@ export default function Home() {
                   <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-500/70" />
                 </div>
                 <Image 
-                  src="/dark-marketplace.png"
+                  src="/dark-marketplace.PNG"
                   alt="Marketplace Demo"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
