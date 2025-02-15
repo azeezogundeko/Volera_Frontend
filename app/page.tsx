@@ -69,22 +69,27 @@ export default function Home() {
 
             {/* Video Section */}
             <div className="w-full max-w-5xl mx-auto relative z-10 px-4">
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#111111]/60 to-[#111111]/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#111111]/60 to-[#111111]/40 backdrop-blur-xl border border-white/10 shadow-2xl flex items-center justify-center">
+                <Image 
+                  src="/dark-marketplace.png"
+                  alt="Marketplace Demo"
+                  width={1352}
+                  height={681}
+                  quality={100}
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                  className="max-w-full max-h-full object-contain opacity-90"
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+                />
                 {/* Decorative Elements */}
                 <div className="absolute top-2 md:top-4 left-2 md:left-4 flex items-center gap-1.5 md:gap-2 z-10">
                   <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-red-500/70" />
                   <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-yellow-500/70" />
                   <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-500/70" />
                 </div>
-                <Image 
-                  src="/dark-marketplace.PNG"
-                  alt="Marketplace Demo"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="w-full h-full object-contain opacity-90"
-                />
                 {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
               </div>
               {/* Video Controls */}
               <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 flex items-center gap-3 md:gap-4 px-4 md:px-6 py-1.5 md:py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
