@@ -20,7 +20,6 @@ const nextConfig = {
         hostname: '**',
       }
     ],
-    domains: ['avatars.githubusercontent.com'],
   },
   experimental: {
     serverActions: {
