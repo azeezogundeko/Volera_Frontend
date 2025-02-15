@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Menu, X, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 
@@ -13,9 +14,13 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-                <span className="text-white font-bold">V</span>
-              </div>
+              <Image 
+                src="/favicon.ico" 
+                alt="Volera Logo" 
+                width={32} 
+                height={32} 
+                className="rounded-lg"
+              />
               <span className="text-xl font-bold">Volera</span>
             </Link>
             <nav className="hidden md:flex items-center ml-12 gap-8">

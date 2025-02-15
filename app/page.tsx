@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/footer';
 import Header from '@/components/header';
-import { ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, Menu, X, Play, LineChart, Brain, Lock, ThumbsUp, BarChart3 } from 'lucide-react';
+import { ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, Menu, X, Play, LineChart, Brain, DollarSign, ThumbsUp, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
@@ -76,16 +76,13 @@ export default function Home() {
                   <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-yellow-500/70" />
                   <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-green-500/70" />
                 </div>
-                <video 
-                  className="w-full h-full object-cover opacity-90"
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline
-                >
-                  <source src="/demo.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <Image 
+                  src="/dark-marketplace.png"
+                  alt="Marketplace Demo"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="w-full h-full object-contain opacity-90"
+                />
                 {/* Overlay Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
               </div>
@@ -130,9 +127,9 @@ export default function Home() {
                 gradient: 'from-emerald-400/20 to-emerald-400/0'
               },
               {
-                title: 'Secure Transactions',
-                description: 'Confidently shop with advanced secure transaction monitoring',
-                icon: Lock,
+                title: 'Price Tracking',
+                description: 'Monitor price drops and get alerts for best deals',
+                icon: DollarSign,
                 gradient: 'from-emerald-600/20 to-emerald-600/0'
               },
               {
