@@ -4,7 +4,7 @@
   import { useRouter } from 'next/navigation';
   import { motion } from 'framer-motion';
   import { cn } from '@/lib/utils';
-  import { Mail, Lock, User, Globe2, ArrowRight, Gift } from 'lucide-react';
+  import { Mail, Lock, User, Globe2, ArrowRight, Gift, Eye, EyeOff } from 'lucide-react';
   import Image from 'next/image';
   import Link from 'next/link';
   import toast, { Toaster } from 'react-hot-toast';
@@ -13,12 +13,12 @@
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
       email: '',
       password: '',
       firstName: '',
       lastName: '',
-      confirmPassword: '',
       referralCode: '',
     });
 
@@ -36,11 +36,6 @@
       e.preventDefault();
       setLoading(true);
       setError('');
-
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
 
       try {
         console.log('Starting registration process...', { email: formData.email, firstName: formData.firstName });
@@ -229,34 +224,26 @@
                 <div className="mt-1 relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     id="password"
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-2 rounded-lg border border-white/10 bg-[#0a0a0a] text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
+                    className="block w-full pl-10 pr-12 py-2 rounded-lg border border-white/10 bg-[#0a0a0a] text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
                     placeholder="••••••••"
                   />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">
-                  Confirm Password
-                </label>
-                <div className="mt-1 relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    id="confirmPassword"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-2 rounded-lg border border-white/10 bg-[#0a0a0a] text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
-                    placeholder="••••••••"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
 
