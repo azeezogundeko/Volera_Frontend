@@ -71,7 +71,7 @@ export default function Home() {
             <div className="w-full max-w-5xl mx-auto relative z-10 px-4">
               <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#111111]/60 to-[#111111]/40 backdrop-blur-xl border border-white/10 shadow-2xl flex items-center justify-center">
                 <Image 
-                  src="/dark-marketplace.png"
+                  src="/dark-marketplace.PNG"
                   alt="Marketplace Demo"
                   width={1352}
                   height={681}
