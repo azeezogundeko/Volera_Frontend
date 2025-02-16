@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   LineChart, 
@@ -58,6 +58,30 @@ if (typeof window !== 'undefined') {
   user = JSON.parse(localStorage.getItem('user') || '{}') as User; // Cast to User type
 }
 
+// Add interface definition
+interface TrendingProductDisplay {
+  id: string;
+  name: string;
+  image: string;
+  current_price: number;
+  source: string;
+  trend?: 'up' | 'down';
+  trendValue?: string;
+  currency: string;
+}
+
+const transformTrendingProducts = (products: any[]): TrendingProductDisplay[] => {
+  return products.map(product => ({
+    id: product.id,
+    name: product.name || product.title,
+    image: product.image,
+    current_price: Number(product.current_price || product.price),
+    source: product.source,
+    trend: product.trend,
+    trendValue: product.trendValue,
+    currency: product.currency || '₦'
+  }));
+};
 
 export default function Home() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -75,7 +99,7 @@ export default function Home() {
   const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
   const [recentChats, setRecentChats] = useState<Chat[]>([]);
   const [trackedItems, setTrackedItems] = useState<TrackedItem[]>([]);
-  const [trendingProducts, setTrendingProducts] = useState<TrendingProduct[]>([]);
+  const [trendingProducts, setTrendingProducts] = useState<TrendingProductDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -103,7 +127,7 @@ export default function Home() {
         // setPriceHistory(historyData);
         setRecentChats(chatsData);
         setTrackedItems(itemsData);
-        setTrendingProducts(productsData);
+        setTrendingProducts(transformTrendingProducts(productsData));
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         toast.error('Failed to load dashboard data. Please try again later.');
@@ -482,7 +506,7 @@ export default function Home() {
                       <div className="relative aspect-[4/3] w-full overflow-hidden">
                         <Image
                           src={product.image}
-                          alt={product.title}
+                          alt={product.name}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-200"
                         />
@@ -504,11 +528,11 @@ export default function Home() {
                       </div>
                       <div className="p-3">
                         <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm truncate mb-1">
-                          {product.title}
+                          {product.name}
                         </h3>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
-                            ₦{new Intl.NumberFormat().format(product.price)}
+                            {product.currency}{new Intl.NumberFormat().format(product.current_price)}
                           </span>
                           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                             <Store className="w-3 h-3 mr-1" />

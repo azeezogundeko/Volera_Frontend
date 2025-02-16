@@ -47,6 +47,8 @@ export interface TrackedItem {
 }
 
 export interface TrendingProduct {
+  current_price(current_price: any): import("react").ReactNode;
+  name: string;
   id: string;
   title: string;
   price: number;
