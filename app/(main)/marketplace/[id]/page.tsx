@@ -10,6 +10,7 @@ import LoadingPage from '@/components/LoadingPage';
 import {Button} from '@/components/ui/button';
 import {ProductDetailSidebar} from '@/components/marketplace/productDetailSidebar';
 import { ProductDetail } from '../../../utils/types';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
             if (response.ok) {
               const data = await response.json();
-              setIsSaved(!isSaved);
+              setIsSaved(data.is_saved);
             } else {
               console.error('Failed to check if product is saved');
             }
@@ -77,7 +78,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     };
 
     checkIfSaved();
-  }, [product, isSaved, params.id]);
+  }, [product, params.id]);
 
   const handleTrackPrice = async () => {
     if (!targetPrice || isNaN(Number(targetPrice))) {
@@ -112,7 +113,17 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setShowTrackingModal(false);
       setTargetPrice('');
       setTrackingError('');
-      // You might want to show a success message here
+      
+      // Show success toast
+      toast.success('Price tracking set! We\'ll notify you when the price drops.', {
+        duration: 5000,
+        position: 'top-center',
+        style: {
+          background: 'rgb(34 197 94)',
+          color: '#fff',
+          padding: '16px',
+        },
+      });
     } catch (err) {
       setTrackingError('Failed to set price tracking. Please try again.');
     }
@@ -133,16 +144,17 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           });
 
           if (response.ok) {
-            setIsSaved(!isSaved);
+            const data = await response.json();
+            setIsSaved(data.is_saved);
           } else {
-            console.error('Failed to save products');
+            console.error('Failed to save product');
           }
         } else {
           console.error('Product is null');
         }
       }
     } catch (error) {
-      console.error('Error saving products:', error);
+      console.error('Error saving product:', error);
     }
   };
 
@@ -173,6 +185,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
+      <Toaster />
       {loading ? (
         <LoadingPage />
       ) : error ? (
