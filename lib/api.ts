@@ -55,6 +55,7 @@ export interface TrendingProduct {
   trendValue: string;
   rating?: number;
   isHot?: boolean;
+  source: string;
 }
 
 export interface DashboardStats {

@@ -12,7 +12,8 @@ import {
   Search,
   AlertCircle,
   Ban,
-  AlertTriangle
+  AlertTriangle,
+  Store
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -447,57 +448,75 @@ export default function Home() {
 
             {/* Trending Products */}
             <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10 p-4 sm:p-6">
-              <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90 mb-4">
-                Trending Products
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white/90">
+                  Trending Products
+                </h2>
+                <Link 
+                  href="/marketplace" 
+                  className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
+                >
+                  View all
+                </Link>
+              </div>
               {isLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
-                      <div className="flex-1">
-                        <div className="h-4 w-40 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-2"></div>
-                        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                    <div key={index} className="flex flex-col bg-gray-50 dark:bg-white/5 rounded-xl animate-pulse">
+                      <div className="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-t-xl"></div>
+                      <div className="p-3">
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-800 rounded mb-2"></div>
+                        <div className="h-4 w-1/4 bg-gray-200 dark:bg-gray-800 rounded"></div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-3">
                   {trendingProducts.map((product) => (
-                    <div
+                    <Link
                       key={product.id}
-                      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-white/5 rounded-lg"
+                      href={`/marketplace/${product.id}`}
+                      className="group block bg-gray-50 dark:bg-white/5 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg dark:hover:shadow-emerald-500/10"
                     >
-                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden">
                         <Image
                           src={product.image}
                           alt={product.title}
                           fill
-                          className="object-cover rounded-lg"
+                          className="object-cover group-hover:scale-105 transition-transform duration-200"
                         />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm sm:text-base truncate">
-                          {product.title}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs sm:text-sm text-emerald-500 font-medium">
-                            ${product.price}
-                          </span>
-                          <span className={`text-xs flex items-center gap-0.5 ${
-                            product.trend === 'up' ? 'text-emerald-500' : 'text-red-500'
-                          }`}>
+                        {product.trend && (
+                          <div className={cn(
+                            "absolute top-2 right-2 px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1",
+                            product.trend === 'up' 
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                              : "bg-red-500/10 text-red-600 dark:text-red-400"
+                          )}>
                             {product.trend === 'up' ? (
                               <ArrowUp className="w-3 h-3" />
                             ) : (
                               <ArrowDown className="w-3 h-3" />
                             )}
                             {product.trendValue}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-medium text-gray-900 dark:text-white/90 text-sm truncate mb-1">
+                          {product.title}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+                            ₦{new Intl.NumberFormat().format(product.price)}
                           </span>
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                            <Store className="w-3 h-3 mr-1" />
+                            {product.source}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
