@@ -41,6 +41,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [deepSearch, setDeepSearch] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const websites = [
@@ -164,6 +165,7 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
       formData.append('max_results', '3');
       formData.append('limit', topN.toString());
       formData.append('page', '1');
+      formData.append('deep_search', deepSearch.toString());
       console.log('Uploaded Images:', uploadedImages);
       uploadedImages.forEach(image => {
         formData.append('images', image);
@@ -209,9 +211,21 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
                 value={query}
                 onChange={handleQueryChange}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full bg-transparent text-sm sm:text-base text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/40 focus:outline-none pr-20"
+                className="w-full bg-transparent text-sm sm:text-base text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/40 focus:outline-none pr-48 sm:pr-56"
               />
-              <div className="absolute right-0 flex items-center gap-1 sm:gap-2">
+              <div className="absolute right-0 flex items-center gap-1 sm:gap-2 pl-4 bg-gradient-to-l from-white via-white to-white/0 dark:from-[#141414] dark:via-[#141414] dark:to-[#141414]/0">
+                <button
+                  onClick={() => setDeepSearch(!deepSearch)}
+                  className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full transition-colors ${
+                    deepSearch 
+                      ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                      : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-white/40 border border-gray-200/20 dark:border-white/10'
+                  }`}
+                  title="Toggle deep search for optimal results"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Deep Search
+                </button>
                 <button
                   onClick={triggerImageUpload}
                   className="p-1 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors text-gray-400 dark:text-white/40"
