@@ -64,6 +64,7 @@ export default function EmailManagement() {
   }, [selectedTemplate]);
 
   const fetchTemplates = async () => {
+    const loadingToast = toast.loading('Loading email templates...');
     try {
       const token = Cookies.get('admin_token');
       if (!token) {
@@ -88,10 +89,16 @@ export default function EmailManagement() {
 
       const templatesArray = Object.values(data) as EmailTemplate[];
       setTemplates(templatesArray);
+      toast.success(`${templatesArray.length} email templates loaded`);
     } catch (error) {
       console.error('Template fetch error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to load email templates');
+      toast.error(
+        error instanceof Error 
+          ? `Failed to load templates: ${error.message}`
+          : 'Failed to load email templates'
+      );
     } finally {
+      toast.dismiss(loadingToast);
       setIsLoadingTemplates(false);
     }
   };
@@ -101,6 +108,7 @@ export default function EmailManagement() {
     setCustomSubject(template.subject);
     setCustomContent(template.content || template.html_content || '');
     setPreviewMode(false);
+    toast.success(`Template "${template.name}" selected`);
   };
 
   // Extract variables from content if not provided directly
@@ -115,13 +123,25 @@ export default function EmailManagement() {
   };
 
   const handleSendEmails = async () => {
-    if (!customSubject.trim() || !customContent.trim()) {
-      toast.error('Please fill in both subject and content');
+    // Validation checks with specific error messages
+    if (!customSubject.trim()) {
+      toast.error('Please enter an email subject');
+      return;
+    }
+
+    if (!customContent.trim()) {
+      toast.error('Please enter email content');
       return;
     }
 
     if (!accountKey) {
       toast.error('Please select a sending account');
+      return;
+    }
+
+    // If filter is not selected and no specific emails provided
+    if (!recipientFilter && !specificEmails.trim()) {
+      toast.error('Please either select a recipient filter or enter specific email addresses');
       return;
     }
 
@@ -132,19 +152,14 @@ export default function EmailManagement() {
         throw new Error('No authentication token found');
       }
 
-      // Filter out empty variable values
-      const nonEmptyVariables = Object.entries(variableValues).reduce((acc, [key, value]) => {
-        if (value.trim()) {
-          acc[key] = value.trim();
-        }
-        return acc;
-      }, {} as Record<string, string>);
-
       // Process email addresses
       const emails = specificEmails
         .split('\n')
         .map(email => email.trim())
         .filter(email => email.length > 0);
+
+      // Show processing toast
+      const loadingToast = toast.loading('Sending emails...');
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/email/bulk/send`, {
         method: 'POST',
@@ -158,12 +173,15 @@ export default function EmailManagement() {
           content: customContent,
           account_key: accountKey,
           emails: emails.length > 0 ? emails : undefined,
-          variables: Object.keys(nonEmptyVariables).length > 0 ? nonEmptyVariables : undefined,
+          variables: Object.keys(variableValues).length > 0 ? variableValues : undefined,
           filters: recipientFilter || undefined
         }),
       });
 
       const data = await response.json();
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
 
       if (!response.ok) {
         if (data.detail) {
@@ -172,7 +190,14 @@ export default function EmailManagement() {
         throw new Error('Failed to send emails');
       }
 
-      toast.success('Emails queued for sending');
+      // Success message with details
+      toast.success(
+        `Emails queued successfully${emails.length ? ` to ${emails.length} recipients` : ''}${
+          recipientFilter ? ` (${recipientFilter} users)` : ''
+        }`
+      );
+
+      // Reset form
       setSelectedTemplate(null);
       setCustomSubject('');
       setCustomContent('');
@@ -181,7 +206,11 @@ export default function EmailManagement() {
       setRecipientFilter('');
     } catch (error) {
       console.error('Send email error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to send emails');
+      toast.error(
+        error instanceof Error 
+          ? `Error: ${error.message}` 
+          : 'Failed to send emails. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -197,6 +226,7 @@ export default function EmailManagement() {
     });
     setCustomContent(previewContent);
     setPreviewMode(true);
+    toast.success('Preview mode activated with variable values');
   };
 
   const filteredTemplates = templates.filter(template =>
@@ -205,8 +235,13 @@ export default function EmailManagement() {
   );
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        toast.success('Content copied to clipboard');
+      })
+      .catch(() => {
+        toast.error('Failed to copy content');
+      });
   };
 
   return (
