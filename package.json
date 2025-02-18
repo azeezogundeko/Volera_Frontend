@@ -26,6 +26,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
+    "js-cookie": "^3.0.5",
     "langchain": "^0.3.6",
     "lucide-react": "^0.363.0",
     "markdown-to-jsx": "^7.6.2",
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@types/classnames": "^2.3.0",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/paystack__inline-js": "^1.0.1",
     "@types/react": "^18",

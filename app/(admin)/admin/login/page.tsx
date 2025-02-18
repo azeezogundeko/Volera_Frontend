@@ -6,6 +6,7 @@ import { Lock, Mail, ArrowRight, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { useTheme } from '@/app/contexts/ThemeContext';
+import Cookies from 'js-cookie';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/admin/login`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,17 +30,23 @@ export default function AdminLoginPage() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('admin_token', data.token);
+        // Store just the token string, not the entire object
+        Cookies.set('admin_token', data.token.access_token || data.token, { 
+          expires: 7, // 7 days
+          path: '/',
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'Lax'
+        });
         toast.success('Login successful');
         router.push('/admin/dashboard');
       } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Invalid credentials');
+        toast.error(data.detail || 'Invalid credentials');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to login');
+      toast.error('Failed to connect to the server. Please try again.');
     } finally {
       setIsLoading(false);
     }

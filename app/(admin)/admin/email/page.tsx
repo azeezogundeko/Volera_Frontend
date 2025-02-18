@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Mail, 
   Users, 
@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/contexts/ThemeContext';
 import toast from 'react-hot-toast';
+import Cookies from 'js-cookie';
 
 interface EmailTemplate {
   id: string;
@@ -23,80 +24,94 @@ interface EmailTemplate {
   subject: string;
   content: string;
   description: string;
-  lastUsed?: string;
+  last_used?: string;
+  html_content?: string;
+  variables?: string[];
+  html_preview?: string | null;
 }
-
-const TEMPLATES: EmailTemplate[] = [
-  {
-    id: '1',
-    name: 'Welcome Email',
-    subject: 'Welcome to Volera!',
-    description: 'Sent to new users after registration',
-    lastUsed: '2024-03-15',
-    content: `Hello {{name}},
-
-Welcome to Volera! We're excited to have you on board.
-
-Here are a few things you can do to get started:
-1. Complete your profile
-2. Explore our features
-3. Connect with others
-
-If you have any questions, feel free to reach out to our support team.
-
-Best regards,
-The Volera Team`
-  },
-  {
-    id: '2',
-    name: 'New Feature Announcement',
-    subject: 'New Features Available!',
-    description: 'Announce new platform features to users',
-    lastUsed: '2024-03-10',
-    content: `Hi {{name}},
-
-We've just launched some exciting new features that we think you'll love:
-
-{{features}}
-
-Log in to try them out!
-
-Best regards,
-The Volera Team`
-  },
-  {
-    id: '3',
-    name: 'Price Drop Alert',
-    subject: 'Price Drop on Your Wishlist Items',
-    description: 'Notify users about price drops',
-    content: `Dear {{name}},
-
-Good news! Some items in your wishlist have dropped in price:
-
-{{items}}
-
-Don't miss out on these deals!
-
-Best regards,
-The Volera Team`
-  }
-];
 
 export default function EmailManagement() {
   const { theme } = useTheme();
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [customSubject, setCustomSubject] = useState('');
   const [customContent, setCustomContent] = useState('');
-  const [recipientFilter, setRecipientFilter] = useState('all');
+  const [recipientFilter, setRecipientFilter] = useState<'active' | 'inactive' | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
+  const [variableValues, setVariableValues] = useState<Record<string, string>>({});
+  const [specificEmails, setSpecificEmails] = useState('');
+  const [accountKey, setAccountKey] = useState('no-reply');
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  // Reset variable values when template changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      const variables = getTemplateVariables(selectedTemplate);
+      const initialValues = variables.reduce((acc, variable) => {
+        acc[variable] = '';
+        return acc;
+      }, {} as Record<string, string>);
+      setVariableValues(initialValues);
+    } else {
+      setVariableValues({});
+    }
+  }, [selectedTemplate]);
+
+  const fetchTemplates = async () => {
+    try {
+      const token = Cookies.get('admin_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/email/templates`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.detail) {
+          throw new Error(data.detail);
+        }
+        throw new Error('Failed to fetch templates');
+      }
+
+      const templatesArray = Object.values(data) as EmailTemplate[];
+      setTemplates(templatesArray);
+    } catch (error) {
+      console.error('Template fetch error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to load email templates');
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
 
   const handleTemplateSelect = (template: EmailTemplate) => {
     setSelectedTemplate(template);
     setCustomSubject(template.subject);
-    setCustomContent(template.content);
+    setCustomContent(template.content || template.html_content || '');
     setPreviewMode(false);
+  };
+
+  // Extract variables from content if not provided directly
+  const getTemplateVariables = (template: EmailTemplate): string[] => {
+    if (template.variables) {
+      return template.variables;
+    }
+    const content = template.content || template.html_content;
+    if (!content) return [];
+    const matches = content.match(/{{([^}]+)}}/g) || [];
+    return [...new Set(matches.map(match => match.replace(/[{}]/g, '')))];
   };
 
   const handleSendEmails = async () => {
@@ -105,39 +120,86 @@ export default function EmailManagement() {
       return;
     }
 
+    if (!accountKey) {
+      toast.error('Please select a sending account');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/email/bulk`, {
+      const token = Cookies.get('admin_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Filter out empty variable values
+      const nonEmptyVariables = Object.entries(variableValues).reduce((acc, [key, value]) => {
+        if (value.trim()) {
+          acc[key] = value.trim();
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
+      // Process email addresses
+      const emails = specificEmails
+        .split('\n')
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/email/bulk/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
+          template_id: selectedTemplate?.id,
           subject: customSubject,
           content: customContent,
-          recipientFilter,
+          account_key: accountKey,
+          emails: emails.length > 0 ? emails : undefined,
+          variables: Object.keys(nonEmptyVariables).length > 0 ? nonEmptyVariables : undefined,
+          filters: recipientFilter || undefined
         }),
       });
 
-      if (response.ok) {
-        toast.success('Emails queued for sending');
-        // Reset form
-        setSelectedTemplate(null);
-        setCustomSubject('');
-        setCustomContent('');
-      } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to send emails');
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.detail) {
+          throw new Error(data.detail);
+        }
+        throw new Error('Failed to send emails');
       }
+
+      toast.success('Emails queued for sending');
+      setSelectedTemplate(null);
+      setCustomSubject('');
+      setCustomContent('');
+      setVariableValues({});
+      setSpecificEmails('');
+      setRecipientFilter('');
     } catch (error) {
+      console.error('Send email error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to send emails');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredTemplates = TEMPLATES.filter(template =>
+  const handlePreview = () => {
+    let previewContent = customContent;
+    Object.entries(variableValues).forEach(([key, value]) => {
+      if (value) {
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        previewContent = previewContent.replace(regex, value);
+      }
+    });
+    setCustomContent(previewContent);
+    setPreviewMode(true);
+  };
+
+  const filteredTemplates = templates.filter(template =>
     template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -183,7 +245,7 @@ export default function EmailManagement() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
           {/* Templates Sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-4 h-[calc(100vh-12rem)] flex flex-col">
             <div className="flex items-center justify-between">
               <h2 className={cn(
                 "text-lg font-semibold",
@@ -216,45 +278,54 @@ export default function EmailManagement() {
               />
             </div>
 
-            <div className="space-y-3">
-              {filteredTemplates.map(template => (
-                <button
-                  key={template.id}
-                  onClick={() => handleTemplateSelect(template)}
-                  className={cn(
-                    'w-full p-4 rounded-lg text-left transition-all duration-200',
-                    'border',
-                    theme === 'dark'
-                      ? [
-                          'bg-[#1a1a1a] border-white/10',
-                          'hover:border-emerald-500/30',
-                          selectedTemplate?.id === template.id && 'bg-emerald-500/10 border-emerald-500/30'
-                        ]
-                      : [
-                          'bg-white border-gray-200',
-                          'hover:border-emerald-500/30',
-                          selectedTemplate?.id === template.id && 'bg-emerald-50 border-emerald-500/30'
-                        ]
-                  )}
-                >
-                  <p className={cn(
-                    "font-medium",
-                    theme === 'dark' 
-                      ? selectedTemplate?.id === template.id ? "text-emerald-400" : "text-white"
-                      : selectedTemplate?.id === template.id ? "text-emerald-600" : "text-gray-900"
-                  )}>{template.name}</p>
-                  <p className={cn(
-                    "text-sm mt-1",
-                    theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                  )}>{template.description}</p>
-                  {template.lastUsed && (
+            {/* Scrollable Templates List */}
+            <div className={cn(
+              "flex-1 overflow-y-auto pr-2",
+              "scrollbar-thin scrollbar-track-transparent",
+              theme === 'dark' 
+                ? "scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20" 
+                : "scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300"
+            )}>
+              <div className="space-y-3">
+                {filteredTemplates.map(template => (
+                  <button
+                    key={template.id}
+                    onClick={() => handleTemplateSelect(template)}
+                    className={cn(
+                      'w-full p-4 rounded-lg text-left transition-all duration-200',
+                      'border',
+                      theme === 'dark'
+                        ? [
+                            'bg-[#1a1a1a] border-white/10',
+                            'hover:border-emerald-500/30',
+                            selectedTemplate?.id === template.id && 'bg-emerald-500/10 border-emerald-500/30'
+                          ]
+                        : [
+                            'bg-white border-gray-200',
+                            'hover:border-emerald-500/30',
+                            selectedTemplate?.id === template.id && 'bg-emerald-50 border-emerald-500/30'
+                          ]
+                    )}
+                  >
                     <p className={cn(
-                      "text-xs mt-2",
-                      theme === 'dark' ? "text-gray-500" : "text-gray-400"
-                    )}>Last used: {template.lastUsed}</p>
-                  )}
-                </button>
-              ))}
+                      "font-medium",
+                      theme === 'dark' 
+                        ? selectedTemplate?.id === template.id ? "text-emerald-400" : "text-white"
+                        : selectedTemplate?.id === template.id ? "text-emerald-600" : "text-gray-900"
+                    )}>{template.name}</p>
+                    <p className={cn(
+                      "text-sm mt-1",
+                      theme === 'dark' ? "text-gray-400" : "text-gray-600"
+                    )}>{template.description}</p>
+                    {template.last_used && (
+                      <p className={cn(
+                        "text-xs mt-2",
+                        theme === 'dark' ? "text-gray-500" : "text-gray-400"
+                      )}>Last used: {template.last_used}</p>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -301,28 +372,83 @@ export default function EmailManagement() {
               </div>
 
               {/* Recipients Filter */}
-              <div>
-                <label className={cn(
-                  "block text-sm font-medium mb-2",
-                  theme === 'dark' ? "text-gray-300" : "text-gray-700"
-                )}>
-                  Recipients
-                </label>
-                <select
-                  value={recipientFilter}
-                  onChange={(e) => setRecipientFilter(e.target.value)}
-                  className={cn(
-                    'w-full px-3 py-2 rounded-lg transition-colors',
-                    theme === 'dark'
-                      ? "bg-[#0a0a0a] border-white/10 text-white"
-                      : "bg-white border-gray-200 text-gray-900",
-                    'border focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
-                  )}
-                >
-                  <option value="all">All Users</option>
-                  <option value="active">Active Users</option>
-                  <option value="inactive">Inactive Users</option>
-                </select>
+              <div className="space-y-4">
+                <div>
+                  <label className={cn(
+                    "block text-sm font-medium mb-2",
+                    theme === 'dark' ? "text-gray-300" : "text-gray-700"
+                  )}>
+                    Sending Account
+                  </label>
+                  <select
+                    value={accountKey}
+                    onChange={(e) => setAccountKey(e.target.value)}
+                    className={cn(
+                      'w-full px-3 py-2 rounded-lg transition-colors',
+                      theme === 'dark'
+                        ? "bg-[#0a0a0a] border-white/10 text-white"
+                        : "bg-white border-gray-200 text-gray-900",
+                      'border focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                    )}
+                  >
+                    <option value="no-reply">no-reply@volera.app</option>
+                    <option value="info">info@volera.app</option>
+                    <option value="support">support@volera.app</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={cn(
+                    "block text-sm font-medium mb-2",
+                    theme === 'dark' ? "text-gray-300" : "text-gray-700"
+                  )}>
+                    Recipients
+                  </label>
+                  <select
+                    value={recipientFilter}
+                    onChange={(e) => setRecipientFilter(e.target.value as 'active' | 'inactive' | '')}
+                    className={cn(
+                      'w-full px-3 py-2 rounded-lg transition-colors mb-2',
+                      theme === 'dark'
+                        ? "bg-[#0a0a0a] border-white/10 text-white"
+                        : "bg-white border-gray-200 text-gray-900",
+                      'border focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                    )}
+                  >
+                    <option value="">Select Filter (Optional)</option>
+                    <option value="active">Active Users</option>
+                    <option value="inactive">Inactive Users</option>
+                  </select>
+
+                  <div>
+                    <label className={cn(
+                      "block text-sm font-medium mb-2",
+                      theme === 'dark' ? "text-gray-300" : "text-gray-700"
+                    )}>
+                      Specific Email Addresses (Optional)
+                    </label>
+                    <textarea
+                      value={specificEmails}
+                      onChange={(e) => setSpecificEmails(e.target.value)}
+                      placeholder="Enter email addresses (one per line)"
+                      rows={3}
+                      className={cn(
+                        'w-full px-3 py-2 rounded-lg transition-colors',
+                        theme === 'dark'
+                          ? "bg-[#0a0a0a] border-white/10 text-white placeholder-gray-500"
+                          : "bg-white border-gray-200 text-gray-900 placeholder-gray-400",
+                        'border focus:outline-none focus:ring-2 focus:ring-emerald-500/50',
+                        'resize-none'
+                      )}
+                    />
+                    <p className={cn(
+                      "mt-1 text-xs",
+                      theme === 'dark' ? "text-gray-400" : "text-gray-500"
+                    )}>
+                      Enter multiple email addresses, one per line
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Subject */}
@@ -358,19 +484,14 @@ export default function EmailManagement() {
                 </label>
                 {previewMode ? (
                   <div className={cn(
-                    'w-full px-4 py-3 rounded-lg min-h-[300px]',
+                    'w-full px-4 py-3 rounded-lg min-h-[300px] overflow-auto whitespace-pre-wrap',
                     theme === 'dark'
                       ? "bg-[#0a0a0a] border-white/10"
                       : "bg-gray-50 border-gray-200",
                     'border'
                   )}>
                     <div className="prose prose-sm max-w-none">
-                      {customContent.split('\n').map((line, i) => (
-                        <p key={i} className={cn(
-                          "mb-2",
-                          theme === 'dark' ? "text-white" : "text-gray-900"
-                        )}>{line}</p>
-                      ))}
+                      {customContent}
                     </div>
                   </div>
                 ) : (
@@ -385,7 +506,7 @@ export default function EmailManagement() {
                         ? "bg-[#0a0a0a] border-white/10 text-white placeholder-gray-500"
                         : "bg-white border-gray-200 text-gray-900 placeholder-gray-400",
                       'border focus:outline-none focus:ring-2 focus:ring-emerald-500/50',
-                      'resize-none'
+                      'resize-none font-mono text-sm'
                     )}
                   />
                 )}
@@ -393,32 +514,134 @@ export default function EmailManagement() {
 
               {/* Template Variables */}
               {selectedTemplate && (
-                <div className={cn(
-                  "p-4 rounded-lg",
-                  theme === 'dark'
-                    ? "bg-[#0a0a0a] border border-white/10"
-                    : "bg-gray-50 border border-gray-200"
-                )}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-4 h-4 text-emerald-500" />
-                    <p className={cn(
-                      "text-sm font-medium",
-                      theme === 'dark' ? "text-white" : "text-gray-900"
-                    )}>Available Variables</p>
+                <>
+                  <div className={cn(
+                    "p-4 rounded-lg",
+                    theme === 'dark'
+                      ? "bg-[#0a0a0a] border border-white/10"
+                      : "bg-gray-50 border border-gray-200"
+                  )}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertCircle className="w-4 h-4 text-emerald-500" />
+                      <p className={cn(
+                        "text-sm font-medium",
+                        theme === 'dark' ? "text-white" : "text-gray-900"
+                      )}>Available Variables</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className={cn(
+                        "text-sm",
+                        theme === 'dark' ? "text-gray-400" : "text-gray-600"
+                      )}>
+                        Use these variables in your template:
+                      </p>
+                      <ul className="list-disc list-inside space-y-1">
+                        {getTemplateVariables(selectedTemplate).map((variable) => (
+                          <li 
+                            key={variable} 
+                            className={cn(
+                              "text-sm text-emerald-500 cursor-pointer hover:text-emerald-400",
+                              "transition-colors duration-200"
+                            )}
+                            onClick={() => {
+                              const variableText = `{{${variable}}}`;
+                              setCustomContent(prev => prev + variableText);
+                            }}
+                          >
+                            {`{{${variable}}}`}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <p className={cn(
-                      "text-sm",
-                      theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                    )}>
-                      Use these variables in your template:
-                    </p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li className="text-sm text-emerald-500">{'{{name}}'}</li>
-                      <li className="text-sm text-emerald-500">{'{{email}}'}</li>
-                    </ul>
+
+                  {/* Variable Values Section */}
+                  <div className={cn(
+                    "p-4 rounded-lg",
+                    theme === 'dark'
+                      ? "bg-[#0a0a0a] border border-white/10"
+                      : "bg-gray-50 border border-gray-200"
+                  )}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Info className="w-4 h-4 text-emerald-500" />
+                        <p className={cn(
+                          "text-sm font-medium",
+                          theme === 'dark' ? "text-white" : "text-gray-900"
+                        )}>Variable Values (Optional)</p>
+                      </div>
+                      <button
+                        onClick={handlePreview}
+                        className={cn(
+                          "text-xs px-2 py-1 rounded",
+                          "bg-emerald-500/10 text-emerald-500",
+                          "hover:bg-emerald-500/20 transition-colors"
+                        )}
+                      >
+                        Preview with Values
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {getTemplateVariables(selectedTemplate).map((variable) => {
+                        // Determine if this variable typically contains longer text
+                        const isLongText = [
+                          'features', 'recommendations', 'content', 'description',
+                          'items', 'message', 'details', 'announcement'
+                        ].some(keyword => variable.toLowerCase().includes(keyword));
+
+                        return (
+                          <div key={variable} className={cn(
+                            "space-y-1",
+                            isLongText && "md:col-span-2" // Take full width for long text fields
+                          )}>
+                            <label className={cn(
+                              "block text-sm font-medium",
+                              theme === 'dark' ? "text-gray-300" : "text-gray-700"
+                            )}>
+                              {variable}
+                            </label>
+                            {isLongText ? (
+                              <textarea
+                                value={variableValues[variable] || ''}
+                                onChange={(e) => setVariableValues(prev => ({
+                                  ...prev,
+                                  [variable]: e.target.value
+                                }))}
+                                placeholder={`Enter ${variable}...`}
+                                rows={4}
+                                className={cn(
+                                  'w-full px-3 py-2 rounded-lg text-sm transition-colors',
+                                  theme === 'dark'
+                                    ? "bg-[#1a1a1a] border-white/10 text-white placeholder-gray-500"
+                                    : "bg-white border-gray-200 text-gray-900 placeholder-gray-400",
+                                  'border focus:outline-none focus:ring-2 focus:ring-emerald-500/50',
+                                  'resize-y min-h-[100px]'
+                                )}
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                value={variableValues[variable] || ''}
+                                onChange={(e) => setVariableValues(prev => ({
+                                  ...prev,
+                                  [variable]: e.target.value
+                                }))}
+                                placeholder={`Enter ${variable}...`}
+                                className={cn(
+                                  'w-full px-3 py-2 rounded-lg text-sm transition-colors',
+                                  theme === 'dark'
+                                    ? "bg-[#1a1a1a] border-white/10 text-white placeholder-gray-500"
+                                    : "bg-white border-gray-200 text-gray-900 placeholder-gray-400",
+                                  'border focus:outline-none focus:ring-2 focus:ring-emerald-500/50'
+                                )}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Send Button */}
