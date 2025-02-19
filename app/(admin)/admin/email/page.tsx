@@ -36,7 +36,7 @@ export default function EmailManagement() {
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [customSubject, setCustomSubject] = useState('');
   const [customContent, setCustomContent] = useState('');
-  const [recipientFilter, setRecipientFilter] = useState<'active' | 'inactive' | ''>('');
+  const [recipientFilter, setRecipientFilter] = useState<'active' | 'inactive' | 'all' | 'waitlist' | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
@@ -184,17 +184,15 @@ export default function EmailManagement() {
       toast.dismiss(loadingToast);
 
       if (!response.ok) {
-        if (data.detail) {
+        if (data.detail === "No users found matching the criteria") {
           throw new Error(data.detail);
         }
-        throw new Error('Failed to send emails');
+        throw new Error(data.detail || 'Failed to send emails');
       }
 
-      // Success message with details
+      // Success message with details from the response
       toast.success(
-        `Emails queued successfully${emails.length ? ` to ${emails.length} recipients` : ''}${
-          recipientFilter ? ` (${recipientFilter} users)` : ''
-        }`
+        `${data.message || 'Emails queued successfully'} (Task ID: ${data.data.task_id})`
       );
 
       // Reset form
@@ -441,7 +439,7 @@ export default function EmailManagement() {
                   </label>
                   <select
                     value={recipientFilter}
-                    onChange={(e) => setRecipientFilter(e.target.value as 'active' | 'inactive' | '')}
+                    onChange={(e) => setRecipientFilter(e.target.value as 'active' | 'inactive' | 'all' | 'waitlist' | '')}
                     className={cn(
                       'w-full px-3 py-2 rounded-lg transition-colors mb-2',
                       theme === 'dark'
@@ -451,8 +449,10 @@ export default function EmailManagement() {
                     )}
                   >
                     <option value="">Select Filter (Optional)</option>
+                    <option value="all">All Users</option>
                     <option value="active">Active Users</option>
                     <option value="inactive">Inactive Users</option>
+                    <option value="waitlist">Waitlist Users</option>
                   </select>
 
                   <div>
