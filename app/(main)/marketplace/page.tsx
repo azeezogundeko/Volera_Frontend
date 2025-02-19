@@ -123,25 +123,31 @@ export default function MarketplacePage() {
     if (filters.filteredProducts && Array.isArray(filters.filteredProducts)) {
       console.log('Processing filtered products from filters:', filters.filteredProducts);
       
-      // Update products based on filtered products
-      setProducts(prevProducts => {
-        // Check if products are actually different
-        const areProductsEqual = prevProducts.length === filters.filteredProducts.length && 
-          prevProducts.every((product, index) => 
-            product.product_id === filters.filteredProducts[index].product_id
-          );
-        
-        if (areProductsEqual) {
-          console.log('Products are the same, skipping update');
-          return prevProducts;
-        }
-        
-        // Remove filteredProducts from filters to keep state clean
-        const { filteredProducts, ...restFilters } = filters;
-        setFilters(restFilters);
-        
-        return filters.filteredProducts;
-      });
+      // Update products directly without comparison
+      const { filteredProducts, ...restFilters } = filters;
+      setFilters(restFilters);
+      
+      // Force update with new products
+      setProducts(filteredProducts);
+      
+      // Update comparison and remaining products
+      const sources = new Set<string>();
+      const comparisons: ProductResponse[] = [];
+      const remaining: ProductResponse[] = [];
+
+      filteredProducts
+        .filter(product => product.current_price > 0)
+        .forEach(product => {
+          if (!sources.has(product.source) && comparisons.length < 4) {
+            comparisons.push(product);
+            sources.add(product.source);
+          } else {
+            remaining.push(product);
+          }
+        });
+
+      setComparisonProducts(comparisons);
+      setRemainingProducts(remaining);
     }
   }, [filters]);
 
