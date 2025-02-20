@@ -4,9 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/footer';
 import Header from '@/components/header';
-import { ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, Menu, X, Play, LineChart, Brain, DollarSign, ThumbsUp, BarChart3 } from 'lucide-react';
+  import { ShoppingCart, Sparkles, Search, ArrowRight, ShieldCheck, Zap, Menu, X, Play, LineChart, Brain, DollarSign, ThumbsUp, BarChart3, Check } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -340,6 +341,149 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Pricing Section */}
+      <div className="relative bg-[#0a0a0a] py-16 md:py-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <DollarSign className="w-4 h-4" />
+              Affordable Plans
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Start for free, upgrade when you need. Our flexible credit system ensures you only pay for what you use.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: 'Free',
+                description: 'Perfect for trying out Volera',
+                price: '0',
+                currency: '₦',
+                features: [
+                  '1 product tracking',
+                  'Basic product insights',
+                  'Standard support',
+                  'Text search only',
+                ],
+                limitations: [
+                  'Limited search results',
+                  'No AI-powered insights/search',
+                  'No image search',
+                  'No voice search',
+                ],
+                buttonText: 'Get Started Free',
+                recommended: false,
+                href: '/signup'
+              },
+              {
+                name: 'Pro Pack',
+                description: 'Best for power users',
+                price: '3,000',
+                currency: '₦',
+                features: [
+                  '7000 credits',
+                  'Save ₦1000 (33% more credits)',
+                  'Flexible credit usage',
+                  'Credits never expire',
+                  'Priority support',
+                  'Exclusive deals access',
+                ],
+                buttonText: 'Purchase Credits',
+                recommended: true,
+                href: '/checkout'
+              },
+              {
+                name: 'Starter Pack',
+                description: 'Great for regular shoppers',
+                price: '1,000',
+                currency: '₦',
+                features: [
+                  '3000 credits',
+                  'Bonus 500 credits',
+                  'Flexible credit usage',
+                  'Credits never expire',
+                  'Priority support',
+                ],
+                buttonText: 'Purchase Credits',
+                recommended: false,
+                href: '/checkout'
+              },
+            ].map((plan) => (
+              <div
+                key={plan.name}
+                className={cn(
+                  'group relative bg-[#111111] hover:bg-[#141414] rounded-2xl p-8 space-y-6 border border-white/5 transition-all duration-300 hover:border-emerald-500/20 flex flex-col h-full',
+                  plan.recommended && 'ring-2 ring-emerald-500'
+                )}
+              >
+                {plan.recommended && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm font-medium px-4 py-1 rounded-full">
+                    Best Value
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold">{plan.name}</h3>
+                  <p className="text-gray-400 text-sm">
+                    {plan.description}
+                  </p>
+                </div>
+                
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold">{plan.currency}</span>
+                  <span className="text-5xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">{plan.price}</span>
+                </div>
+
+                <div className="flex flex-col h-full">
+                  <ul className="space-y-3 flex-1">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-300">{feature}</span>
+                      </li>
+                    ))}
+                    {plan.limitations?.map((limitation) => (
+                      <li key={limitation} className="flex items-start gap-2 opacity-50">
+                        <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-400">{limitation}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="pt-6 mt-auto">
+                    <Link
+                      href={plan.href === '/checkout' ? `${plan.href}?plan=${plan.name}&amount=${plan.price.replace(',', '')}` : plan.href}
+                      className={cn(
+                        'relative w-full py-4 px-6 rounded-xl text-sm font-medium transition-all duration-300 overflow-hidden group block',
+                        plan.recommended
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700'
+                          : 'bg-gradient-to-b from-white/[0.03] to-white/[0.07] hover:from-white/[0.05] hover:to-white/[0.1] border border-white/10'
+                      )}
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        {plan.buttonText}
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Background Effects */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-0 -left-4 w-96 h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob" />
+          <div className="absolute bottom-0 -right-4 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-5 animate-blob animation-delay-2000" />
+        </div>
+      </div>
+
       {/* CTA Section */}
       <div className="relative bg-[#0c0c0c] py-16 md:py-24 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -348,7 +492,7 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
                 Ready to Transform Your Shopping Experience?
               </h2>
-              <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
                 Join thousands of smart shoppers making better decisions with Volera&apos;s AI-powered platform
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

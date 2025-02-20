@@ -26,7 +26,7 @@ export default function Header() {
             <nav className="hidden md:flex items-center ml-12 gap-8">
               <Link href="features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</Link>
               <Link href="how-it-works" className="text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link>
-              <Link href="pro" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
+              <Link href="pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
             </nav>
           </div>
           <div className="hidden md:flex items-center gap-4">
@@ -67,7 +67,7 @@ export default function Header() {
             <div className="px-4 py-6 space-y-4">
               <Link href="features" className="block text-sm text-gray-300 hover:text-white transition-colors">Features</Link>
               <Link href="how-it-works" className="block text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link>
-              <Link href="pro" className="block text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
+              <Link href="pricing" className="block text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
               <div className="pt-4 space-y-3">
                 <Link 
                   href="/login" 
