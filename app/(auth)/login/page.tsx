@@ -98,13 +98,14 @@ export default function LoginPage() {
         }
 
         // Default flow - create chat and redirect
-        const da = await createNewChat();
-        if (da) {
-          router.push(`/c/${da.id}`);
-        } else {
-          console.error('Failed to create chat, sendMessage not available.');
-        }
         addNotification('Login successful!', 'success');
+        try {
+          const newChatId = crypto.randomUUID();
+          router.push(`/c/${newChatId}`);
+        } catch (error) {
+          console.error('Error creating new chat:', error);
+          addNotification('Failed to create new chat', 'error');
+        }
       } else {
         console.error('Invalid response format:', data);
         throw new Error('Invalid response from server');

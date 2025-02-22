@@ -202,12 +202,11 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
   const { createNewChat, isCreatingChat } = useChat();
   const router = useRouter();
 
-  const handleNewChat = async () => {
+  const handleNewChat = () => {
     try {
-      const data = await createNewChat();
-      if (data?.id) {
-        router.push(`/c/${data.id}`);
-      }
+      // Generate a random hex string for the chat ID
+      const newChatId = crypto.randomUUID();
+      router.push(`/c/${newChatId}`);
     } catch (error) {
       console.error('Error creating new chat:', error);
       toast.error('Failed to create new chat');

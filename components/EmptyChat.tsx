@@ -1,8 +1,11 @@
 import { Settings } from 'lucide-react';
 import EmptyChatMessageInput from './EmptyChatMessageInput';
 import SettingsDialog from './SettingsDialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { File } from './ChatWindow';
+import { useChat } from '@/hooks/useChat';
+import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 const EmptyChat = ({
   sendMessage,
@@ -26,6 +29,42 @@ const EmptyChat = ({
   setFiles: (files: File[]) => void;
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { createNewChat, isCreatingChat } = useChat();
+  const router = useRouter();
+  const params = useParams();
+  const chatId = params?.chatId as string;
+  const [isChatCreated, setIsChatCreated] = useState(false);
+
+  useEffect(() => {
+    const initializeChat = async () => {
+      if (chatId && !isChatCreated) {
+        try {
+          const chatData = await createNewChat(chatId);
+          if (chatData) {
+            setIsChatCreated(true);
+          }
+        } catch (error) {
+          console.error('Error initializing chat:', error);
+        }
+      }
+    };
+
+    initializeChat();
+  }, [chatId, createNewChat, isChatCreated]);
+
+  const handleSendMessage = async (message: string) => {
+    try {
+      if (!isChatCreated) {
+        throw new Error('Chat not initialized');
+      }
+      
+      // Send the message since chat is already created
+      sendMessage(message);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
+    }
+  };
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -37,7 +76,7 @@ const EmptyChat = ({
           </p>
         </div>
         <EmptyChatMessageInput
-          sendMessage={sendMessage}
+          sendMessage={handleSendMessage}
           focusMode={focusMode}
           setFocusMode={setFocusMode}
           optimizationMode={optimizationMode}

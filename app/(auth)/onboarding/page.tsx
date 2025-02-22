@@ -99,16 +99,17 @@ export default function OnboardingPage() {
 
         if (response.ok) {
           toast.success('Profile setup completed successfully!');
-          const da = await createNewChat();
-          if (da) {
-            router.push(`/c/${da.id}`);
-          } else {
-            router.push('/dashboard');
-            // toast.error('Failed to create chat, sendMessage not available.');
+          try {
+            // Generate a random hex string for the chat ID
+            const newChatId = crypto.randomUUID();
+            router.push(`/c/${newChatId}`);
+          } catch (error) {
+            console.error('Error creating new chat:', error);
+            toast.error('Failed to create new chat');
           }
         } else {
-          const error = await response.json();
-          throw new Error(error.message || 'Something went wrong');
+          router.push('/dashboard');
+          // toast.error('Failed to create chat, sendMessage not available.');
         }
       } catch (error) {
         console.error('Error submitting onboarding data:', error);
@@ -120,14 +121,16 @@ export default function OnboardingPage() {
   };
 
   const handleSkip = async () => {
-    const da = await createNewChat();
-    if (da) {
-      router.push(`/c/${da.id}`);
-    } else {
-      router.push('/dashboard');
-      // toast.error('Failed to create chat, sendMessage not available.');
+    try {
+      // Generate a random hex string for the chat ID
+      const newChatId = crypto.randomUUID();
+      router.push(`/c/${newChatId}`);
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+      toast.error('Failed to create new chat');
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
