@@ -233,7 +233,6 @@ const loadMessages = async (
 
   if (res.status === 404) {
     setNotFound(true);
-    setIsMessagesLoaded(true);
     return;
   }
   // console.log(await res.json()); 
@@ -428,13 +427,12 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
         setFiles,
         setFileIds,
       );
-    } else if (!chatId) {
+    } else if (!chatId || notFound) {
       setNewChatCreated(true);
       setIsMessagesLoaded(true);
       setChatId(crypto.randomBytes(20).toString('hex'));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatId, localMessages.length, newChatCreated]);
+  }, [chatId, localMessages.length, newChatCreated, notFound]);
 
   useEffect(() => {
     if (initialFocusMode !== undefined) {
