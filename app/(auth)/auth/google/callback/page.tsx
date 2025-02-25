@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-export default function GoogleCallback() {
+const GoogleCallbackPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -72,5 +72,13 @@ export default function GoogleCallback() {
         </div>
       </div>
     </div>
+  );
+};
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GoogleCallbackPage />
+    </Suspense>
   );
 } 
