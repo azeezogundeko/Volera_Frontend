@@ -198,14 +198,22 @@ const UserButton = ({ expanded }: { expanded: boolean }) => {
   );
 };
 
+// Function to generate a unique chat ID based on timestamp and random elements
+const generateUniqueChatId = () => {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8); // 6 random alphanumeric chars
+  const userRandom = Math.random().toString(36).substring(2, 6); // 4 random alphanumeric chars
+  return `${timestamp}-${random}-${userRandom}`;
+};
+
 const NewChatButton = ({ expanded }: { expanded: boolean }) => {
   const { createNewChat, isCreatingChat } = useChat();
   const router = useRouter();
 
   const handleNewChat = () => {
     try {
-      // Generate a random hex string for the chat ID
-      const newChatId = crypto.randomUUID();
+      // Generate a unique chat ID based on timestamp and random elements
+      const newChatId = generateUniqueChatId();
       router.push(`/c/${newChatId}`);
     } catch (error) {
       console.error('Error creating new chat:', error);
@@ -217,12 +225,12 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
     <button
       onClick={handleNewChat}
       disabled={isCreatingChat}
-        className={cn(
+      className={cn(
         'flex items-center gap-3 w-full',
         expanded ? 'px-3 py-2' : 'justify-center p-2',
         'rounded-lg',
         'bg-emerald-500 hover:bg-emerald-600',
-          'transition-all duration-200',
+        'transition-all duration-200',
         'disabled:opacity-50 disabled:cursor-not-allowed'
       )}
     >
@@ -234,7 +242,7 @@ const NewChatButton = ({ expanded }: { expanded: boolean }) => {
           expanded ? "w-10 h-5" : "w-6 h-6"
         )} />
       )}
-        {expanded && (
+      {expanded && (
         <span className="text-sm font-medium text-white">
           New Chat
         </span>

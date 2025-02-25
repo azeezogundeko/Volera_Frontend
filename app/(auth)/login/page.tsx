@@ -10,6 +10,14 @@ import Link from 'next/link';
 import { useChat } from '@/hooks/useChat';
 import { NotificationContainer } from '@/components/Notification';
 
+// Function to generate a unique chat ID based on timestamp and random elements
+const generateUniqueChatId = () => {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8); // 6 random alphanumeric chars
+  const userRandom = Math.random().toString(36).substring(2, 6); // 4 random alphanumeric chars
+  return `${timestamp}-${random}-${userRandom}`;
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -100,7 +108,7 @@ export default function LoginPage() {
         // Default flow - create chat and redirect
         addNotification('Login successful!', 'success');
         try {
-          const newChatId = crypto.randomUUID();
+          const newChatId = generateUniqueChatId();
           router.push(`/c/${newChatId}`);
         } catch (error) {
           console.error('Error creating new chat:', error);

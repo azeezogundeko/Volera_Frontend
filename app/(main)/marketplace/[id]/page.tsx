@@ -302,15 +302,17 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                           </div>
                         )}
                         {product.url && (
-                          <a
-                            href={product.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            <span className="text-sm">Visit Website</span>
-                          </a>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <a
+                              href={product.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-1" />
+                              <span className="text-sm">View on {product.source}</span>
+                            </a>
+                          </div>
                         )}
                         {/* <Link
                           href={`/library?product=${encodeURIComponent(product.name)}&productId=${product.product_id}`}

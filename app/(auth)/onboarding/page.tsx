@@ -34,6 +34,12 @@ interface FormData {
   preferences: Partial<PreferencesData>;
 }
 
+const generateUniqueChatId = () => {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8); // 6 random alphanumeric chars
+  const userRandom = Math.random().toString(36).substring(2, 6); // 4 random alphanumeric chars
+  return `${timestamp}-${random}-${userRandom}`;
+};
 const TOTAL_STEPS = 3;
 
 export default function OnboardingPage() {
@@ -101,7 +107,7 @@ export default function OnboardingPage() {
           toast.success('Profile setup completed successfully!');
           try {
             // Generate a random hex string for the chat ID
-            const newChatId = crypto.randomUUID();
+            const newChatId = generateUniqueChatId();
             router.push(`/c/${newChatId}`);
           } catch (error) {
             console.error('Error creating new chat:', error);
@@ -123,7 +129,7 @@ export default function OnboardingPage() {
   const handleSkip = async () => {
     try {
       // Generate a random hex string for the chat ID
-      const newChatId = crypto.randomUUID();
+      const newChatId = generateUniqueChatId();
       router.push(`/c/${newChatId}`);
     } catch (error) {
       console.error('Error creating new chat:', error);

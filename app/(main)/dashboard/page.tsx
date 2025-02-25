@@ -445,7 +445,7 @@ export default function Home() {
                   {recentChats.map((chat) => (
                     <Link
                       key={chat.id}
-                      href={`/chat/${chat.id}`}
+                      href={`/c/${chat.id}`}
                       className="block bg-gray-50 dark:bg-white/5 rounded-lg p-3 sm:p-4 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                     >
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-0 mb-1 sm:mb-2">

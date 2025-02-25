@@ -20,7 +20,7 @@ interface ShareDialogProps {
 
 export function ShareDialog({ open, onOpenChange, chatId }: ShareDialogProps) {
   const [copied, setCopied] = useState(false)
-  const shareUrl = `${window.location.origin}/chat/${chatId}`
+  const shareUrl = `${window.location.origin}/c/${chatId}`
 
   const copyToClipboard = async () => {
     try {
