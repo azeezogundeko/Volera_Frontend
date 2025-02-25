@@ -7,9 +7,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json package-lock.json* ./
-# Add build-time memory allocation
-ENV NODE_OPTIONS="--max_old_space_size=4096"
-RUN npm install
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -21,7 +19,6 @@ COPY . .
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_OPTIONS="--max_old_space_size=4096"
 
 RUN npm run build
 
