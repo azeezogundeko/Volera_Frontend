@@ -149,8 +149,27 @@ export default function SignupPage() {
   const handleGoogleSignup = async () => {
     setLoading(true);
     try {
-      router.push('/api/auth/google');
+      // Generate a random state parameter for security
+      const state = crypto.randomUUID();
+      localStorage.setItem('googleOAuthState', state);
+
+      // Construct Google OAuth URL with the correct redirect URI
+      const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+      const redirectUri = `${window.location.origin}/auth/google/callback`;
+
+      const params = new URLSearchParams({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        state: state,
+        scope: 'email profile',
+        access_type: 'offline',
+        prompt: 'consent',
+      });
+      // Redirect to Google OAuth
+      window.location.href = `${googleAuthUrl}?${params.toString()}`;
     } catch (err) {
+      console.error('Google sign-in error:', err);
       setError('Google sign-in failed. Please try again.');
       setLoading(false);
     }

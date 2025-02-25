@@ -3,40 +3,25 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useChat } from '@/hooks/useChat';
-import { NotificationContainer } from '@/components/Notification';
+import toast, { Toaster } from 'react-hot-toast';
 
-// Function to generate a unique chat ID based on timestamp and random elements
-const generateUniqueChatId = () => {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 8); // 6 random alphanumeric chars
-  const userRandom = Math.random().toString(36).substring(2, 6); // 4 random alphanumeric chars
-  return `${timestamp}-${random}-${userRandom}`;
-};
+interface LoginFormData {
+  email: string;
+  password: string;
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   });
-  const { createNewChat } = useChat();
-
-  const [notifications, setNotifications] = useState<Array<{ id: string; message: string; type: 'success' | 'error' }>>([]);
-
-  const addNotification = (message: string, type: 'success' | 'error') => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setNotifications(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(notification => notification.id !== id));
-    }, 3300); // Slightly longer than the notification display time
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,28 +29,18 @@ export default function LoginPage() {
       ...prev,
       [name]: value
     }));
+    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setNotifications([]);
+    setError('');
 
     try {
-      // console.log('Starting login process...', { email: formData.email });
-
       if (!formData.email || !formData.password) {
-        console.warn('Missing required fields');
-        throw new Error('Email and password are required');
+        throw new Error('All fields are required');
       }
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        console.warn('Invalid email format:', formData.email);
-        throw new Error('Please enter a valid email address');
-      }
-
-      console.log('Sending login request to:', `${process.env.NEXT_PUBLIC_API_URL}/auth/login`);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: 'POST',
@@ -75,130 +50,136 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       });
 
-      // console.log('Login response status:', response.status);
       const data = await response.json();
-      // console.log('Login response:', data);
 
-      if (!response.ok) {
-        console.error('Login failed:', data.detail);
-        throw new Error(data.detail || 'Login failed');
-      }
-
-      if (data.token && data.user) {
-        // Store the token and user data
+      if (response.ok) {
         localStorage.setItem('auth_token', data.token.access_token);
         localStorage.setItem('token_type', data.token.token_type);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('userStatus', JSON.stringify(data.user.is_pro));
 
-        // Trigger a storage event for other tabs
-        window.dispatchEvent(new Event('storage'));
+        toast.success('Successfully logged in!', {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: 'rgb(34 197 94)',
+            color: '#fff',
+            padding: '16px',
+          },
+        });
 
-        // Set authorization header for future requests
-        const authHeader = `${data.token.token_type} ${data.token.access_token}`;
-
-        // Check for redirect URL from pro page
-        const redirectUrl = localStorage.getItem('redirectAfterLogin');
-        if (redirectUrl && redirectUrl.includes('/checkout')) {
-          localStorage.removeItem('redirectAfterLogin'); // Clean up
-          window.location.href = redirectUrl; // Redirect back to checkout
-          return; // Skip chat creation for checkout flow
-        }
-
-        // Default flow - create chat and redirect
-        addNotification('Login successful!', 'success');
-        try {
-          const newChatId = generateUniqueChatId();
-          router.push(`/c/${newChatId}`);
-        } catch (error) {
-          console.error('Error creating new chat:', error);
-          addNotification('Failed to create new chat', 'error');
-        }
+        router.push('/dashboard');
       } else {
-        console.error('Invalid response format:', data);
-        throw new Error('Invalid response from server');
+        throw new Error(data.detail || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      if (err instanceof Error) {
-        addNotification(err.message, 'error');
-      } else {
-        addNotification('An unknown error occurred', 'error');
-      }
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to log in. Please try again.');
     } finally {
       setLoading(false);
-      // console.log('Login process completed');
     }
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // Implement Google OAuth sign-in
-      router.push('/api/auth/google');
+      // Generate a random state parameter for security
+      const state = crypto.randomUUID();
+      localStorage.setItem('googleOAuthState', state);
+
+      // Construct Google OAuth URL with the correct redirect URI
+      const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+      const redirectUri = `${window.location.origin}/auth/google/callback`;
+
+      const params = new URLSearchParams({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        state: state,
+        scope: 'email profile',
+        access_type: 'offline',
+        prompt: 'consent',
+      });
+
+      // Log for debugging
+      console.log('OAuth Configuration:', {
+        clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        redirectUri,
+        fullUrl: `${googleAuthUrl}?${params.toString()}`
+      });
+
+      // Redirect to Google OAuth
+      window.location.href = `${googleAuthUrl}?${params.toString()}`;
     } catch (err) {
-      addNotification('Google sign-in failed. Please try again.', 'error');
+      console.error('Google sign-in error:', err);
+      setError('Google sign-in failed. Please try again.');
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-4">
-      <NotificationContainer notifications={notifications} />
-      <div className="w-full max-w-md space-y-8">
+      <Toaster />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md space-y-8 bg-[#111111] rounded-xl shadow-lg p-8"
+      >
         <div className="text-center">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
             Welcome Back
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            Sign in to your account to continue
+            Sign in to your account
           </p>
         </div>
 
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email Address
+                Email
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-500" />
-                </div>
+              <div className="mt-1 relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
-                  id="email"
-                  name="email"
                   type="email"
+                  name="email"
+                  id="email"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
-                  placeholder="Enter your email"
+                  className="block w-full pl-10 pr-3 py-2 rounded-lg border border-white/10 bg-[#0a0a0a] text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300">
                 Password
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-500" />
-                </div>
+              <div className="mt-1 relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
-                  id="password"
-                  name="password"
                   type={showPassword ? "text" : "password"}
+                  name="password"
+                  id="password"
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-12 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
-                  placeholder="Enter your password"
+                  className="block w-full pl-10 pr-12 py-2 rounded-lg border border-white/10 bg-[#0a0a0a] text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -207,30 +188,60 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+              <div className="mt-2 flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
-            <Link
-              href="/forgot-password"
-              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Forgot password?
-            </Link>
+              {loading ? 'Signing in...' : 'Sign in'}
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-[#111111] text-gray-400">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg bg-[#0a0a0a] border border-white/10 text-gray-300 hover:bg-[#0f0f0f] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Image
+                src="/google.svg"
+                alt="Google"
+                width={20}
+                height={20}
+                className="w-5 h-5"
+              />
+              Sign in with Google
+            </button>
+          </div>
         </form>
 
         <p className="text-center text-sm text-gray-400">
-          Don&apos;t have an account?{' '}
+          Don't have an account?{' '}
           <Link
             href="/signup"
             className="text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
@@ -238,7 +249,7 @@ export default function LoginPage() {
             Sign up
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
