@@ -135,7 +135,7 @@ export default function PrivacyPage() {
             className="relative inline-flex px-6 sm:px-8 py-3 sm:py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
           >
             <span className="relative z-10 flex items-center gap-2 text-sm sm:text-base font-medium">
-              Contact Our Privacy Team
+              Contact Our Privacy Team          
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
