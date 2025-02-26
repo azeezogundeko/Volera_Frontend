@@ -157,7 +157,7 @@ export default function ReferPage() {
           </p>
           {referral_count > 0 && (
             <p className="mt-2 text-sm text-emerald-500">
-              You've successfully referred {referral_count} {referral_count === 1 ? 'friend' : 'friends'}!
+              You&apos;ve successfully referred {referral_count} {referral_count === 1 ? 'friend' : 'friends'}!
             </p>
           )}
         </div>
