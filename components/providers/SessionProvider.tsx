@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import SessionExpired from '@/components/SessionExpired';
 
 interface SessionContextType {
@@ -26,13 +26,13 @@ export function SessionProvider({ children }: SessionProviderProps) {
   const [isSessionExpired, setSessionExpired] = useState(false);
 
   // Function to handle auth errors
-  const handleAuthError = (status: number): boolean => {
+  const handleAuthError = useCallback((status: number): boolean => {
     if (status === 401) {
       setSessionExpired(true);
       return true;
     }
     return false;
-  };
+  }, []);
 
   // Check for auth token on mount and when isSessionExpired changes
   useEffect(() => {

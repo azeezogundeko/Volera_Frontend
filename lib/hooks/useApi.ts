@@ -1,4 +1,5 @@
 import { useSession } from '@/components/providers/SessionProvider';
+import { useCallback } from 'react';
 
 interface FetchOptions extends RequestInit {
   requiresAuth?: boolean;
@@ -7,7 +8,7 @@ interface FetchOptions extends RequestInit {
 export function useApi() {
   const { handleAuthError } = useSession();
 
-  const fetchWithAuth = async (url: string, options: FetchOptions = {}) => {
+  const fetchWithAuth = useCallback(async (url: string, options: FetchOptions = {}) => {
     const { requiresAuth = true, ...fetchOptions } = options;
 
     try {
@@ -38,7 +39,7 @@ export function useApi() {
       console.error('API request failed:', error);
       throw error;
     }
-  };
+  }, [handleAuthError]);
 
   return { fetchWithAuth };
 } 
