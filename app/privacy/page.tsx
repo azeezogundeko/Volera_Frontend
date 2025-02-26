@@ -2,6 +2,8 @@
 
 import { Shield, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 
 interface PolicySection {
   title: string;
@@ -71,6 +73,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
       {/* Header */}
+      <Header />
       <div className="relative py-12 sm:py-16 md:py-24">
         <div className="text-center space-y-4 max-w-3xl mx-auto px-4 sm:px-6">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium mb-4 sm:mb-6">
@@ -143,6 +146,7 @@ export default function PrivacyPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 } 
