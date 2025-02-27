@@ -28,6 +28,7 @@ import {
 } from 'recharts';
 import { getBillingInfo, BillingInfo } from '@/lib/api';
 import { useTheme } from 'next-themes';
+import { toast } from 'react-hot-toast';
 
 const plans = [
   {
@@ -96,17 +97,11 @@ export default function BillingSettings() {
   const handleUpgrade = async (plan: { name: string, credits: number }) => {
     setIsSaving(true);
     try {
-      // Simulate API call for upgrading plan
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Refetch billing info after upgrade
-      const updatedInfo = await getBillingInfo();
-      setBillingInfo(updatedInfo);
-      
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      // Redirect to checkout page
+      window.location.href = `/checkout?plan=${plan.name}&amount=${plan.price.replace(',', '')}`;
     } catch (error) {
       console.error('Error upgrading plan:', error);
+      toast.error('Failed to process upgrade. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -414,11 +409,14 @@ export default function BillingSettings() {
                       >
                         <Loader2 className="w-4 h-4" />
                       </motion.div>
-                      <span className="hidden sm:inline">Upgrading...</span>
+                      <span className="hidden sm:inline">Processing...</span>
                       <span className="sm:hidden">...</span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
+                    <Link
+                      href={`/checkout?plan=${plan.name}&amount=${plan.price.replace(',', '')}`}
+                      className="flex items-center justify-center gap-2"
+                    >
                       {plan.name === billingInfo?.currentPlan ? (
                         <>
                           <motion.div
@@ -426,7 +424,7 @@ export default function BillingSettings() {
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", stiffness: 200 }}
                           >
-                          <Check className="w-4 h-4" />
+                            <Check className="w-4 h-4" />
                           </motion.div>
                           <span className="hidden sm:inline">Current Plan</span>
                           <span className="sm:hidden">Current</span>
@@ -439,11 +437,11 @@ export default function BillingSettings() {
                             whileHover={{ x: 5 }}
                             transition={{ duration: 0.2 }}
                           >
-                          <ArrowRight className="w-4 h-4" />
+                            <ArrowRight className="w-4 h-4" />
                           </motion.div>
                         </>
                       )}
-                    </div>
+                    </Link>
                   )}
                 </motion.button>
               </motion.div>

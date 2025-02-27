@@ -304,7 +304,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                         {product.url && (
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                             <a
-                              href={product.url}
+                              href={`https://${product.url.replace(/^https?:\/\//, '').replace(/^\/+/, '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
