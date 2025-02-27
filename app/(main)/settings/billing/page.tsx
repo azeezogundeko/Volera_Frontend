@@ -30,7 +30,18 @@ import { getBillingInfo, BillingInfo } from '@/lib/api';
 import { useTheme } from 'next-themes';
 import { toast } from 'react-hot-toast';
 
-const plans = [
+interface Plan {
+  name: string;
+  description: string;
+  price: string;
+  credits: number;
+  currency: string;
+  features: string[];
+  buttonText: string;
+  recommended: boolean;
+}
+
+const plans: Plan[] = [
   {
     name: 'Starter Pack',
     description: 'Perfect for occasional users',
@@ -94,7 +105,7 @@ export default function BillingSettings() {
     fetchBillingInfo();
   }, []);
 
-  const handleUpgrade = async (plan: { name: string, credits: number }) => {
+  const handleUpgrade = async (plan: Plan) => {
     setIsSaving(true);
     try {
       // Redirect to checkout page
