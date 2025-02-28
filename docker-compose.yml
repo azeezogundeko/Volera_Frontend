@@ -12,7 +12,7 @@ services:
       - dokploy-network
     labels:
       - traefik.enable=true
-      - traefik.http.routers.volera-frontend.rule=Host(`www.volera.app`)
+      - traefik.http.routers.volera-frontend.rule=Host(`www.volera.app`) ||  Host(`volera.app`)
       - traefik.http.routers.volera-frontend.rule=Host(`volera.app`)
       - traefik.http.routers.volera-frontend.entrypoints=web,websecure
       - traefik.http.routers.volera-frontend.tls=true
