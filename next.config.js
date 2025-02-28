@@ -26,6 +26,12 @@ const nextConfig = {
       allowedOrigins: ['www.volera.app'],
     },
   },
+  env: {
+    PORT: '3001',
+  },
+  server: {
+    port: 3001,
+  },
 }
 
 module.exports = withPWA(nextConfig)
