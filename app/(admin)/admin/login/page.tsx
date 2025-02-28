@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, ArrowRight, Shield } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Shield, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { useTheme } from '@/app/contexts/ThemeContext';
@@ -12,6 +12,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -50,6 +51,10 @@ export default function AdminLoginPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -146,12 +151,12 @@ export default function AdminLoginPage() {
                   theme === 'dark' ? "text-gray-400" : "text-gray-500"
                 )} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   className={cn(
-                    'w-full pl-10 pr-3 py-2 rounded-lg transition-colors',
+                    'w-full pl-10 pr-10 py-2 rounded-lg transition-colors',
                     theme === 'dark'
                       ? [
                           "bg-[#0a0a0a]",
@@ -169,6 +174,23 @@ export default function AdminLoginPage() {
                   )}
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className={cn(
+                    "absolute right-3 top-1/2 -translate-y-1/2",
+                    "p-1 rounded-md transition-colors",
+                    theme === 'dark' 
+                      ? "hover:bg-white/10 text-gray-400" 
+                      : "hover:bg-gray-100 text-gray-500"
+                  )}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
 
