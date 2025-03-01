@@ -64,18 +64,18 @@ const features = [
     details: 'Our AI chat assistant helps you make informed shopping decisions. Get personalized recommendations, compare prices, and receive expert advice on the best time to buy.'
   },
   {
-    title: 'Product Hunting',
-    description: 'Discover the best deals and trending products across multiple platforms.',
-    icon: ShoppingBag,
+    title: 'Product Comparison',
+    description: 'Compare products and prices across multiple e-commerce platforms instantly.',
+    icon: Scale,
     gradient: 'from-emerald-500/20 to-emerald-500/0',
-    image: '/features/product-hunting.png',
+    image: '/compare.PNG',
     benefits: [
-      'Trending product alerts',
-      'Deal notifications',
-      'Price drop alerts',
-      'Wishlist management'
+      'Side-by-side comparisons',
+      'Feature and specification matching',
+      'Price comparison across platforms',
+      'Seller reputation insights'
     ],
-    details: 'Stay ahead of the curve with our product hunting feature. Discover trending products, get notified about deals, and manage your wishlist effectively.'
+    details: 'Make informed decisions with our comprehensive product comparison tool. Compare prices, features, specifications, and seller ratings across multiple platforms in one place.'
   },
   {
     title: 'Price Analysis',
@@ -92,18 +92,18 @@ const features = [
     details: 'Make data-driven shopping decisions with our advanced price analysis tools. View historical trends, predict future prices, and understand seasonal patterns.'
   },
   {
-    title: 'Smart Recommendations',
-    description: 'Receive personalized product recommendations based on your preferences and browsing history.',
-    icon: Sparkles,
+    title: 'Product Wishlist',
+    description: 'Save and organize your favorite products from different platforms in one place.',
+    icon: ShoppingBag,
     gradient: 'from-emerald-600/20 to-emerald-600/0',
-    image: '/features/recommendations.png',
+    image: '/wishlist.PNG',
     benefits: [
-      'Personalized suggestions',
-      'Similar product recommendations',
-      'Alternative options',
-      'Budget-friendly alternatives'
+      'Cross-platform wishlist management',
+      'Price change notifications',
+      'Stock availability alerts',
+      'Wishlist sharing capabilities'
     ],
-    details: 'Get tailored product recommendations based on your preferences and shopping history. Discover similar products, alternatives, and budget-friendly options.'
+    details: 'Keep track of all your desired products in one centralized wishlist. Get notified about price changes, back-in-stock alerts, and share your wishlist with friends and family.'
   }
 ];
 
@@ -141,6 +141,22 @@ export default function FeaturesPage() {
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+              {/* Image - Will be on left for even indexes */}
+              {index % 2 === 0 && (
+                <div className="relative">
+                  <div className="relative aspect-[16/9] sm:aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
+                    <Image
+                      src={feature.image}
+                      alt={feature.title}
+                      fill
+                      className="object-contain p-2"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent opacity-60" />
+                  </div>
+                </div>
+              )}
+
               {/* Content */}
               <div className="space-y-6 sm:space-y-8">
                 <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium">
@@ -164,7 +180,7 @@ export default function FeaturesPage() {
                   ))}
                 </ul>
                 <Link
-                  href="/auth/signup"
+                  href="/signup"
                   className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors text-sm sm:text-base"
                 >
                   Try it now
@@ -172,19 +188,21 @@ export default function FeaturesPage() {
                 </Link>
               </div>
 
-              {/* Image */}
-              <div className="relative order-first lg:order-last">
-                <div className="relative aspect-[16/9] sm:aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
-                  <Image
-                    src={feature.image}
-                    alt={feature.title}
-                    fill
-                    className="object-contain p-2"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent opacity-60" />
+              {/* Image - Will be on right for odd indexes */}
+              {index % 2 === 1 && (
+                <div className="relative">
+                  <div className="relative aspect-[16/9] sm:aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
+                    <Image
+                      src={feature.image}
+                      alt={feature.title}
+                      fill
+                      className="object-contain p-2"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent opacity-60" />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -200,7 +218,7 @@ export default function FeaturesPage() {
             Join thousands of smart shoppers who are already saving time and money with Volera.
           </p>
           <Link
-            href="/auth/signup"
+            href="/signup"
             className="relative inline-flex px-6 py-3 sm:px-8 sm:py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300"
           >
             <span className="relative z-10 flex items-center gap-2 font-medium text-sm sm:text-base">

@@ -2,6 +2,8 @@
 
 import { Scale, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 
 interface TermsSection {
   title: string;
@@ -88,6 +90,7 @@ export default function TermsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
+      <Header />
       {/* Header */}
       <div className="relative py-12 sm:py-16 md:py-24">
         <div className="text-center space-y-4 max-w-3xl mx-auto px-4 sm:px-6">
@@ -161,6 +164,7 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 } 

@@ -3,10 +3,13 @@
 import { Star, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
+      <Header />
       {/* Header */}
       <div className="relative py-24">
         <div className="text-center space-y-4 max-w-3xl mx-auto px-6">
@@ -65,6 +68,7 @@ export default function AboutPage() {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

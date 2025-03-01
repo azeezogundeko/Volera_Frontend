@@ -25,7 +25,7 @@ export default function Header() {
             </Link>
             <nav className="hidden md:flex items-center ml-12 gap-8">
               <Link href="features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</Link>
-              <Link href="how-it-works" className="text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link>
+              {/* <Link href="how-it-works" className="text-sm text-gray-300 hover:text-white transition-colors">How it Works</Link> */}
               <Link href="pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</Link>
               <Link href="privacy" className="text-sm text-gray-300 hover:text-white transition-colors">Privacy</Link>
             </nav>

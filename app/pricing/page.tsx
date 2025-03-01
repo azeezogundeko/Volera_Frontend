@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Check, Sparkles, Zap, Target, Search, Star, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 
 const plans = [
   {
@@ -92,6 +94,7 @@ const features = [
 export default function ProPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
+      <Header />
       {/* Header */}
       <div className="relative py-24">
         <div className="text-center space-y-4 max-w-3xl mx-auto px-6">
@@ -236,6 +239,7 @@ export default function ProPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

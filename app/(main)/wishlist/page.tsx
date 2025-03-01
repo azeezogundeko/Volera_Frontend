@@ -48,7 +48,7 @@ export default function WishlistPage() {
         setIsLoading(true);
         const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/product/saved_products`);
         const data = await response.json();
-        setSavedProducts(Array.isArray(data.products) ? data.products : []);
+        setSavedProducts(Array.isArray(data) ? data : (data.products || []));
         setSavedChats(Array.isArray(data.chats) ? data.chats : []);
 
       } catch (error) {
@@ -193,13 +193,12 @@ export default function WishlistPage() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center justify-end gap-2">
-                              <a
-                                href={product.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                                title="View on site"
-                              >
+                            <a
+                              href={`https://${product.url.replace(/^https?:\/\//, '').replace(/^\/+/, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
+                            >
                                 <ExternalLink className="w-4 h-4" />
                               </a>
                               <button

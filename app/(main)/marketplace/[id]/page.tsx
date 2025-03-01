@@ -145,21 +145,13 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({
-              product_id: params.id,
-              name: product.name,
-              image: product.image,
-              current_price: product.current_price,
-              currency: product.currency,
-              rating: product.rating,
-              source: product.source
-            }),
+            body: JSON.stringify(product),
           });
 
           if (response.ok) {
             const data = await response.json();
             setIsSaved(data.is_saved);
-            toast.success(data.is_saved ? 'Added to wishlist' : 'Removed from wishlist', {
+            toast.success('Added to wishlist', {
               duration: 3000,
               position: 'top-center',
               style: {
@@ -344,26 +336,25 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                           <span className="text-sm">Research & Reviews</span>
                         </Link> */}
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                          <Button
+                          <button
                             onClick={toggleSave}
-                            variant="outline"
-                            className="flex items-center gap-2 text-sm"
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-md transition-colors"
                           >
                             <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
                             {isSaved ? 'Saved' : 'Save'}
-                          </Button>
-                            <button
-                              onClick={() => {
-                                setShowTrackingModal(true);
-                              }}
-                              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-md transition-colors"
-                            >
-                              <Bell className="w-4 h-4" />
-                              Track Price
-                            </button>
-                          </div>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowTrackingModal(true);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-md transition-colors"
+                          >
+                            <Bell className="w-4 h-4" />
+                            Track Price
+                          </button>
                         </div>
                       </div>
+                    </div>
 
                     {/* Stock Information */}
                     <div className="space-y-2">
