@@ -192,14 +192,21 @@ export default function SignupPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md space-y-8 bg-[#111111] rounded-xl shadow-lg p-8"
+        className="w-full max-w-md space-y-8"
       >
         <div className="text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-500/10 rounded-full mb-4">
+            {stage === 1 ? (
+              <Mail className="w-6 h-6 text-emerald-400" />
+            ) : (
+              <User className="w-6 h-6 text-emerald-400" />
+            )}
+          </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
             {stage === 1 ? 'Get Started' : 'Complete Your Profile'}
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            {stage === 1 ? 'Enter your email to begin' : 'Just a few more details'}
+            {stage === 1 ? 'Enter your email to begin' : 'Just a few more details to set up your account'}
           </p>
         </div>
 
@@ -230,45 +237,41 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Checking...' : 'Continue'}
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Checking...' : 'Continue'}
+              <ArrowRight className="w-4 h-4" />
+            </button>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[#111111] text-gray-400">
+                <span className="px-2 bg-[#0a0a0a] text-gray-400">
                   Or continue with
                 </span>
               </div>
             </div>
 
-            <div>
-              <button
-                type="button"
-                onClick={handleGoogleSignup}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg bg-[#0a0a0a] border border-white/10 text-gray-300 hover:bg-[#0f0f0f] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Image
-                  src="/google.svg"
-                  alt="Google"
-                  width={20}
-                  height={20}
-                  className="w-5 h-5"
-                />
-                Sign up with Google
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg bg-[#111111] border border-white/10 text-gray-300 hover:bg-[#1a1a1a] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Image
+                src="/google.svg"
+                alt="Google"
+                width={20}
+                height={20}
+                className="w-5 h-5"
+              />
+              Sign up with Google
+            </button>
           </form>
         ) : (
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
@@ -390,16 +393,24 @@ export default function SignupPage() {
           </form>
         )}
 
-        <p className="text-center text-sm text-gray-400">
-          Already have an account?{' '}
-          <Link
-            href="/login"
-            className="text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
-          >
-            Sign in
-          </Link>
-        </p>
+        <div className="border-t border-white/10 pt-6">
+          <p className="text-center text-sm text-gray-400">
+            Already have an account?{' '}
+            <Link
+              href="/login"
+              className="text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
       </motion.div>
+
+      {/* Background Effects */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-5 animate-blob animation-delay-2000" />
+      </div>
     </div>
   );
 }

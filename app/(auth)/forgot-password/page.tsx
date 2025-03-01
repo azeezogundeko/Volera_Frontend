@@ -1,149 +1,56 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, ArrowRight, KeyRound, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Mail, ArrowRight, KeyRound } from 'lucide-react';
 import Link from 'next/link';
-import process from 'process'
-
-type Step = 'email' | 'verify' | 'reset';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>('email');
-  const [email, setEmail] = useState('');
-  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const inputRefs = useRef<HTMLInputElement[]>([]);
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  const isCodeComplete = (code: string[]) => {
-    return code.every(digit => digit !== '');
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  const handleCodeChange = async (index: number, value: string) => {
-    // Only allow numeric input
-    if (!/^\d*$/.test(value)) return;
-    
-    // Only allow single digit
-    if (value.length > 1) return;
-
-    const newCode = [...verificationCode];
-    newCode[index] = value;
-    setVerificationCode(newCode);
-    setError(''); // Clear any previous errors
-
-    // Move to next input if value is entered
-    if (value !== '' && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    // If this is the last digit and code is complete, submit automatically
-    if (value !== '' && isCodeComplete(newCode)) {
-      await handleVerifyCode(newCode.join(''));
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace') {
-      if (verificationCode[index] === '' && index > 0) {
-        // Move to previous input if current is empty
-        inputRefs.current[index - 1]?.focus();
-      } else {
-        // Clear current input
-        const newCode = [...verificationCode];
-        newCode[index] = '';
-        setVerificationCode(newCode);
+    try {
+      if (!email) {
+        throw new Error('Email is required');
       }
-    }
-  };
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot_password`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(email)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
       });
 
-      if (!response.ok) throw new Error('Failed to send verification code');
-      
-      setStep('verify');
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmitted(true);
+        toast.success('Password reset instructions sent to your email!', {
+          duration: 5000,
+          position: 'top-center',
+          style: {
+            background: 'rgb(34 197 94)',
+            color: '#fff',
+            padding: '16px',
+          },
+        });
+      } else {
+        throw new Error(data.detail || 'Failed to send reset instructions');
+      }
     } catch (err) {
-      setError('Failed to send verification code. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async (submittedCode?: string, e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
-    if (loading) return;
-
-    const code = submittedCode || verificationCode.join('');
-    const codeArray = submittedCode ? submittedCode.split('') : verificationCode;
-    
-    if (!isCodeComplete(codeArray)) {
-      setError('Please enter the complete verification code');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify_code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code })
-      });
-
-      if (!response.ok) throw new Error('Invalid verification code');
-
-      setStep('reset');
-    } catch (err) {
-      setError('Invalid verification code. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset_password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email, 
-          code: verificationCode.join(''), 
-          password 
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to reset password');
-
-      router.push('/login');
-    } catch (err) {
-      setError('Failed to reset password. Please try again.');
+      console.error('Forgot password error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send reset instructions. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -151,17 +58,24 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+      <Toaster />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md space-y-8"
+      >
         <div className="text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-500/10 rounded-full mb-4">
+            <KeyRound className="w-6 h-6 text-emerald-400" />
+          </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
-            {step === 'email' && 'Forgot Password'}
-            {step === 'verify' && 'Verify Code'}
-            {step === 'reset' && 'Reset Password'}
+            {submitted ? 'Check Your Email' : 'Reset Password'}
           </h2>
           <p className="mt-2 text-sm text-gray-400">
-            {step === 'email' && 'Enter your email to receive a verification code'}
-            {step === 'verify' && 'Enter the verification code sent to your email'}
-            {step === 'reset' && 'Create a new password for your account'}
+            {submitted 
+              ? 'We sent you instructions to reset your password'
+              : 'Enter your email to receive reset instructions'
+            }
           </p>
         </div>
 
@@ -171,130 +85,68 @@ export default function ForgotPasswordPage() {
           </div>
         )}
 
-        {step === 'email' && (
-          <form onSubmit={handleEmailSubmit} className="mt-8 space-y-6">
-            <div className="space-y-2">
+        {!submitted ? (
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email Address
+                Email
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-500" />
-                </div>
+              <div className="mt-1 relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
-                  id="email"
                   type="email"
+                  name="email"
+                  id="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
-                  placeholder="Enter your email"
+                  className="block w-full pl-10 pr-3 py-2 rounded-lg border border-white/10 bg-[#0a0a0a] text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
+
             <button
               type="submit"
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Sending...' : 'Send Verification Code'}
+              {loading ? 'Sending...' : 'Send Instructions'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-        )}
-
-        {step === 'verify' && (
-          <form onSubmit={(e) => handleVerifyCode(undefined, e)} className="mt-8 space-y-6">
-            <div className="flex justify-center gap-2">
-              {verificationCode.map((digit, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={1}
-                  value={digit}
-                  ref={(el) => {
-                    if (el) inputRefs.current[index] = el;
-                  }}
-                  onChange={(e) => handleCodeChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  className="w-12 h-14 text-center text-2xl font-semibold rounded-lg border border-white/10 bg-[#0a0a0a] text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-200"
-                />
-              ))}
+        ) : (
+          <div className="mt-8 space-y-6">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-lg text-sm">
+              Check your email for instructions to reset your password. The link will expire in 1 hour.
             </div>
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => router.push('/login')}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200"
             >
-              {loading ? 'Verifying...' : 'Verify Code'}
-              <CheckCircle className="w-4 h-4" />
-            </button>
-          </form>
-        )}
-
-        {step === 'reset' && (
-          <form onSubmit={handlePasswordReset} className="mt-8 space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                  New Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-500" />
-                  </div>
-                  <input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
-                    placeholder="Enter new password"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-500" />
-                  </div>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2 bg-[#111111] border border-white/10 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-white"
-                    placeholder="Confirm new password"
-                  />
-                </div>
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Resetting...' : 'Reset Password'}
+              Return to Login
               <ArrowRight className="w-4 h-4" />
             </button>
-          </form>
+          </div>
         )}
 
-        <div className="mt-4 text-center">
-          <Link
-            href="/login"
-            className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
-          >
-            Back to Login
-          </Link>
+        <div className="border-t border-white/10 pt-6">
+          <p className="text-center text-sm text-gray-400">
+            Remember your password?{' '}
+            <Link
+              href="/login"
+              className="text-emerald-400 hover:text-emerald-300 transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+          </p>
         </div>
+      </motion.div>
+
+      {/* Background Effects */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-10 animate-blob" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-5 animate-blob animation-delay-2000" />
       </div>
     </div>
   );
