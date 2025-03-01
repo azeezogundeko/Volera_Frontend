@@ -39,7 +39,7 @@ const EmptyChat = ({
     const initializeChat = async () => {
       if (chatId && !isChatCreated) {
         try {
-          const chatData = await createNewChat(chatId);
+          const chatData = await createNewChat();
           if (chatData) {
             setIsChatCreated(true);
           }

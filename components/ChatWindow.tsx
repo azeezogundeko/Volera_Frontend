@@ -128,7 +128,6 @@ const useSocket = (
 
       websocket.onerror = (error) => {
         clearTimeout(connectionTimeout);
-        websocketService.sendNotification('Connection error. Please try again later.', 'error');
         setErrorRef.current(true);
       };
 

@@ -161,8 +161,8 @@ export default function Chat({
                       <p className="text-sm text-red-600 dark:text-red-400">There was an error generating a response</p>
                       <p className="text-xs text-red-500 dark:text-red-400/80">
                         If this issue persists please contact us through our help center at{' '}
-                        <a href="mailto:help@volera.com" className="underline hover:text-red-700 dark:hover:text-red-300">
-                          help@volera.com
+                        <a href="mailto:support@volera.com" className="underline hover:text-red-700 dark:hover:text-red-300">
+                          support@volera.com
                         </a>
                       </p>
                       <button 

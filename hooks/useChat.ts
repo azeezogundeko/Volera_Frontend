@@ -9,7 +9,7 @@ export function useChat() {
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const router = useRouter();
 
-  const createNewChat = async (chatId: string): Promise<any> => {
+  const createNewChat = async (): Promise<any> => {
     if (typeof window === 'undefined') {
       console.error('Router can only be used on the client side.');
       return null;
@@ -22,8 +22,7 @@ export function useChat() {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `${localStorage.getItem('token_type')} ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify(chatId)
+        }
       });
 
       if (!response.ok) {

@@ -103,19 +103,18 @@ export default function OnboardingPage() {
           body: formDataToSend,
         });
 
+        const data = await response.json();
+        
         if (response.ok) {
           toast.success('Profile setup completed successfully!');
-          try {
-            // Generate a random hex string for the chat ID
-            const newChatId = generateUniqueChatId();
-            router.push(`/c/${newChatId}`);
-          } catch (error) {
-            console.error('Error creating new chat:', error);
-            toast.error('Failed to create new chat');
+          if (data.chat_id) {
+            router.push(`/c/${data.chat_id}`);
+          } else {
+            router.push('/dashboard');
           }
         } else {
+          toast.error(data.detail || 'Failed to complete profile setup');
           router.push('/dashboard');
-          // toast.error('Failed to create chat, sendMessage not available.');
         }
       } catch (error) {
         console.error('Error submitting onboarding data:', error);
@@ -128,12 +127,10 @@ export default function OnboardingPage() {
 
   const handleSkip = async () => {
     try {
-      // Generate a random hex string for the chat ID
-      const newChatId = generateUniqueChatId();
-      router.push(`/c/${newChatId}`);
+      router.push('/dashboard');
     } catch (error) {
-      console.error('Error creating new chat:', error);
-      toast.error('Failed to create new chat');
+      console.error('Error navigating to dashboard:', error);
+      toast.error('Failed to navigate to dashboard');
     }
   };
 

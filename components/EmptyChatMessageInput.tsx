@@ -24,6 +24,40 @@ const DUMMY_SUGGESTIONS = [
   "Mechanical keyboard recommendations"
 ];
 
+interface SearchSuggestion {
+  suggestion: string;
+}
+
+const fetchSuggestions = async (query: string): Promise<string[]> => {
+  if (!query.trim()) return [];
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/chats/suggestions?query=${encodeURIComponent(query)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch suggestions');
+    }
+
+    const data: SearchSuggestion[] = await response.json();
+    return data.map(item => item.suggestion);
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    // Fallback to dummy suggestions in case of error
+    return DUMMY_SUGGESTIONS.filter(suggestion => 
+      suggestion.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+};
+
 const EmptyChatMessageInput = ({
   sendMessage,
   focusMode,
@@ -87,16 +121,18 @@ const EmptyChatMessageInput = ({
   }, []);
 
   useEffect(() => {
-    if (message.trim()) {
-      const filtered = DUMMY_SUGGESTIONS.filter(suggestion =>
-        suggestion.toLowerCase().includes(message.toLowerCase())
-      );
-      setFilteredSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
-      setSelectedIndex(-1);
-    } else {
-      setShowSuggestions(false);
-    }
+    const fetchAndSetSuggestions = async () => {
+      if (message.trim()) {
+        const suggestions = await fetchSuggestions(message);
+        setFilteredSuggestions(suggestions);
+        setShowSuggestions(suggestions.length > 0);
+        setSelectedIndex(-1);
+      } else {
+        setShowSuggestions(false);
+      }
+    };
+
+    fetchAndSetSuggestions();
   }, [message]);
 
   const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
