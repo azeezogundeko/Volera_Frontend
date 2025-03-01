@@ -133,6 +133,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     try {
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('auth_token');
+        if (!token) {
+          toast.error('Please login to save products to wishlist');
+          return;
+        }
+
         if (product) {
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product/save_product`, {
             method: 'POST',
@@ -140,21 +145,38 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify(product),
+            body: JSON.stringify({
+              product_id: params.id,
+              name: product.name,
+              image: product.image,
+              current_price: product.current_price,
+              currency: product.currency,
+              rating: product.rating,
+              source: product.source
+            }),
           });
 
           if (response.ok) {
             const data = await response.json();
             setIsSaved(data.is_saved);
+            toast.success(data.is_saved ? 'Added to wishlist' : 'Removed from wishlist', {
+              duration: 3000,
+              position: 'top-center',
+              style: {
+                background: 'rgb(34 197 94)',
+                color: '#fff',
+                padding: '16px',
+              },
+            });
           } else {
-            console.error('Failed to save product');
+            const errorData = await response.json();
+            toast.error(errorData.message || 'Failed to update wishlist');
           }
-        } else {
-          console.error('Product is null');
         }
       }
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error('Error updating wishlist:', error);
+      toast.error('Failed to update wishlist. Please try again.');
     }
   };
 
@@ -322,13 +344,14 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                           <span className="text-sm">Research & Reviews</span>
                         </Link> */}
                         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                          <button
+                          <Button
                             onClick={toggleSave}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-md transition-colors"
+                            variant="outline"
+                            className="flex items-center gap-2 text-sm"
                           >
-                            <Heart className={isSaved ? 'fill-emerald-600 dark:fill-emerald-400' : ''} />
-                            {isSaved ? 'Saved' : 'Save to Wishlist'}
-                          </button>
+                            <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} />
+                            {isSaved ? 'Saved' : 'Save'}
+                          </Button>
                             <button
                               onClick={() => {
                                 setShowTrackingModal(true);

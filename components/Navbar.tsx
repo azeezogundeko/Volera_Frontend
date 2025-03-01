@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { formatTimeDifference } from '@/lib/utils';
 import DeleteChat from './DeleteChat';
 import { useRouter } from 'next/navigation';
-import { ShareDialog } from './ShareDialog';
+// import { ShareDialog } from './ShareDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import  cn  from 'classnames';
@@ -137,11 +137,11 @@ const Navbar = ({ chatId, messages, userEmail = 'user@example.com' }: NavbarProp
           </div>
         </div>
       </div>
-      <ShareDialog 
+      {/* <ShareDialog 
         open={shareDialogOpen} 
         onOpenChange={setShareDialogOpen}
         chatId={chatId}
-      />
+      /> */}
     </div>
   );
 };

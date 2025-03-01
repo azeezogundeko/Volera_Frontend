@@ -26,7 +26,7 @@ const features = [
     description: 'Find products across multiple e-commerce platforms with our advanced AI-powered search engine.',
     icon: Search,
     gradient: 'from-emerald-500/20 to-emerald-500/0',
-    image: '/features/smart-search.png',
+    image: '/dark-marketplace.PNG',
     benefits: [
       'Natural language processing for better results',
       'Image and voice search capabilities',
@@ -40,7 +40,7 @@ const features = [
     description: 'Monitor product prices and availability across different stores in real-time.',
     icon: Target,
     gradient: 'from-emerald-400/20 to-emerald-400/0',
-    image: '/features/price-tracking.png',
+    image: '/track.PNG',
     benefits: [
       'Real-time price alerts',
       'Price history graphs',
@@ -54,7 +54,7 @@ const features = [
     description: 'Get personalized shopping assistance and product recommendations from our AI assistant.',
     icon: Bot,
     gradient: 'from-emerald-600/20 to-emerald-600/0',
-    image: '/features/chat-assistant.png',
+    image: '/chat.PNG',
     benefits: [
       'Product recommendations',
       'Price comparison assistance',
@@ -82,7 +82,7 @@ const features = [
     description: 'Get detailed price insights and predictions for smarter shopping decisions.',
     icon: LineChart,
     gradient: 'from-emerald-400/20 to-emerald-400/0',
-    image: '/features/price-analysis.png',
+    image: '/details.PNG',
     benefits: [
       'Historical price trends',
       'Price prediction',
@@ -174,12 +174,12 @@ export default function FeaturesPage() {
 
               {/* Image */}
               <div className="relative order-first lg:order-last">
-                <div className="relative aspect-video sm:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
+                <div className="relative aspect-[16/9] sm:aspect-[16/9] rounded-xl sm:rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
                   <Image
                     src={feature.image}
                     alt={feature.title}
                     fill
-                    className="object-cover"
+                    className="object-contain p-2"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent opacity-60" />

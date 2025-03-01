@@ -13,31 +13,34 @@ interface FooterSection {
 
 const footerSections: FooterSection[] = [
   {
-    title: 'WEEBLY THEMES',
+    title: 'Company',
     links: [
-      { label: 'Pre-Sale FAQs', href: '/faqs' },
-      { label: 'Submit a Ticket', href: '/contact' }
+      { label: 'About Us', href: '/about' },
+      { label: 'Contact', href: '/contact' },
+      { label: 'FAQ', href: '/faq' }
     ]
   },
   {
-    title: 'SERVICES',
+    title: 'Legal',
     links: [
-      { label: 'Theme Tweak', href: '/services/theme-tweak' }
+      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Privacy Policy', href: '/privacy' }
     ]
   },
   {
-    title: 'SHOWCASE',
+    title: 'Features',
     links: [
-      { label: 'Widgetkit', href: '/showcase/widgetkit' },
-      { label: 'Support', href: '/support' }
+      { label: 'Smart Search', href: '/features#search' },
+      { label: 'Price Tracking', href: '/features#tracking' },
+      { label: 'AI Assistant', href: '/features#ai' }
     ]
   },
   {
-    title: 'ABOUT US',
+    title: 'Resources',
     links: [
-      { label: 'Contact Us', href: '/contact' },
-      { label: 'Affiliates', href: '/affiliates' },
-      { label: 'Resources', href: '/resources' }
+      { label: 'Blog', href: '/blog' },
+      { label: 'Help Center', href: '/help' },
+      { label: 'Partnership', href: '/partnership' }
     ]
   }
 ];
@@ -55,7 +58,7 @@ export default function Footer() {
     <footer className="bg-[#0a0a0a] text-white border-t border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
-        {/* <div className="py-12 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+        <div className="py-12 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {footerSections.map((section) => (
             <div key={section.title} className="space-y-4">
               <h3 className="text-sm font-medium text-emerald-400">
@@ -75,16 +78,16 @@ export default function Footer() {
               </ul>
             </div>
           ))}
-        </div> */}
+        </div>
 
         {/* Logo Section */}
         <div className="py-6 sm:py-8 border-t border-white/5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-center sm:text-left">
               <Link href="/" className="text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-emerald-400 bg-clip-text text-transparent">
-                LOGO
+                Volera
               </Link>
-              <p className="mt-1 text-xs sm:text-sm text-gray-400">SOLOGAN COMPANY</p>
+              <p className="mt-1 text-xs sm:text-sm text-gray-400">SOLVEBYTE INC</p>
             </div>
 
             {/* Social Links */}

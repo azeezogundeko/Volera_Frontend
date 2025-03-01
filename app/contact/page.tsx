@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import process from 'process';
-
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -33,6 +34,9 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
       {/* Header */}
+      <Header />
+
+      {/* Main Content */}
       <div className="relative py-12 sm:py-16 md:py-24">
         <div className="text-center space-y-4 max-w-3xl mx-auto px-4 sm:px-6">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm font-medium mb-4 sm:mb-6">
@@ -123,6 +127,23 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Toast Container */}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </div>
   );
 }

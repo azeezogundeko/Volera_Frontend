@@ -46,7 +46,8 @@ export default function Home() {
                 <span className="hidden md:inline-block">Our AI agents analyze products across multiple platforms to help you make informed purchase decisions.</span>
               </p>
               <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center">
-                <button 
+                <Link 
+                  href="/signup"
                   className="group relative px-6 md:px-8 py-3 md:py-4 overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl transition-all duration-300 hover:scale-105 transform"
                 >
                   <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/[0.07] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -56,15 +57,18 @@ export default function Home() {
                     Get Started Free
                     <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
-                </button>
-                <button 
+                </Link>
+                <a 
+                  href="https://youtu.be/dQw4w9WgXcQ"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group relative px-6 md:px-8 py-3 md:py-4 overflow-hidden bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 transform backdrop-blur-sm"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2 font-medium text-sm md:text-base">
                     Watch Demo
                     <Play className="w-4 h-4 md:w-5 md:h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
                   </span>
-                </button>
+                </a>
               </div>
             </div>
 
@@ -198,28 +202,23 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             {[
               {
-                name: 'Amazon',
-                logo: '/amazon.svg',
-                products: '500M+ products'
+                name: 'Jiji',
+                logo: '/jiji.jfif',
+                products: '1M+ listings'
               },
               {
-                name: 'eBay',
-                logo: '/ebay.svg',
-                products: '1.7B+ listings'
+                name: 'Jumia',
+                logo: '/jumia1.png',
+                products: '10M+ products'
               },
               {
-                name: 'Walmart',
-                logo: '/walmart.svg',
-                products: '100M+ items'
-              },
-              {
-                name: 'AliExpress',
-                logo: '/aliexpress.svg',
-                products: '100M+ products'
-              },
+                name: 'Konga',
+                logo: '/konga.png',
+                products: '5M+ products'
+              }
             ].map((platform, index) => (
               <div 
                 key={index}
@@ -497,7 +496,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link 
-                  href="/auth/signup" 
+                  href="/signup" 
                   className="relative px-8 py-4 overflow-hidden group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl transition-all duration-300 w-full sm:w-auto"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-3 font-medium">
