@@ -115,7 +115,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setTrackingError('');
       
       // Show success toast
-      toast.success('Price tracking set! We\'ll notify you when the price drops.', {
+      toast.success('Price tracking set! We&apos;ll notify you when the price drops.', {
         duration: 5000,
         position: 'top-center',
         style: {
@@ -187,7 +187,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           <div className="space-y-3">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Product Not Found</h1>
             <p className="text-gray-600 dark:text-gray-300">
-              We couldn't find the product you're looking for. This might be because:
+              We couldn&apos;t find the product you&apos;re looking for. This might be because:
             </p>
             <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-2">
               <li>• The product may have expired or been removed</li>
