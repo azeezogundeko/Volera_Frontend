@@ -72,13 +72,13 @@ interface TrendingProductDisplay {
 
 const transformTrendingProducts = (products: any[]): TrendingProductDisplay[] => {
   return products.map(product => ({
-    product_id: product.id,
+    product_id: product.id || product.product_id,
     name: product.name || product.title,
     image: product.image,
     current_price: Number(product.current_price || product.price),
     source: product.source,
-    trend: product.trend,
-    trendValue: product.trendValue,
+    trend: product.trend || undefined,
+    trendValue: product.trendValue || undefined,
     currency: product.currency || '₦'
   }));
 };
