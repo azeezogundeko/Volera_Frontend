@@ -59,7 +59,7 @@ export default function Home() {
                   </span>
                 </Link>
                 <a 
-                  href="https://youtu.be/dQw4w9WgXcQ"
+                  href="https://youtu.be/vaVgzsUt5VE"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group relative px-6 md:px-8 py-3 md:py-4 overflow-hidden bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 transform backdrop-blur-sm"
