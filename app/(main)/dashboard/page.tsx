@@ -60,7 +60,6 @@ if (typeof window !== 'undefined') {
 
 // Add interface definition
 interface TrendingProductDisplay {
-  id: string;
   name: string;
   image: string;
   current_price: number;
@@ -68,11 +67,12 @@ interface TrendingProductDisplay {
   trend?: 'up' | 'down';
   trendValue?: string;
   currency: string;
+  product_id: string;
 }
 
 const transformTrendingProducts = (products: any[]): TrendingProductDisplay[] => {
   return products.map(product => ({
-    id: product.id,
+    product_id: product.id,
     name: product.name || product.title,
     image: product.image,
     current_price: Number(product.current_price || product.price),
@@ -499,8 +499,8 @@ export default function Home() {
                 <div className="space-y-3">
                   {trendingProducts.map((product) => (
                     <Link
-                      key={product.id}
-                      href={`/marketplace/${product.id}`}
+                      key={product.product_id}
+                      href={`/marketplace/${product.product_id}`}
                       className="group block bg-gray-50 dark:bg-white/5 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg dark:hover:shadow-emerald-500/10"
                     >
                       <div className="relative aspect-[4/3] w-full overflow-hidden">

@@ -179,9 +179,39 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
   if (error || !product) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-        <p className="text-gray-600">{error || 'Product not found'}</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0a0a0a] px-4">
+        <div className="max-w-md w-full text-center space-y-6 p-6 bg-white dark:bg-dark-50 rounded-2xl shadow-lg">
+          <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+            <Store className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <div className="space-y-3">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Product Not Found</h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              We couldn't find the product you're looking for. This might be because:
+            </p>
+            <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+              <li>• The product may have expired or been removed</li>
+              <li>• The product URL might be incorrect</li>
+              <li>• The product might be temporarily unavailable</li>
+            </ul>
+          </div>
+          <div className="space-y-4 pt-4">
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+            <Button
+              onClick={() => router.push('/marketplace')}
+              variant="outline"
+              className="w-full"
+            >
+              Browse Other Products
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
