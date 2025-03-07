@@ -4,7 +4,7 @@ import { ArrowRight, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import Focus from './MessageInputActions/Focus';
-import Optimization from './MessageInputActions/Optimization';
+import ModelSelector from './MessageInputActions/ModelSelector';
 import Attach from './MessageInputActions/Attach';
 import { File } from './ChatWindow';
 import { clsx } from 'clsx';
@@ -62,8 +62,8 @@ const EmptyChatMessageInput = ({
   sendMessage,
   focusMode,
   setFocusMode,
-  optimizationMode,
-  setOptimizationMode,
+  selectedModel,
+  setSelectedModel,
   fileIds,
   setFileIds,
   files,
@@ -72,8 +72,8 @@ const EmptyChatMessageInput = ({
   sendMessage: (message: string) => void;
   focusMode: string;
   setFocusMode: (mode: string) => void;
-  optimizationMode: string;
-  setOptimizationMode: (mode: string) => void;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
   fileIds: string[];
   setFileIds: (fileIds: string[]) => void;
   files: File[];
@@ -233,9 +233,9 @@ const EmptyChatMessageInput = ({
             }} />
           </div>
           <div className="flex items-center space-x-2">
-            <Optimization
-              optimizationMode={optimizationMode}
-              setOptimizationMode={setOptimizationMode}
+            <ModelSelector
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
             />
             <button
               onClick={handleSubmit}
@@ -249,7 +249,7 @@ const EmptyChatMessageInput = ({
               {loading ? (
                 <LoadingSpinner size="sm" className="border-white" />
               ) : (
-                <ArrowRight className="w-5 h-5 text-white" />
+                <ArrowRight size={20} className="text-white" />
               )}
             </button>
           </div>

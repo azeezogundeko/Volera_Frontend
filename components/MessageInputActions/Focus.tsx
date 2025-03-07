@@ -25,11 +25,11 @@ const focusModes = [
     icon: <Globe size={20} className="text-[#4CAF50]" />,
   },
   {
-    key: 'producthunt',
-    title: 'Product Hunt (Coming Soon)',
+    key: 'ultrasearch',
+    title: 'Ultra Search',
     description: 'User experiences and product feedback analysis',
     icon: <MessageSquareText size={20} className="text-[#E91E63]/50" />,
-    disabled: true,
+    disabled: false,
   },
   {
     key: 'copilot',

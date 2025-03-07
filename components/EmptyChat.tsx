@@ -11,8 +11,8 @@ const EmptyChat = ({
   sendMessage,
   focusMode,
   setFocusMode,
-  optimizationMode,
-  setOptimizationMode,
+  selectedModel,
+  setSelectedModel,
   fileIds,
   setFileIds,
   files,
@@ -21,8 +21,8 @@ const EmptyChat = ({
   sendMessage: (message: string) => void;
   focusMode: string;
   setFocusMode: (mode: string) => void;
-  optimizationMode: string;
-  setOptimizationMode: (mode: string) => void;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
   fileIds: string[];
   setFileIds: (fileIds: string[]) => void;
   files: File[];
@@ -36,29 +36,23 @@ const EmptyChat = ({
   const [isChatCreated, setIsChatCreated] = useState(false);
 
   useEffect(() => {
-    const initializeChat = async () => {
-      if (chatId && !isChatCreated) {
-        try {
-          const chatData = await createNewChat();
-          if (chatData) {
-            setIsChatCreated(true);
-          }
-        } catch (error) {
-          console.error('Error initializing chat:', error);
-        }
-      }
-    };
+    // const initializeChat = async () => {
+    //   if (chatId && !isChatCreated) {
+    //     try {
+    //       await createNewChat(); // Ensure this is called only once
+    //       setIsChatCreated(true); // Update the state to indicate chat has been created
+    //     } catch (error) {
+    //       console.error('Error creating chat:', error);
+    //       toast.error('Failed to create chat');
+    //     }
+    //   }
+    // };
 
-    initializeChat();
+    // initializeChat();
   }, [chatId, createNewChat, isChatCreated]);
 
   const handleSendMessage = async (message: string) => {
     try {
-      if (!isChatCreated) {
-        throw new Error('Chat not initialized');
-      }
-      
-      // Send the message since chat is already created
       sendMessage(message);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -79,8 +73,8 @@ const EmptyChat = ({
           sendMessage={handleSendMessage}
           focusMode={focusMode}
           setFocusMode={setFocusMode}
-          optimizationMode={optimizationMode}
-          setOptimizationMode={setOptimizationMode}
+          selectedModel={selectedModel}
+          setSelectedModel={setSelectedModel}
           fileIds={fileIds}
           setFileIds={setFileIds}
           files={files}

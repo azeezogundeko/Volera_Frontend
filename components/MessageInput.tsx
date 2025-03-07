@@ -19,6 +19,8 @@ interface MessageInputProps {
   files: File[];
   setFiles: (files: File[]) => void;
   isError?: boolean;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
 }
 
 const MessageInput = ({
@@ -29,6 +31,8 @@ const MessageInput = ({
   files,
   setFiles,
   isError = false,
+  selectedModel,
+  setSelectedModel,
 }: MessageInputProps) => {
   const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');

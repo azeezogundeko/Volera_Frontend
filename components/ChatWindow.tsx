@@ -342,6 +342,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
 
   const [chatId, setChatId] = useState<string | undefined>(id);
   const [newChatCreated, setNewChatCreated] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('deepseek');
 
   const [hasError, setHasError] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -364,7 +365,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
   const [fileIds, setFileIds] = useState<string[]>([]);
 
   const [focusMode, setFocusMode] = useState('Q/A');
-  const [optimizationMode, setOptimizationMode] = useState('fast');
+  // const [model, setModel] = useState('deepseek');
 
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
@@ -380,11 +381,15 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
     websitesSearched: number;
     websitesScraped: number;
     status: 'searching' | 'scraping' | 'compiling' | 'error' | null;
+    workingProcess: string[];
   }>({
     websitesSearched: 0,
     websitesScraped: 0,
-    status: null
+    status: null,
+    workingProcess: []
   });
+
+  const [thinkingMessages, setThinkingMessages] = useState<string[]>([]);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -510,7 +515,8 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
             setSearchProgress({
               websitesSearched: 0,
               websitesScraped: 0,
-              status: null
+              status: null,
+              workingProcess: []
             });
           }
           setLoadingState(false);
@@ -523,12 +529,32 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
             setMessageAppeared(false);
           }
           if (data.progress) {
-            setSearchProgress(prev => ({
-              ...prev,
-              websitesSearched: data.progress.searched || prev.websitesSearched,
-              websitesScraped: data.progress.scraped || prev.websitesScraped,
-              status: data.progress.status || prev.status
-            }));
+            setSearchProgress(prev => {
+              // Add thinking message if provided
+              const updatedWorkingProcess = [...prev.workingProcess];
+              if (data.progress.thinking && !updatedWorkingProcess.includes(data.progress.thinking)) {
+                updatedWorkingProcess.push(data.progress.thinking);
+              }
+              
+              return {
+                ...prev,
+                websitesSearched: data.progress.searched || prev.websitesSearched,
+                websitesScraped: data.progress.scraped || prev.websitesScraped,
+                status: data.progress.status || prev.status,
+                workingProcess: updatedWorkingProcess
+              };
+            });
+          }
+          break;
+
+        case 'thinking':
+          if (data.message) {
+            setThinkingMessages(prev => {
+              if (!prev.includes(data.message)) {
+                return [...prev, data.message];
+              }
+              return prev;
+            });
           }
           break;
 
@@ -701,6 +727,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
       products: [], 
       sources: [] 
     }]);
+    console.log(focusMode)
     const payload = {
       type: 'message',
       data: {
@@ -710,7 +737,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
       },
       parentMessageId: parentMessageId,
       focusMode: focusMode,
-      optimizationMode: optimizationMode,
+      model: selectedModel,
       file_ids: fileIds, 
       history: [
         ...chatHistory,
@@ -724,6 +751,8 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
         },
       ]
     };
+
+    console.log(payload)
   
     ws.send(JSON.stringify(payload));
   };
@@ -773,11 +802,11 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
     const getSearchStatusMessage = () => {
       switch (searchProgress.status) {
         case 'searching':
-          return `Searched ${searchProgress.websitesSearched} websites...`;
+          return `Searching...`;
         case 'scraping':
-          return `Scraped ${searchProgress.websitesScraped} websites...`;
+          return `Scraping...`;
         case 'compiling':
-          return 'Compiling response...';
+          return 'Compiling...';
         default:
           return 'Processing...';
       }
@@ -817,14 +846,16 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
                 messages={localMessages}
                 messageAppeared={messageAppeared}
                 searchProgress={searchProgress}
-                searchStatusMessage={getSearchStatusMessage()}
                 sendMessage={sendMessage}
                 rewrite={rewrite}
+                thinkingMessages={thinkingMessages}
                 fileIds={fileIds}
                 setFileIds={setFileIds}
                 files={files}
                 setFiles={setFiles}
                 isError={searchProgress.status === 'error'}
+                selectedModel={selectedModel}
+                setSelectedModel={setSelectedModel}
               />
             </div>
           </>
@@ -834,8 +865,8 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
               sendMessage={sendMessage}
               focusMode={focusMode}
               setFocusMode={setFocusMode}
-              optimizationMode={optimizationMode}
-              setOptimizationMode={setOptimizationMode}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
               fileIds={fileIds}
               setFileIds={setFileIds}
               files={files}

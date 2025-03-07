@@ -101,11 +101,11 @@ useEffect(() => {
 return (
     <div className="w-full overflow-x-hidden relative" ref={messageRef}>
       {/* Main Content Area */}
-      <div className="w-full lg:w-[calc(100%-20rem)] pl-0">
+      <div className="w-full max-w-3xl mx-auto pl-0">
         {message.role === 'user' && (
           <div className="flex justify-end px-0 relative z-0 max-w-3xl mx-auto">
             <div className="flex items-start space-x-2">
-              <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-2.5 border border-light-200 dark:border-dark-200 shadow-sm">
+              <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-2.5 border border-light-200 dark:border-dark-200 shadow-sm w-full">
                 <div className="prose prose-sm dark:prose-invert w-full break-words whitespace-pre-wrap [&>p]:my-1.5 [&>p]:pr-1">
                   {parsedMessage && parsedMessage.trim() !== '' && (
                     <Markdown
@@ -151,13 +151,13 @@ return (
         )}
 
         {message.role === 'assistant' && (
-          <div className="relative z-0">
-            <div className="flex items-start px-0 max-w-3xl mx-auto">
+          <div className="relative z-0 max-w-3xl mx-auto">
+            <div className="flex items-start px-0">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
                 <Bot size={16} className="text-white" />
               </div>
               
-              <div className="flex-1 min-w-0 pl-2">
+              <div className="pl-2" style={{ width: 'calc(100% - 2.5rem)' }}>
                 <div className="flex flex-col space-y-4">
                   <div className="bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200">
                     {message.sources && message.sources.length > 0 && (
@@ -171,12 +171,12 @@ return (
                         <MessageSources sources={message.sources}/>
                       </div>
                       )}
-                        <div className="prose dark:prose-invert w-full [&>p]:my-1.5">
+                        <div className="prose prose-sm dark:prose-invert w-full [&>p]:my-1.5">
                           {parsedMessage && parsedMessage.trim() !== '' && (
                             <Markdown
                               className={cn(
-                                'prose prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                                'max-w-none text-black dark:text-white',
+                                'prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
+                                'max-w-none text-black dark:text-white text-sm',
                                 'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
                                 'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
                               )} 

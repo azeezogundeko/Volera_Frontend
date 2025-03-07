@@ -15,30 +15,49 @@ export default function Chat({
   sendMessage,
   messageAppeared,
   searchProgress,
-  searchStatusMessage,
+  thinkingMessages,
   rewrite,
   fileIds,
   setFileIds,
   files,
   setFiles,
   isError,
+  selectedModel,
+  setSelectedModel,
+  handleFileUpload,
+  handleRemoveFile,
+  handleCancelSearch,
+  loadingState,
+  isSearching,
+  isSpeaking,
+  toggleSpeech,
 }: {
   messages: Message[];
   sendMessage: (message: string) => void;
-  loading: boolean;
+  loading?: boolean;
   messageAppeared: boolean;
   searchProgress: {
     websitesSearched: number;
     websitesScraped: number;
     status: 'searching' | 'scraping' | 'compiling' | 'error' | null;
+    workingProcess: string[];
   };
-  searchStatusMessage: string;
+  thinkingMessages: string[];
   rewrite: (messageId: string) => void;
   fileIds: string[];
   setFileIds: (fileIds: string[]) => void;
-  files: File[];
-  setFiles: (files: File[]) => void;
+  files?: File[];
+  setFiles?: (files: File[]) => void;
   isError?: boolean;
+  selectedModel?: string;
+  setSelectedModel?: (model: string) => void;
+  handleFileUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleRemoveFile?: (fileId: string) => void;
+  handleCancelSearch?: () => void;
+  loadingState?: boolean;
+  isSearching?: boolean;
+  isSpeaking?: boolean;
+  toggleSpeech?: () => void;
 }) {
   const [dividerWidth, setDividerWidth] = useState(0);
   const [visibleMessageId, setVisibleMessageId] = useState<string | null>(null);
@@ -108,7 +127,7 @@ export default function Chat({
                   message={msg}
                   messageIndex={i}
                   history={messages}
-                  loading={loading}
+                  loading={Boolean(loadingState)}
                   dividerRef={isLast ? dividerRef : undefined}
                   isLast={isLast}
                   rewrite={rewrite}
@@ -130,13 +149,22 @@ export default function Chat({
               </div>
               <div className="flex-1">
                 <div className="flex flex-col">
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-white/60 mb-2">
-                    {searchStatusMessage}
+                  <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-white/90 mb-2">
+                    Searching for answers...
                   </p>
+                  {searchProgress.status && (
+                    <div className="flex items-center space-x-2 mb-2">
+                      <p className="text-xs text-gray-600 dark:text-white/60">
+                        {searchProgress.status === 'searching' && `Searched ${searchProgress.websitesSearched} websites`}
+                        {searchProgress.status === 'scraping' && `Scraped ${searchProgress.websitesScraped} websites`}
+                        {searchProgress.status === 'compiling' && 'Compiling response'}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2 -ml-11 pt-4">
                   {searchProgress.status === 'searching' && (
-                    <div className="max-w-md w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
+                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
                       <div 
                         className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
                         style={{ width: `${Math.min((searchProgress.websitesSearched / 10) * 100, 100)}%` }}
@@ -144,7 +172,7 @@ export default function Chat({
                     </div>
                   )}
                   {searchProgress.status === 'scraping' && (
-                    <div className="max-w-md w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
+                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
                       <div 
                         className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
                         style={{ width: `${Math.min((searchProgress.websitesScraped / 5) * 100, 100)}%` }}
@@ -154,6 +182,30 @@ export default function Chat({
                   {searchProgress.status === 'compiling' && (
                     <div className="flex items-center justify-center py-2">
                       <div className="w-8 h-8 border-4 border-emerald-400 dark:border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  {searchProgress.workingProcess.length > 0 && (
+                    <div className="mt-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3 w-full">
+                      <p className="text-xs text-gray-500 dark:text-white/50 mb-2">Working Process</p>
+                      <div className="space-y-2">
+                        {searchProgress.workingProcess.map((process, index) => (
+                          <p key={index} className="text-sm text-gray-700 dark:text-white/80">
+                            {process}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {thinkingMessages.length > 0 && (
+                    <div className="mt-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3 w-full">
+                      <p className="text-xs text-gray-500 dark:text-white/50 mb-2">Thinking...</p>
+                      <div className="space-y-2">
+                        {thinkingMessages.map((thought, index) => (
+                          <p key={index} className="text-sm text-gray-700 dark:text-white/80">
+                            {thought}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {searchProgress.status === 'error' && (
@@ -186,12 +238,14 @@ export default function Chat({
         <div className="max-w-3xl mx-auto px-3 sm:px-6 py-3 sm:py-4 relative">
           <MessageInput
             sendMessage={sendMessage}
-            loading={loading}
+            loading={Boolean(loadingState)}
             fileIds={fileIds}
             setFileIds={setFileIds}
-            files={files}
-            setFiles={setFiles}
+            files={files || []}
+            setFiles={setFiles || (() => {})}
             isError={isError}
+            selectedModel={selectedModel || 'default'}
+            setSelectedModel={setSelectedModel || (() => {})}
           />
         </div>
       </div>
