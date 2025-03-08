@@ -63,9 +63,9 @@ const EmptyChat = ({
   return (
     <div className="relative h-screen overflow-hidden">
       <SettingsDialog isOpen={isSettingsOpen} setIsOpen={setIsSettingsOpen} />
-      <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto p-2 space-y-8">
-        <div className="flex flex-col items-center space-y-4 -mt-8">
-          <p className="text-black/50 dark:text-white/50 text-2xl sm:text-3xl md:text-4xl font-bold text-center px-4">
+      <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-8">
+        <div className="flex flex-col items-center space-y-4 -mt-4 sm:-mt-8">
+          <p className="text-black/50 dark:text-white/50 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center">
             What do you want to buy?
           </p>
         </div>

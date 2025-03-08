@@ -208,7 +208,7 @@ const EmptyChatMessageInput = ({
     >
       <div
         className={clsx(
-          'bg-white dark:bg-[#111111] p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
+          'bg-white dark:bg-[#111111] p-2 sm:p-4 flex items-center overflow-hidden border-2 border-[#4ade80]/30 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
           'flex-col rounded-2xl',
         )}
       >
@@ -218,21 +218,21 @@ const EmptyChatMessageInput = ({
           onChange={(e) => setMessage(e.target.value)}
           minRows={2}
           className={clsx(
-            'bg-transparent placeholder:text-black/200 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full max-h-24 lg:max-h-36 xl:max-h-48',
+            'bg-transparent placeholder:text-black/200 dark:placeholder:text-white/50 text-sm text-black dark:text-white resize-none focus:outline-none w-full max-h-20 sm:max-h-24 lg:max-h-36 xl:max-h-48',
           )}
           placeholder="What do you want to buy?"
         />
         <div className={clsx(
-          "flex flex-row items-center justify-between w-full mt-4 px-2",
-          "space-x-2"
+          "flex flex-row items-center justify-between w-full mt-3 sm:mt-4 px-1 sm:px-2",
+          "space-x-1 sm:space-x-2"
         )}>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <Focus focusMode={focusMode} setFocusMode={setFocusMode} />
             <Attach fileIds={fileIds} setFileIds={setFileIds} files={files} setFiles={setFiles} params={{
               id: ''
             }} />
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <ModelSelector
               selectedModel={selectedModel}
               setSelectedModel={setSelectedModel}
@@ -241,7 +241,7 @@ const EmptyChatMessageInput = ({
               onClick={handleSubmit}
               disabled={!message.trim() || loading}
               className={clsx(
-                'p-2 rounded-lg',
+                'p-1.5 sm:p-2 rounded-lg',
                 'bg-[#4ade80] hover:bg-[#4ade80]/90',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}
@@ -249,7 +249,7 @@ const EmptyChatMessageInput = ({
               {loading ? (
                 <LoadingSpinner size="sm" className="border-white" />
               ) : (
-                <ArrowRight size={20} className="text-white" />
+                <><ArrowRight size={18} className="text-white sm:hidden" /><ArrowRight size={20} className="text-white hidden sm:block" /></>
               )}
             </button>
           </div>
@@ -258,7 +258,7 @@ const EmptyChatMessageInput = ({
 
       {/* Search Suggestions Dropdown */}
       {showSuggestions && filteredSuggestions.length > 0 && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-[#111111] rounded-lg shadow-lg border border-light-200 dark:border-dark-200 overflow-hidden">
+        <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-[#111111] rounded-lg shadow-lg border border-light-200 dark:border-dark-200 overflow-hidden z-50">
           <div className="max-h-60 overflow-y-auto scrollbar-hide" style={{ 
             msOverflowStyle: 'none',
             scrollbarWidth: 'none',

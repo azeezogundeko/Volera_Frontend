@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState, useCallback } from 'react';
 import clsx from 'clsx';
 import MessageInput from './MessageInput';
 import { File, Message } from './ChatWindow';
@@ -62,8 +62,70 @@ export default function Chat({
   const [dividerWidth, setDividerWidth] = useState(0);
   const [visibleMessageId, setVisibleMessageId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [showWorkingProcess, setShowWorkingProcess] = useState<boolean>(true);
+  const [showThinking, setShowThinking] = useState<boolean>(true);
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const messageEnd = useRef<HTMLDivElement | null>(null);
+
+  // Store working process and thinking messages in refs to persist them
+  const workingProcessRef = useRef<string[]>([]);
+  const thinkingMessagesRef = useRef<string[]>([]);
+
+  // Save toggle states to localStorage when they change
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('showWorkingProcess', JSON.stringify(showWorkingProcess));
+    }
+  }, [showWorkingProcess, mounted]);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('showThinking', JSON.stringify(showThinking));
+    }
+  }, [showThinking, mounted]);
+
+  // Load toggle states from localStorage on initial mount
+  useEffect(() => {
+    const savedWorkingProcess = localStorage.getItem('showWorkingProcess');
+    const savedThinking = localStorage.getItem('showThinking');
+    
+    if (savedWorkingProcess !== null) {
+      setShowWorkingProcess(JSON.parse(savedWorkingProcess));
+    }
+    
+    if (savedThinking !== null) {
+      setShowThinking(JSON.parse(savedThinking));
+    }
+    
+    setMounted(true);
+  }, []);
+
+  // Update refs when searchProgress or thinkingMessages change
+  useEffect(() => {
+    if (searchProgress.workingProcess.length > 0) {
+      // Only add new items that aren't already in the ref
+      const newItems = searchProgress.workingProcess.filter(
+        item => !workingProcessRef.current.includes(item)
+      );
+      
+      if (newItems.length > 0) {
+        workingProcessRef.current = [...workingProcessRef.current, ...newItems];
+      }
+    }
+  }, [searchProgress.workingProcess]);
+
+  useEffect(() => {
+    if (thinkingMessages.length > 0) {
+      // Only add new items that aren't already in the ref
+      const newItems = thinkingMessages.filter(
+        item => !thinkingMessagesRef.current.includes(item)
+      );
+      
+      if (newItems.length > 0) {
+        thinkingMessagesRef.current = [...thinkingMessagesRef.current, ...newItems];
+      }
+    }
+  }, [thinkingMessages]);
 
   const handleVisibilityChange = (messageId: string, isVisible: boolean) => {
     if (isVisible) {
@@ -97,58 +159,54 @@ export default function Chat({
     }
   }, [messages]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
-    <div className="flex flex-col min-h-0 flex-1 overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-1 sm:px-2 pt-4 sm:pt-6 relative z-0 mb-24 sm:mb-32">
-        {messages.length === 0 && (
-          <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-            <VoleraLogo />
-            <Bot />
-          </div>
-        )}
-        {messages.map((msg, i) => {
-          const isLast = i === messages.length - 1;
-          const previousMessageId = i > 0 ? messages[i - 1].messageId : null; // Get the previous message ID
-          // console.log(msg.images)
-          // console.log(visibleMessageId)
-          // console.log(previousMessageId)
-          const currentImages = msg.role === 'assistant' && previousMessageId === visibleMessageId ? (msg.images || null) : null;
+    <div className="flex flex-col min-h-0 flex-1 overflow-hidden h-screen">
+      <div className="flex-1 overflow-y-auto relative z-0 pb-40">
+        <div className="max-w-3xl mx-auto">
+          {messages.length === 0 && (
+            <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+              <VoleraLogo />
+              <Bot />
+            </div>
+          )}
+          {messages.map((msg, i) => {
+            const isLast = i === messages.length - 1;
+            const previousMessageId = i > 0 ? messages[i - 1].messageId : null; // Get the previous message ID
+            // console.log(msg.images)
+            // console.log(visibleMessageId)
+            // console.log(previousMessageId)
+            const currentImages = msg.role === 'assistant' && previousMessageId === visibleMessageId ? (msg.images || null) : null;
 
-          return (
-            console.log('Current Images:', currentImages),
-            <Fragment key={msg.messageId}>
-              <div className="mb-4 sm:mb-6 max-w-[95%] w-full mx-auto">
-                <MessageBox
-                  key={msg.messageId}
-                  message={msg}
-                  messageIndex={i}
-                  history={messages}
-                  loading={Boolean(loadingState)}
-                  dividerRef={isLast ? dividerRef : undefined}
-                  isLast={isLast}
-                  rewrite={rewrite}
-                  sendMessage={sendMessage}
-                  images={currentImages}
-                  imagesLoading={msg.imagesLoading || false}
-                  onVisibilityChange={handleVisibilityChange}
-                />
-              </div>
-              {/* <div className="h-px w-full max-w-3xl mx-auto bg-[#222222] mb-4 sm:mb-6" /> */}
-            </Fragment>
-          );
-        })}
-        {loading && !messageAppeared && (
-          <div className="flex flex-col space-y-2 mb-4 sm:mb-6 max-w-3xl mx-auto">
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 animate-pulse flex items-center justify-center">
-                <Bot size={16} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="flex flex-col">
+            return (
+              console.log('Current Images:', currentImages),
+              <Fragment key={msg.messageId}>
+                <div className="mb-4 sm:mb-6 max-w-[95%] w-full mx-auto">
+                  <MessageBox
+                    key={msg.messageId}
+                    message={msg}
+                    messageIndex={i}
+                    history={messages}
+                    loading={Boolean(loadingState)}
+                    dividerRef={isLast ? dividerRef : undefined}
+                    isLast={isLast}
+                    rewrite={rewrite}
+                    sendMessage={sendMessage}
+                    images={currentImages}
+                    imagesLoading={msg.imagesLoading || false}
+                    onVisibilityChange={handleVisibilityChange}
+                  />
+                </div>
+                {/* <div className="h-px w-full max-w-3xl mx-auto bg-[#222222] mb-4 sm:mb-6" /> */}
+              </Fragment>
+            );
+          })}
+          {loading && !messageAppeared && (
+            <div className="flex flex-col space-y-2 mb-4 sm:mb-6 max-w-3xl mx-auto">
+              <div className="flex items-start space-x-2 px-0">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                  <Bot size={16} className="text-white" />
+                </div>
+                <div className="flex flex-col w-full">
                   <p className="text-xs sm:text-sm font-semibold text-gray-600 dark:text-white/90 mb-2">
                     Searching for answers...
                   </p>
@@ -161,10 +219,9 @@ export default function Chat({
                       </p>
                     </div>
                   )}
-                </div>
-                <div className="space-y-2 -ml-11 pt-4">
+                  
                   {searchProgress.status === 'searching' && (
-                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
+                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5 mb-4">
                       <div 
                         className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
                         style={{ width: `${Math.min((searchProgress.websitesSearched / 10) * 100, 100)}%` }}
@@ -172,7 +229,7 @@ export default function Chat({
                     </div>
                   )}
                   {searchProgress.status === 'scraping' && (
-                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5">
+                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5 mb-4">
                       <div 
                         className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
                         style={{ width: `${Math.min((searchProgress.websitesScraped / 5) * 100, 100)}%` }}
@@ -180,34 +237,83 @@ export default function Chat({
                     </div>
                   )}
                   {searchProgress.status === 'compiling' && (
-                    <div className="flex items-center justify-center py-2">
+                    <div className="flex items-center justify-center py-2 mb-4">
                       <div className="w-8 h-8 border-4 border-emerald-400 dark:border-emerald-400 border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
-                  {searchProgress.workingProcess.length > 0 && (
-                    <div className="mt-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3 w-full">
-                      <p className="text-xs text-gray-500 dark:text-white/50 mb-2">Working Process</p>
-                      <div className="space-y-2">
-                        {searchProgress.workingProcess.map((process, index) => (
-                          <p key={index} className="text-sm text-gray-700 dark:text-white/80">
-                            {process}
-                          </p>
-                        ))}
+                  
+                  {workingProcessRef.current.length > 0 && (
+                    <div className="mt-2 bg-[#333333] dark:bg-[#333333] rounded-lg p-3 w-full">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs text-gray-400 dark:text-white/30">Working Process</p>
+                        <button 
+                          onClick={() => setShowWorkingProcess(!showWorkingProcess)}
+                          className="text-xs text-gray-400 dark:text-white/30 hover:text-white flex items-center"
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="12" 
+                            height="12" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`ml-1 transition-transform ${showWorkingProcess ? 'rotate-180' : 'rotate-0'}`}
+                          >
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </button>
                       </div>
+                      {showWorkingProcess && (
+                        <div className="space-y-1">
+                          {workingProcessRef.current.map((process, index) => (
+                            <p key={index} className="text-xs text-gray-300 dark:text-white/70">
+                              {process}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
-                  {thinkingMessages.length > 0 && (
-                    <div className="mt-4 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3 w-full">
-                      <p className="text-xs text-gray-500 dark:text-white/50 mb-2">Thinking...</p>
-                      <div className="space-y-2">
-                        {thinkingMessages.map((thought, index) => (
-                          <p key={index} className="text-sm text-gray-700 dark:text-white/80">
-                            {thought}
-                          </p>
-                        ))}
+                  
+                  {thinkingMessagesRef.current.length > 0 && (
+                    <div className="mt-2 bg-[#333333] dark:bg-[#333333] rounded-lg p-3 w-full">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs text-gray-300 dark:text-white/70">Thinking...</p>
+                        <button 
+                          onClick={() => setShowThinking(!showThinking)}
+                          className="text-xs text-gray-400 dark:text-white/30 hover:text-white flex items-center"
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="12" 
+                            height="12" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`ml-1 transition-transform ${showThinking ? 'rotate-180' : 'rotate-0'}`}
+                          >
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </button>
                       </div>
+                      {showThinking && (
+                        <div className="space-y-2">
+                          {thinkingMessagesRef.current.map((thought, index) => (
+                            <p key={index} className="text-sm text-gray-300 dark:text-white/70">
+                              {thought}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
+                  
                   {searchProgress.status === 'error' && (
                     <div className="flex flex-col items-start space-y-2 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-lg p-3">
                       <p className="text-sm text-red-600 dark:text-red-400">There was an error generating a response</p>
@@ -228,14 +334,11 @@ export default function Chat({
                 </div>
               </div>
             </div>
-          </div>
-        )}
-        <div ref={messageEnd} />
-      </div>
+          )}
+          <div ref={messageEnd} />
+        </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-transparent z-20">
-        <div className="absolute inset-0 bg-white/20 dark:bg-[#111111]/20 backdrop-blur-sm"></div>
-        <div className="max-w-3xl mx-auto px-3 sm:px-6 py-3 sm:py-4 relative">
+        <div className="z-10">
           <MessageInput
             sendMessage={sendMessage}
             loading={Boolean(loadingState)}
@@ -243,7 +346,7 @@ export default function Chat({
             setFileIds={setFileIds}
             files={files || []}
             setFiles={setFiles || (() => {})}
-            isError={isError}
+            isError={searchProgress.status === 'error'}
             selectedModel={selectedModel || 'default'}
             setSelectedModel={setSelectedModel || (() => {})}
           />

@@ -105,15 +105,15 @@ return (
         {message.role === 'user' && (
           <div className="flex justify-end px-0 relative z-0 max-w-3xl mx-auto">
             <div className="flex items-start space-x-2">
-              <div className="max-w-[85%] bg-light-100 dark:bg-dark-100 rounded-xl p-2.5 border border-light-200 dark:border-dark-200 shadow-sm w-full">
+              <div className="max-w-[85%] bg-gray-100 dark:bg-[#333333] rounded-xl p-3 shadow-sm w-full">
                 <div className="prose prose-sm dark:prose-invert w-full break-words whitespace-pre-wrap [&>p]:my-1.5 [&>p]:pr-1">
                   {parsedMessage && parsedMessage.trim() !== '' && (
                     <Markdown
                       className={cn(
                         'prose prose-sm prose-h1:mb-3 prose-h2:mb-2 prose-h2:mt-6 prose-h2:font-[800] prose-h3:mt-4 prose-h3:mb-1.5 prose-h3:font-[600] dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 font-[400]',
-                        'max-w-none text-black/90 dark:text-white/90',
-                        'prose-code:bg-light-secondary dark:prose-code:bg-dark-secondary prose-code:p-1 prose-code:rounded-md',
-                        'prose-pre:bg-light-secondary dark:prose-pre:bg-dark-secondary prose-pre:p-4 prose-pre:rounded-lg'
+                        'max-w-none text-gray-900 dark:text-white',
+                        'prose-code:bg-gray-200 dark:prose-code:bg-[#444444] prose-code:p-1 prose-code:rounded-md',
+                        'prose-pre:bg-gray-200 dark:prose-pre:bg-[#444444] prose-pre:p-4 prose-pre:rounded-lg'
                       )} 
                       options={{
                         overrides: {
@@ -128,19 +128,6 @@ return (
                       {parsedMessage}
                     </Markdown>
                   )}
-                  {/* {message.type === 'product' ? (
-                    <div>
-                      <p>{message.content || 'Here are some product suggestions:'}</p>
-                      <div className="grid grid-cols-2 gap-4 pt-4">
-                        {message.products?.slice(0, 10).map((product, index) => (
-                          <ProductCard 
-                            key={index} 
-                            product={product} 
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ) : null} */}
                 </div>
               </div>
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-light-100 dark:bg-dark-100 border border-light-200 dark:border-dark-200 flex items-center justify-center">
@@ -159,7 +146,7 @@ return (
               
               <div className="pl-2" style={{ width: 'calc(100% - 2.5rem)' }}>
                 <div className="flex flex-col space-y-4">
-                  <div className="bg-light-100 dark:bg-dark-100 rounded-xl p-4 border border-light-200 dark:border-dark-200">
+                  <div className="rounded-xl p-4">
                     {message.sources && message.sources.length > 0 && (
                       <div className="mt-4 p-4 bg-light-100 dark:bg-dark-100 rounded-xl border border-light-200 dark:border-dark-200">
                         <div className="flex items-center gap-2 mb-2">
