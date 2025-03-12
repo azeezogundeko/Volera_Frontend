@@ -71,6 +71,7 @@ export default function Chat({
   const workingProcessRef = useRef<string[]>([]);
   const thinkingMessagesRef = useRef<string[]>([]);
 
+
   // Save toggle states to localStorage when they change
   useEffect(() => {
     if (mounted) {
@@ -150,6 +151,8 @@ export default function Chat({
       window.removeEventListener('resize', updateDividerWidth);
     };
   });
+
+
 
   useEffect(() => {
     messageEnd.current?.scrollIntoView({ behavior: 'smooth' });

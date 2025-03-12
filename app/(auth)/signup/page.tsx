@@ -37,7 +37,6 @@ export default function SignupPage() {
       ...prev,
       [name]: name === 'referralCode' ? (value.trim() || null) : value
     }));
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
@@ -109,35 +108,28 @@ export default function SignupPage() {
         throw new Error('Password must contain at least one uppercase letter');
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      // Save the signup data as pending registration.
+      localStorage.setItem('pendingRegistration', JSON.stringify(formData));
+
+      // Optionally, you can trigger sending the verification code here.
+      // For example:
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData.email),
       });
 
-      const data = await response.json();
+      toast.success('Verification code sent! Please verify your email.', {
+        duration: 5000,
+        position: 'top-center',
+        style: {
+          background: 'rgb(34 197 94)',
+          color: '#fff',
+          padding: '16px',
+        },
+      });
 
-      if (response.ok) {
-        localStorage.setItem('auth_token', data.token.access_token);
-        localStorage.setItem('token_type', data.token.token_type);
-        localStorage.setItem('user', JSON.stringify(data.user));
-
-        toast.success('Account created successfully! Please verify your email.', {
-          duration: 5000,
-          position: 'top-center',
-          style: {
-            background: 'rgb(34 197 94)',
-            color: '#fff',
-            padding: '16px',
-          },
-        });
-
-        router.push('/verify');
-      } else {
-        throw new Error(data.detail || 'Registration failed. Please try again.');
-      }
+      router.push('/verify');
     } catch (err) {
       console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Failed to create account. Please try again.');
@@ -149,11 +141,9 @@ export default function SignupPage() {
   const handleGoogleSignup = async () => {
     setLoading(true);
     try {
-      // Generate a random state parameter for security
       const state = crypto.randomUUID();
       localStorage.setItem('googleOAuthState', state);
 
-      // Construct Google OAuth URL with the correct redirect URI
       const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
       const redirectUri = `${window.location.origin}/auth/google/callback`;
 
@@ -166,7 +156,6 @@ export default function SignupPage() {
         access_type: 'offline',
         prompt: 'consent',
       });
-      // Redirect to Google OAuth
       window.location.href = `${googleAuthUrl}?${params.toString()}`;
     } catch (err) {
       console.error('Google sign-in error:', err);
@@ -177,10 +166,6 @@ export default function SignupPage() {
 
   useEffect(() => {
     console.log('Signup page mounted');
-    
-    // Log API URL configuration
-    // console.log('API URL configured as:', process.env.NEXT_PUBLIC_API_URL);
-    
     return () => {
       console.log('Signup page unmounted');
     };
@@ -386,7 +371,7 @@ export default function SignupPage() {
                 disabled={loading}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
+                {loading ? 'Preparing...' : 'Verify Account'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

@@ -66,8 +66,38 @@ const SearchBar = ({ onSearch, onSearchStart, onImageSearch, initialQuery = '' }
       id: 'konga.com', 
       name: 'Konga',
       bgColor: '#ed017f',
+      shortName: 'KO'
+    },
+    { 
+      id: 'shopinverse.com', 
+      name: 'Shopinverse',
+      bgColor: '#ed017f',
+      shortName: 'SI'
+    },
+    { 
+      id: 'kara.com.ng', 
+      name: 'Kara',
+      bgColor: '#ed017f',
       shortName: 'K'
-    }
+    },
+    { 
+      id: 'supermart.ng', 
+      name: 'Supermart',
+      bgColor: '#ed017f',
+      shortName: 'SM'
+    },
+    { 
+      id: 'slot.ng', 
+      name: 'Slot',
+      bgColor: '#ed017f',
+      shortName: 'SL'
+    },
+    { 
+      id: 'parkwaynigeria.com', 
+      name: 'Parkway',
+      bgColor: '#ed017f',
+      shortName: 'P'
+    },
   ];
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

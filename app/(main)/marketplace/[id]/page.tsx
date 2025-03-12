@@ -81,21 +81,28 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   }, [product, params.id]);
 
   const handleTrackPrice = async () => {
+    // Check if the product's source is Jumia (case-insensitive)
+    if (!product || !product.source || product.source.toLowerCase() !== 'jumia') {
+      toast.error('Price tracking is only available for Jumia products');
+      return;
+    }
+    
+  
     if (!targetPrice || isNaN(Number(targetPrice))) {
       setTrackingError('Please enter a valid price');
       return;
     }
-
+  
     try {
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
-
+  
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('auth_token');
         headers['Authorization'] = `Bearer ${token}`;
       }
-
+  
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/track`, {
         method: 'POST',
         headers,
@@ -105,17 +112,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           product: product
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to set price tracking');
       }
-
+  
       setShowTrackingModal(false);
       setTargetPrice('');
       setTrackingError('');
       
-      // Show success toast
-      toast.success('Price tracking set! We&apos;ll notify you when the price drops.', {
+      toast.success('Price tracking set! We\'ll notify you when the price drops.', {
         duration: 5000,
         position: 'top-center',
         style: {
@@ -128,6 +134,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setTrackingError('Failed to set price tracking. Please try again.');
     }
   };
+  
 
   const toggleSave = async () => {
     try {

@@ -99,13 +99,13 @@ useEffect(() => {
 }, [message.messageId, onVisibilityChange, messageRef]);
 
 return (
-    <div className="w-full overflow-x-hidden relative" ref={messageRef}>
+  <div className={`w-full overflow-x-hidden relative ${images?.length ? 'pr-[150px]' : ''}`} ref={messageRef}>
       {/* Main Content Area */}
       <div className="w-full max-w-3xl mx-auto pl-0">
         {message.role === 'user' && (
-          <div className="flex justify-end px-0 relative z-0 max-w-3xl mx-auto">
+          <div className="flex justify-end px-20 relative z-0 max-w-3xl">
             <div className="flex items-start space-x-2">
-              <div className="max-w-[85%] bg-gray-100 dark:bg-[#333333] rounded-xl p-3 shadow-sm w-full">
+              <div className="max-w-[90%] bg-gray-100 dark:bg-[#333333] rounded-xl p-3 shadow-sm w-full">
                 <div className="prose prose-sm dark:prose-invert w-full break-words whitespace-pre-wrap [&>p]:my-1.5 [&>p]:pr-1">
                   {parsedMessage && parsedMessage.trim() !== '' && (
                     <Markdown
@@ -181,17 +181,16 @@ return (
                             </Markdown>
                           )}
                           {message.products && message.products.length > 0 && (
-                            <div className="pt-6">
-                              <b className="text-2xl">Product Suggestions</b>
-                              <div className="grid grid-cols-2 gap-4 pt-4">
-                                {message.products?.slice(0, 10).map((product, index) => (
-                                  <ProductCard 
-                                    key={index} 
-                                    product={product} 
-                                  />
-                                ))}
+                              <div className="pt-6">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                                      {message.products.slice(0, 10).map((product, index) => (
+                                          <ProductCard 
+                                              key={index} 
+                                              product={product} 
+                                          />
+                                      ))}
+                                  </div>
                               </div>
-                            </div>
                           )}
                         </div>
                       </div>

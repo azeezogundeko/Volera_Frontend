@@ -17,6 +17,7 @@ interface MessageInputProps {
   isError?: boolean;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
+  isSidebarExpanded?: boolean;
 }
 
 const MessageInput = ({
@@ -29,12 +30,36 @@ const MessageInput = ({
   isError = false,
   selectedModel,
   setSelectedModel,
+  isSidebarExpanded = false,
 }: MessageInputProps) => {
   const [message, setMessage] = useState('');
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [rows, setRows] = useState(1);
   const maxRows = 6;
+  const [expanded, setExpanded] = useState(() => {
+    const savedState = localStorage.getItem('sidebar-expanded');
+    return savedState !== null ? savedState === 'true' : false; // Default to false if not set
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-expanded', expanded.toString());
+  }, [expanded]);
+
+  useEffect(() => {
+      const handleStorageChange = (event: StorageEvent) => {
+          if (event.key === 'sidebar-expanded') {
+              setExpanded(event.newValue === 'true');
+          }
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+
+      return () => {
+          window.removeEventListener('storage', handleStorageChange);
+      };
+  }, []);
+    
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,25 +94,25 @@ const MessageInput = ({
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
-    
+
     // Auto-resize logic
     const textareaLineHeight = 24; // Match your line-height in CSS
     const previousRows = e.target.rows;
     e.target.rows = 1; // Reset rows
-    
+
     const currentRows = Math.floor(e.target.scrollHeight / textareaLineHeight);
-    
+
     if (currentRows === previousRows) {
       e.target.rows = currentRows;
     }
-    
+
     if (currentRows >= maxRows) {
       e.target.rows = maxRows;
       e.target.scrollTop = e.target.scrollHeight;
     } else {
       e.target.rows = currentRows;
     }
-    
+
     setRows(currentRows < maxRows ? currentRows : maxRows);
   };
 
@@ -102,77 +127,84 @@ const MessageInput = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 sm:left-1/2 sm:transform sm:-translate-x-1/2 w-full max-w-3xl px-2 sm:px-4 pb-2 z-10">
-      <div className="bg-white dark:bg-[#111111] rounded-xl shadow-xl border border-gray-200 dark:border-[#222222]">
-        <div className="p-2 sm:p-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 mb-1">
-            <ModelSelector
-              selectedModel={selectedModel}
-              setSelectedModel={setSelectedModel}
-            />
-            <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-              AI-generated reference
-            </span>
-          </div>
+    <div
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-10 transition-all duration-300 ease-in-out",
+        false
+          ? "xl:left-[260px] xl:w-[calc(100%-260px)]"  // Only on xl screens
+          : "xl:left-0 xl:w-full"                      // Only on xl screens
+      )}
+    
+    >
+      <div className="mx-auto max-w-3xl px-2 sm:px-4 pb-2">
+        <div className="bg-white dark:bg-[#111111] rounded-xl shadow-xl border border-gray-200 dark:border-[#222222]">
+          <div className="p-2 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 mb-1">
+              <ModelSelector
+                selectedModel={selectedModel}
+                setSelectedModel={setSelectedModel}
+              />
+              <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                AI-generated reference
+              </span>
+            </div>
 
-          <div className="relative">
-            <textarea
-              ref={textareaRef}
-              value={message}
-              onChange={handleTextareaChange}
-              onKeyDown={handleKeyDown}
-              placeholder={isError ? "Try again..." : "Ask anything..."}
-              className={cn(
-                "w-full bg-gray-50 dark:bg-[#222222]",
-                "rounded-lg border border-gray-300 dark:border-[#333333]",
-                "py-2 px-3 pr-12 sm:pr-14",
-                "text-sm placeholder:text-gray-400",
-                "focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "resize-none overflow-y-auto",
-                "transition-all duration-200",
-                "min-h-[40px]"
-              )}
-              disabled={loading || isError}
-              rows={rows}
-              style={{
-                height: 'auto',
-                maxHeight: `${maxRows * 24}px`,
-              }}
-            />
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
+                placeholder={isError ? "Try again..." : "Ask anything..."}
+                className={cn(
+                  "w-full bg-gray-50 dark:bg-[#222222]",
+                  "rounded-lg border border-gray-300 dark:border-[#333333]",
+                  "py-2 px-3 pr-12 sm:pr-14",
+                  "text-sm placeholder:text-gray-400",
+                  "focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                  "resize-none overflow-y-auto",
+                  "transition-all duration-200",
+                  "min-h-[40px]"
+                )}
+                disabled={loading || isError}
+                rows={rows}
+                style={{
+                  height: 'auto',
+                  maxHeight: `${maxRows * 24}px`,
+                }}
+              />
 
-            <button
-              onClick={handleSubmit}
-              disabled={!message.trim() || loading || isError}
-              className={cn(
-                "absolute right-2 bottom-2 p-1.5 sm:p-2 rounded-md sm:rounded-lg",
-                "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700",
-                "disabled:bg-gray-200 dark:disabled:bg-[#222222]",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                "transition-colors duration-200"
-              )}
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              )}
-            </button>
-          </div>
+              <button
+                onClick={handleSubmit}
+                disabled={!message.trim() || loading || isError}
+                className={cn(
+                  "absolute right-2 bottom-2 p-1.5 sm:p-2 rounded-md sm:rounded-lg",
+                  "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700",
+                  "disabled:bg-gray-200 dark:disabled:bg-[#222222]",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                  "transition-colors duration-200"
+                )}
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                )}
+              </button>
+            </div>
 
-          <div className="hidden sm:block mt-2 sm:mt-3 text-center">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              DeepThink (RI) Search · v2.4.1 · 
-              <span className="text-emerald-500 ml-1">Privacy Policy</span>
+            <div className="hidden sm:block mt-2 sm:mt-3 text-center">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                DeepThink (RI) Search · v2.4.1 ·{' '}
+                <span className="text-emerald-500 ml-1">Privacy Policy</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <AuthDialog
-        isOpen={isAuthDialogOpen}
-        setIsOpen={setIsAuthDialogOpen}
-      />
+      <AuthDialog isOpen={isAuthDialogOpen} setIsOpen={setIsAuthDialogOpen} />
     </div>
   );
 };

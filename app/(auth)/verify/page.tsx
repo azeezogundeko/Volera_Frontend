@@ -16,11 +16,18 @@ export default function VerifyPage() {
   const inputRefs = useRef<HTMLInputElement[]>([]);
 
   useEffect(() => {
-    // Get the user's email from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setEmail(user.email);
+    // Get the user's email from localStorage.
+    // It can either be stored in the pending registration data or from a previously saved user.
+    const pendingData = localStorage.getItem('pendingRegistration');
+    if (pendingData) {
+      const { email } = JSON.parse(pendingData);
+      setEmail(email);
+    } else {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setEmail(user.email);
+      }
     }
   }, []);
 
@@ -29,35 +36,28 @@ export default function VerifyPage() {
   };
 
   const handleCodeChange = async (index: number, value: string) => {
-    // Only allow numeric input
     if (!/^\d*$/.test(value)) return;
-    
-    // Only allow single digit
     if (value.length > 1) return;
 
     const newCode = [...verificationCode];
     newCode[index] = value;
     setVerificationCode(newCode);
-    setError(''); // Clear any previous errors
+    setError('');
 
-    // Move to next input if value is entered
     if (value !== '' && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // If this is the last digit and code is complete, submit automatically
     if (value !== '' && isCodeComplete(newCode)) {
-      await handleSubmit(newCode.join('')); // Pass the newCode directly
+      await handleSubmit(newCode.join(''));
     }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       if (verificationCode[index] === '' && index > 0) {
-        // Move to previous input if current is empty
         inputRefs.current[index - 1]?.focus();
       } else {
-        // Clear current input
         const newCode = [...verificationCode];
         newCode[index] = '';
         setVerificationCode(newCode);
@@ -66,40 +66,44 @@ export default function VerifyPage() {
   };
 
   const handleSubmit = async (submittedCode?: string, e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
+    if (e) e.preventDefault();
     if (loading) return;
-
+  
+    // Use the submitted code if provided, otherwise join the state
     const code = submittedCode || verificationCode.join('');
-    const codeArray = submittedCode ? submittedCode.split('') : verificationCode;
-    
-    if (!isCodeComplete(codeArray)) {
+  
+    // Instead of checking the state, check the code directly
+    if (!code || code.length !== 6) {
       setError('Please enter the complete verification code');
       return;
     }
-
+  
     setLoading(true);
     setError('');
-
+  
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify_account`, {
+      // Retrieve pending registration data from localStorage
+      const pendingData = localStorage.getItem('pendingRegistration');
+      if (!pendingData) {
+        throw new Error('No pending registration data found.');
+      }
+      const registrationData = JSON.parse(pendingData);
+  
+      // Call a new endpoint to verify the code and create the account
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify_and_register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          ...registrationData,
           code,
         }),
       });
-
       const data = await response.json();
-
+  
       if (response.ok) {
-       
-        toast.success('Email verified successfully!', {
+        toast.success('Email verified and account created successfully!', {
           duration: 5000,
           position: 'top-center',
           style: {
@@ -108,14 +112,15 @@ export default function VerifyPage() {
             padding: '16px',
           },
         });
-
-        const userData = localStorage.getItem('user');
-        if (userData) {
-          const user = JSON.parse(userData);
-          user.verified = true;
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-
+  
+        // Save token and user data in localStorage
+        localStorage.setItem('auth_token', data.token.access_token);
+        localStorage.setItem('token_type', data.token.token_type);
+        localStorage.setItem('user', JSON.stringify(data.user));
+  
+        // Remove pending registration data
+        localStorage.removeItem('pendingRegistration');
+  
         router.push('/onboarding');
       } else {
         throw new Error(data.detail || 'Verification failed');
@@ -125,7 +130,8 @@ export default function VerifyPage() {
     } finally {
       setLoading(false);
     }
-  };  
+  };
+  
 
   const handleResendCode = async () => {
     setLoading(true);
@@ -215,7 +221,7 @@ export default function VerifyPage() {
             disabled={loading}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Verifying...' : 'Verify Email'}
+            {loading ? 'Creating...' : 'Create Account'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
@@ -253,4 +259,4 @@ export default function VerifyPage() {
       </div>
     </div>
   );
-} 
+}
