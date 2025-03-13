@@ -224,20 +224,22 @@ export default function Chat({
                   )}
                   
                   {searchProgress.status === 'searching' && (
-                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5 mb-4">
+                    <div className="w-[600px] bg-gray-200 dark:bg-[#222222] rounded-full h-1.5 mb-4">
                       <div 
                         className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
-                        style={{ width: `${Math.min((searchProgress.websitesSearched / 10) * 100, 100)}%` }}
+                        style={{ width: `${Math.min((searchProgress.websitesSearched / 20) * 100, 100)}%` }}
                       />
-                    </div>
+                  </div>
+                  
                   )}
                   {searchProgress.status === 'scraping' && (
-                    <div className="w-full bg-gray-200 dark:bg-[#222222] rounded-full h-1.5 mb-4">
+                    <div className="w-[600px] bg-gray-200 dark:bg-[#222222] rounded-full h-1.5 mb-4">
                       <div 
                         className="bg-emerald-400 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-300" 
-                        style={{ width: `${Math.min((searchProgress.websitesScraped / 5) * 100, 100)}%` }}
+                        style={{ width: `${Math.min((searchProgress.websitesSearched / 20) * 100, 100)}%` }}
                       />
-                    </div>
+                  </div>
+                  
                   )}
                   {searchProgress.status === 'compiling' && (
                     <div className="flex items-center justify-center py-2 mb-4">
@@ -246,7 +248,7 @@ export default function Chat({
                   )}
                   
                   {workingProcessRef.current.length > 0 && (
-                    <div className="mt-2 bg-[#333333] dark:bg-[#333333] rounded-lg p-3 w-full">
+                    <div className="mt-2 bg-[#333333] dark:bg-[#333333] rounded-lg p-3 w-auto lg:w-[600px]">
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-xs text-gray-400 dark:text-white/30">Working Process</p>
                         <button 
@@ -282,7 +284,7 @@ export default function Chat({
                   )}
                   
                   {thinkingMessagesRef.current.length > 0 && (
-                    <div className="mt-2 bg-[#333333] dark:bg-[#333333] rounded-lg p-3 w-full">
+                    <div className="mt-2 bg-[#333333] dark:bg-[#333333] rounded-lg p-3 w-auto lg:w-[600px]">
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-xs text-gray-300 dark:text-white/70">Thinking...</p>
                         <button 
