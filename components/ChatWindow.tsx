@@ -342,7 +342,7 @@ const ChatWindow = ({ id, initialFocusMode, messages, isLoading, videos, loading
 
   const [chatId, setChatId] = useState<string | undefined>(id);
   const [newChatCreated, setNewChatCreated] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('deepseek');
+  const [selectedModel, setSelectedModel] = useState('gemini');
 
   const [hasError, setHasError] = useState(false);
   const [isReady, setIsReady] = useState(false);
