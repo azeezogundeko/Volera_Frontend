@@ -128,7 +128,7 @@ const MessageInput = ({
               <ModelSelector
                 selectedModel={selectedModel}
                 setSelectedModel={setSelectedModel}
-                className="w-full sm:w-auto"
+                // className="w-full sm:w-auto"
               />
               <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                 AI-generated reference
