@@ -39,7 +39,7 @@ const MessageInput = ({
   const maxRows = 6;
   const [expanded, setExpanded] = useState(() => {
     const savedState = localStorage.getItem('sidebar-expanded');
-    return savedState !== null ? savedState === 'true' : false; // Default to false if not set
+    return savedState !== null ? savedState === 'true' : false;
   });
 
   useEffect(() => {
@@ -47,19 +47,15 @@ const MessageInput = ({
   }, [expanded]);
 
   useEffect(() => {
-      const handleStorageChange = (event: StorageEvent) => {
-          if (event.key === 'sidebar-expanded') {
-              setExpanded(event.newValue === 'true');
-          }
-      };
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'sidebar-expanded') {
+        setExpanded(event.newValue === 'true');
+      }
+    };
 
-      window.addEventListener('storage', handleStorageChange);
-
-      return () => {
-          window.removeEventListener('storage', handleStorageChange);
-      };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-    
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -88,23 +84,18 @@ const MessageInput = ({
       }
       sendMessage(message);
       setMessage('');
-      setRows(1); // Reset rows after submit
+      setRows(1);
     }
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
-
-    // Auto-resize logic
-    const textareaLineHeight = 24; // Match your line-height in CSS
+    const textareaLineHeight = 24;
     const previousRows = e.target.rows;
-    e.target.rows = 1; // Reset rows
+    e.target.rows = 1;
 
     const currentRows = Math.floor(e.target.scrollHeight / textareaLineHeight);
-
-    if (currentRows === previousRows) {
-      e.target.rows = currentRows;
-    }
+    if (currentRows === previousRows) e.target.rows = currentRows;
 
     if (currentRows >= maxRows) {
       e.target.rows = maxRows;
@@ -120,29 +111,24 @@ const MessageInput = ({
     if (e.key === 'Enter' && !e.shiftKey && !loading && !isError) {
       e.preventDefault();
       handleSubmit();
-    } else if (e.key === 'Enter' && e.shiftKey) {
-      // Allow default behavior (new line)
-      return;
     }
   };
 
   return (
-    <div
-      className={cn(
-        "fixed bottom-0 left-0 right-0 z-10 transition-all duration-300 ease-in-out",
-        false
-          ? "xl:left-[260px] xl:w-[calc(100%-260px)]"  // Only on xl screens
-          : "xl:left-0 xl:w-full"                      // Only on xl screens
-      )}
-    
-    >
-      <div className="mx-auto max-w-3xl px-2 sm:px-4 pb-2">
+    <div className={cn(
+      "fixed bottom-0 left-0 right-0 z-10 transition-all duration-300 ease-in-out",
+      isSidebarExpanded
+        ? "xl:left-[260px] xl:w-[calc(100%-260px)]"
+        : "xl:left-0 xl:w-full"
+    )}>
+      <div className="mx-auto max-w-3xl px-2 sm:px-4 pb-2 sm:pb-4">
         <div className="bg-white dark:bg-[#111111] rounded-xl shadow-xl border border-gray-200 dark:border-[#222222]">
           <div className="p-2 sm:p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 mb-1">
               <ModelSelector
                 selectedModel={selectedModel}
                 setSelectedModel={setSelectedModel}
+                className="w-full sm:w-auto"
               />
               <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                 AI-generated reference
@@ -159,27 +145,23 @@ const MessageInput = ({
                 className={cn(
                   "w-full bg-gray-50 dark:bg-[#222222]",
                   "rounded-lg border border-gray-300 dark:border-[#333333]",
-                  "py-2 px-3 pr-12 sm:pr-14",
-                  "text-sm placeholder:text-gray-400",
+                  "py-2 px-3 pr-10 sm:pr-14",
+                  "text-sm sm:text-base placeholder:text-gray-400",
                   "focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
                   "resize-none overflow-y-auto",
-                  "transition-all duration-200",
-                  "min-h-[40px]"
+                  "min-h-[40px] max-h-[150px] sm:max-h-[200px]",
+                  "transition-all duration-200"
                 )}
                 disabled={loading || isError}
                 rows={rows}
-                style={{
-                  height: 'auto',
-                  maxHeight: `${maxRows * 24}px`,
-                }}
               />
 
               <button
                 onClick={handleSubmit}
                 disabled={!message.trim() || loading || isError}
                 className={cn(
-                  "absolute right-2 bottom-2 p-1.5 sm:p-2 rounded-md sm:rounded-lg",
+                  "absolute right-1.5 bottom-1.5 p-1 sm:p-2 rounded-md",
                   "bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700",
                   "disabled:bg-gray-200 dark:disabled:bg-[#222222]",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -196,7 +178,7 @@ const MessageInput = ({
 
             <div className="hidden sm:block mt-2 sm:mt-3 text-center">
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                DeepThink (RI) Search · v2.4.1 ·{' '}
+                Volera (C) 2025
                 <span className="text-emerald-500 ml-1">Privacy Policy</span>
               </div>
             </div>
