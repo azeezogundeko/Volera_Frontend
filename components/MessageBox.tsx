@@ -179,14 +179,12 @@ const MessageBox = ({
                         </Markdown>
                       )}
                       {message.products && message.products.length > 0 && (
-                        <div className="pt-6">
-                          <b className="text-2xl">Product Suggestions</b>
-                          <div className="grid grid-cols-2 gap-4 pt-4">
-                            {message.products?.slice(0, 10).map((product, index) => (
-                              <ProductCard key={index} product={product} />
-                            ))}
-                          </div>
-                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                          {message.products?.slice(0, 10).map((product, index) => (
+                            <ProductCard key={index} product={product} />
+                          ))}
+                      </div>
+                      
                       )}
                     </div>
                   </div>
