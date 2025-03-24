@@ -5,19 +5,25 @@ import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import { Message } from './ChatWindow';
 
-type Image = {
+export type Image = {
   url: string;
-  img_src: string;
+  img_url: string;
   title: string;
 };
+
+interface SearchImagesProps {
+  images: Image[] | null;
+  loading: boolean;
+  messageId?: string;
+  onSearchVideos?: () => Promise<void>;
+}
 
 const SearchImages = ({
   images,
   loading,
-}: {
-  images: Image[] | null;
-  loading: boolean;
-}) => {
+  messageId,
+  onSearchVideos,
+}: SearchImagesProps) => {
   const [open, setOpen] = useState(false);
   const [slides, setSlides] = useState<any[]>([]);
 
@@ -25,7 +31,7 @@ const SearchImages = ({
     if (images) {
       setSlides(
         images.map((image: Image) => ({
-          src: image.img_src,
+          src: image.img_url,
         }))
       );
     }
@@ -76,7 +82,7 @@ const SearchImages = ({
                     ...slides.slice(i + 1),
                   ]);
                 }}
-                src={image.img_src}
+                src={image.img_url}
                 alt={image.title}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-200 active:scale-95 hover:scale-105 cursor-zoom-in"
               />
@@ -94,7 +100,7 @@ const SearchImages = ({
                     className="relative w-full h-full rounded-sm overflow-hidden"
                   >
                     <img
-                      src={image.img_src}
+                      src={image.img_url}
                       alt={image.title}
                       className="absolute inset-0 w-full h-full object-cover rounded-sm"
                     />
