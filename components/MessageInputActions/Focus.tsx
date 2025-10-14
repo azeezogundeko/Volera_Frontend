@@ -9,13 +9,15 @@ const Focus = ({
 }) => {
   const isUltraSearch = focusMode === 'ultrasearch';
   
-  const toggleFocusMode = () => {
-    // Toggle between 'ultrasearch' and 'all' (Q/A mode)
+  const toggleFocusMode = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent form submission
+    e.stopPropagation(); // Stop event propagation
     setFocusMode(isUltraSearch ? 'all' : 'ultrasearch');
   };
 
   return (
     <button
+      type="button" // Explicitly set button type to prevent form submission
       onClick={toggleFocusMode}
       className={cn(
         'flex items-center px-3 py-1.5 rounded-lg transition-all duration-200',
